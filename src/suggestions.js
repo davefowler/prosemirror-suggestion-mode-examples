@@ -43,6 +43,26 @@ export const suggestionsPlugin = new Plugin({
                     tr.addMark($from.pos, $to.pos, mark)
                     view.dispatch(tr)
                     return true
+                } else if (event.keyCode === 8 && $from.pos > 0) {
+                    // Backspace at a single position
+                    const tr = view.state.tr
+                    const mark = view.state.schema.marks.suggestion_delete.create({
+                        createdAt: Date.now(),
+                        hiddenText: view.state.doc.textBetween($from.pos - 1, $from.pos)
+                    })
+                    tr.addMark($from.pos - 1, $from.pos, mark)
+                    view.dispatch(tr)
+                    return true
+                } else if (event.keyCode === 46 && $from.pos < view.state.doc.content.size) {
+                    // Delete at a single position
+                    const tr = view.state.tr
+                    const mark = view.state.schema.marks.suggestion_delete.create({
+                        createdAt: Date.now(),
+                        hiddenText: view.state.doc.textBetween($from.pos, $from.pos + 1)
+                    })
+                    tr.addMark($from.pos, $from.pos + 1, mark)
+                    view.dispatch(tr)
+                    return true
                 }
             }
             return false

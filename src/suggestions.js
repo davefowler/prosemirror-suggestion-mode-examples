@@ -113,8 +113,25 @@ export const suggestionsPlugin = new Plugin({
             if (!state.suggestionMode) return false
 
             const tr = view.state.tr
+
+            // If there's selected text, mark it as deleted first
+            if (from !== to) {
+                const selectedText = view.state.doc.textBetween(from, to)
+                const deleteMark = view.state.schema.marks.suggestion_delete.create({
+                    createdAt: Date.now(),
+                    hiddenText: selectedText
+                })
+                tr.addMark(from, to, deleteMark)
+                
+                console.log('Suggestion deletion before input:', {
+                    text: selectedText,
+                    from,
+                    to
+                })
+            }
+
+            // Then handle the new text input
             tr.insertText(text, from, to)
-            
             const addMark = view.state.schema.marks.suggestion_add.create({
                 createdAt: Date.now()
             })

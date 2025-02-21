@@ -113,50 +113,18 @@ export const suggestionsPlugin = new Plugin({
             if (!state.suggestionMode) return false
 
             const tr = view.state.tr
-
-            // If there's selected text, mark it as deleted and replace with new text
-            if (from !== to) {
-                // Get the selected text
-                const selectedText = view.state.doc.textBetween(from, to)
-                
-                // Create the deletion mark
-                const deleteMark = view.state.schema.marks.suggestion_delete.create({
-                    createdAt: Date.now(),
-                    hiddenText: selectedText
-                })
-                
-                // Create the addition mark
-                const addMark = view.state.schema.marks.suggestion_add.create({
-                    createdAt: Date.now()
-                })
-                
-                // First replace the text
-                tr.replaceWith(from, to, view.state.schema.text(text))
-                
-                // Then apply the marks in order: first deletion on old text position
-                tr.addMark(from, from + text.length, deleteMark)
-                
-                // Then addition mark on the new text
-                tr.addMark(from, from + text.length, addMark)
-                console.log('Suggestion replacement:', {
-                    oldText: selectedText,
-                    newText: text,
-                    from,
-                    to
-                })
-            } else {
-                // Just insert new text with addition mark
-                tr.insertText(text, from, to)
-                const addMark = view.state.schema.marks.suggestion_add.create({
-                    createdAt: Date.now()
-                })
-                tr.addMark(from, from + text.length, addMark)
-                console.log('Suggestion addition:', {
-                    text,
-                    from,
-                    to
-                })
-            }
+            tr.insertText(text, from, to)
+            
+            const addMark = view.state.schema.marks.suggestion_add.create({
+                createdAt: Date.now()
+            })
+            tr.addMark(from, from + text.length, addMark)
+            
+            console.log('Suggestion addition:', {
+                text,
+                from,
+                to
+            })
             
             view.dispatch(tr)
             return true

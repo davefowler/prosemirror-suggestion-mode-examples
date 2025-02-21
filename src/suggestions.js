@@ -11,7 +11,10 @@ export const suggestionsPlugin = new Plugin({
         init() {
             return {
                 suggestionMode: true,
-                username: 'Anonymous'
+                username: 'Anonymous',
+                activeMarkFrom: null,
+                activeMarkTo: null,
+                activeMarkCreatedAt: null
             }
         },
         
@@ -19,7 +22,20 @@ export const suggestionsPlugin = new Plugin({
             const meta = tr.getMeta(suggestionsPlugin)
             if (meta && meta.hasOwnProperty('suggestionMode')) {
                 return {
-                    suggestionMode: meta.suggestionMode
+                    ...value,
+                    suggestionMode: meta.suggestionMode,
+                    activeMarkFrom: null,
+                    activeMarkTo: null,
+                    activeMarkCreatedAt: null
+                }
+            }
+            
+            // Update mark positions based on document changes
+            if (tr.docChanged && value.activeMarkFrom !== null) {
+                return {
+                    ...value,
+                    activeMarkFrom: tr.mapping.map(value.activeMarkFrom),
+                    activeMarkTo: tr.mapping.map(value.activeMarkTo)
                 }
             }
             return value
@@ -34,21 +50,52 @@ export const suggestionsPlugin = new Plugin({
             const tr = view.state.tr
 
 
-            // Insert the text and create a new mark for just this insertion
+            const pluginState = this.getState(view.state)
+            
+            // Insert the text
             tr.insertText(text, from, to)
-
+            
+            let markFrom, markTo, createdAt
+            
+            if (pluginState.activeMarkFrom === null) {
+                // Start a new mark
+                markFrom = from
+                markTo = from + text.length
+                createdAt = Date.now()
+                
+                // Store the new mark position
+                tr.setMeta(suggestionsPlugin, {
+                    ...pluginState,
+                    activeMarkFrom: markFrom,
+                    activeMarkTo: markTo,
+                    activeMarkCreatedAt: createdAt
+                })
+            } else {
+                // Extend existing mark
+                markFrom = pluginState.activeMarkFrom
+                markTo = from + text.length
+                createdAt = pluginState.activeMarkCreatedAt
+                
+                // Update the mark position
+                tr.setMeta(suggestionsPlugin, {
+                    ...pluginState,
+                    activeMarkTo: markTo
+                })
+            }
+            
             const addMark = view.state.schema.marks.suggestion_add.create({
-                createdAt: Date.now(),
-                username: this.getState(view.state).username
+                createdAt: createdAt,
+                username: pluginState.username
             })
             
-            // Apply mark only to the newly inserted text
-            tr.addMark(from, from + text.length, addMark)
+            // Apply or extend the mark
+            tr.addMark(markFrom, markTo, addMark)
             
             console.log('Suggestion addition:', {
                 text,
-                from,
-                to: from + text.length
+                markFrom,
+                markTo,
+                createdAt
             })
             
             view.dispatch(tr)

@@ -9,13 +9,19 @@
     "build": "webpack --mode production"
   },
   "dependencies": {
-    "prosemirror-state": "^1.4.3",
-    "prosemirror-view": "^1.31.7",
+    "prosemirror-commands": "^1.5.2",
+    "prosemirror-history": "^1.4.1",
+    "prosemirror-keymap": "^1.2.2",
     "prosemirror-model": "^1.19.3",
+    "prosemirror-schema-basic": "^1.2.3",
+    "prosemirror-schema-list": "^1.5.0",
+    "prosemirror-state": "^1.4.3",
     "prosemirror-transform": "^1.7.3",
-    "prosemirror-commands": "^1.5.2"
+    "prosemirror-view": "^1.31.7"
   },
   "devDependencies": {
+    "@babel/core": "^7.26.9",
+    "babel-loader": "^9.2.1",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"

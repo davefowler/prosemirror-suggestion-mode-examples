@@ -32,6 +32,8 @@ export const suggestionsPlugin = new Plugin({
 
             // Handle deletions (Backspace and Delete keys)
             if (event.keyCode === 8 || event.keyCode === 46) {
+                event.preventDefault(); // Prevent default deletion behavior
+                
                 const { $from, $to } = view.state.selection
                 const tr = view.state.tr
 
@@ -43,12 +45,14 @@ export const suggestionsPlugin = new Plugin({
 
                 if ($from.pos !== $to.pos) {
                     // Handle selection deletion
+                    const selectedText = view.state.doc.textBetween($from.pos, $to.pos)
+                    if (!selectedText.length) return false
+                    
                     const mark = view.state.schema.marks.suggestion_delete.create({
                         createdAt: Date.now(),
-                        hiddenText: view.state.doc.textBetween($from.pos, $to.pos)
+                        hiddenText: selectedText
                     })
                     tr.addMark($from.pos, $to.pos, mark)
-                    // Move cursor to end of selection
                     tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve($to.pos)))
                     view.dispatch(tr)
                     return true

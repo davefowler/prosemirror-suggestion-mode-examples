@@ -72,13 +72,7 @@ window.addEventListener("load", () => {
         plugins: [
             history(),
             keymap(baseKeymap),
-            new Plugin({
-                ...suggestionsPlugin,
-                // Optional: customize tooltip content
-                tooltipRenderer: (mark, type) => {
-                    return `${type === 'delete' ? 'Deletion' : 'Addition'} by ${mark.attrs.username}`
-                }
-            })
+            suggestionsPlugin
         ]
     })
 

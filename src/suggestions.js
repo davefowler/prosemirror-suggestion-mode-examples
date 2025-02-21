@@ -12,7 +12,8 @@ export const suggestionsPlugin = new Plugin({
             return {
                 suggestionMode: true,
                 username: 'Anonymous',
-                activeMarkRange: null // Will store {from, to, createdAt}
+                activeMarkRange: null, // Will store {from, to, createdAt}
+                showDeletedText: false // New setting to control deletion display
             }
         },
         

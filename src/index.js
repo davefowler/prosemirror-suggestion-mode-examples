@@ -90,15 +90,29 @@ window.addEventListener("load", () => {
             
             const toggleButton = document.querySelector("#toggleSuggestionMode")
             toggleButton.classList.toggle('active', suggestionState.suggestionMode)
+
+            // Update deletion marks based on showDeletedText setting
+            document.querySelectorAll('.suggestion-delete').forEach(el => {
+                el.classList.toggle('compact', !suggestionState.showDeletedText)
+                el.classList.toggle('expanded', suggestionState.showDeletedText)
+            })
         }
     })
 
-    // Add event listener for the toggle button
+    // Add event listeners for the controls
     document.querySelector("#toggleSuggestionMode").addEventListener("click", () => {
         const state = suggestionsPluginKey.getState(view.state)
         view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
             suggestionMode: !state.suggestionMode,
             username: state.username
+        }))
+    })
+
+    document.querySelector("#showDeletedText").addEventListener("change", (e) => {
+        const state = suggestionsPluginKey.getState(view.state)
+        view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
+            ...state,
+            showDeletedText: e.target.checked
         }))
     })
 })

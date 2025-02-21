@@ -46,15 +46,25 @@
             border-radius: 2px;
         }
         .suggestion-delete {
+            position: relative;
+            cursor: pointer;
+        }
+        .suggestion-delete.compact {
             display: inline-block;
             width: 12px;
             height: 12px;
             background-color: #ffcccc;
             border-radius: 2px;
-            cursor: pointer;
-            position: relative;
         }
-        .suggestion-delete:hover::after {
+        .suggestion-delete.compact::after {
+            content: "×";
+            position: absolute;
+            left: 2px;
+            top: -2px;
+            font-size: 12px;
+            color: #cc0000;
+        }
+        .suggestion-delete.compact:hover::after {
             content: attr(data-hidden-text);
             position: absolute;
             background: #fff;
@@ -64,8 +74,15 @@
             max-width: 200px;
             left: 16px;
             top: -4px;
+            width: max-content;
             z-index: 1000;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 14px;
+        }
+        .suggestion-delete.expanded {
+            background-color: #ffe6e6;
+            text-decoration: line-through;
+            color: #cc0000;
         }
         #modeIndicator {
             color: #666;
@@ -76,6 +93,9 @@
 <body>
     <div class="controls">
         <button id="toggleSuggestionMode">Suggestion Mode</button>
+        <label style="margin-left: 20px;">
+            <input type="checkbox" id="showDeletedText"> Show suggested deletes
+        </label>
         <span id="modeIndicator"></span>
     </div>
     <div id="editor" class="editor"></div>

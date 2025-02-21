@@ -52,41 +52,34 @@ export const suggestionsPlugin = new Plugin({
                 const {$from, $to} = view.state.selection
                 
                 if ($from.pos === $to.pos) {
-                    // If no selection, delete one character
                     const delFrom = event.key === "Backspace" ? $from.pos - 1 : $from.pos
                     const delTo = event.key === "Backspace" ? $from.pos : $from.pos + 1
                     
                     if (delFrom < 0 || delTo > view.state.doc.content.size) return false
-                    
-                    tr.delete(delFrom, delTo)
 
-                    // Update mark range
-                    let markRange = state.activeMarkRange
-                    if (markRange) {
-                        if (event.key === "Backspace") {
-                            markRange = {
-                                ...markRange,
-                                from: Math.min(markRange.from, delFrom),
-                                to: Math.max(delFrom, markRange.to - 1)
-                            }
-                        } else {
-                            markRange = {
-                                ...markRange,
-                                from: Math.min(markRange.from, delFrom),
-                                to: Math.max(delTo, markRange.to - 1)
-                            }
-                        }
+                    // Check if cursor is inside or adjacent to a delete mark
+                    const $delPos = view.state.doc.resolve(delFrom)
+                    const existingMark = $delPos.marks().find(m => m.type === view.state.schema.marks.suggestion_delete)
+                    console.log('existing del Mark?', existingMark)
+                    // Remove any existing suggestion marks in this range
+                    tr.removeMark(
+                        delFrom,
+                        delTo,
+                        view.state.schema.marks.suggestion_delete
+                    )
 
-                        // Only keep mark if there's still content
-                        if (markRange.from < markRange.to) {
-                            tr.setMeta(suggestionsPlugin, {
-                                activeMarkRange: markRange
-                            })
-                        } else {
-                            tr.setMeta(suggestionsPlugin, {
-                                activeMarkRange: null
-                            })
-                        }
+                    // Apply the suggestion_delete mark
+                    const deleteMark = existingMark || view.state.schema.marks.suggestion_delete.create({
+                        createdAt: Date.now(),
+                        username: state.username
+                    })
+                    tr.addMark(delFrom, delTo, deleteMark)
+
+                    // Move cursor appropriately
+                    if (event.key === "Backspace") {
+                        tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(delFrom)))
+                    } else {
+                        tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(delTo)))
                     }
 
                     view.dispatch(tr)
@@ -103,45 +96,23 @@ export const suggestionsPlugin = new Plugin({
             const tr = view.state.tr
             tr.insertText(text, from, to)
 
-            // Check if we should extend existing mark or create new one
-            let markRange = state.activeMarkRange
-            
-            // If no active mark, or cursor is not at the end of current mark
-            if (!markRange || from !== markRange.to) {
-                console.log('starting new mark as cursor is not at the end of current mark or no active mark', markRange, from, to, text)
-                // Start new mark
-                markRange = {
-                    from: from,
-                    to: from + text.length,
-                    createdAt: Date.now()
-                }
-            } else {
-                console.log('extending existing mark', markRange, from, to, text)
-                // Extend existing mark
-                markRange = {
-                    ...markRange,
-                    to: from + text.length
-                }
-            }
+            // Check if cursor is inside or adjacent to an add mark
+            const $from = view.state.doc.resolve(from)
+            const existingMark = $from.marks().find(m => m.type === view.state.schema.marks.suggestion_add)
 
             // Remove any existing suggestion marks in this range
             tr.removeMark(
-                markRange.from,
-                markRange.to,
+                from,
+                from + text.length,
                 view.state.schema.marks.suggestion_add
             )
 
-            // Apply a single suggestion mark for the entire range
-            const addMark = view.state.schema.marks.suggestion_add.create({
-                createdAt: markRange.createdAt,
+            // Apply the suggestion mark
+            const addMark = existingMark || view.state.schema.marks.suggestion_add.create({
+                createdAt: Date.now(),
                 username: state.username
             })
-            tr.addMark(markRange.from, markRange.to, addMark)
-
-            // Update plugin state with new mark range - only set the activeMarkRange in meta
-            tr.setMeta(suggestionsPlugin, {
-                activeMarkRange: markRange
-            })
+            tr.addMark(from, from + text.length, addMark)
 
             view.dispatch(tr)
             return true

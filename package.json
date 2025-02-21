@@ -1,0 +1,23 @@
+{
+  "name": "prosemirror-suggestions",
+  "version": "1.0.0",
+  "description": "ProseMirror extension for suggestion/track changes mode",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack serve --mode development",
+    "build": "webpack --mode production"
+  },
+  "dependencies": {
+    "prosemirror-state": "^1.4.3",
+    "prosemirror-view": "^1.31.7",
+    "prosemirror-model": "^1.19.3",
+    "prosemirror-transform": "^1.7.3",
+    "prosemirror-commands": "^1.5.2"
+  },
+  "devDependencies": {
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  }
+}

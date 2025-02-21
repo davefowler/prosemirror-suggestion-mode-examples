@@ -222,15 +222,58 @@ export const suggestionsPlugin = new Plugin({
             const state = this.getState(view.state)
             if (!state.suggestionMode) return false
 
+            console.log('handleTextInput', from, to, text)
             const tr = view.state.tr
-            // First remove any existing marks in the range
-            if (to > from) {
-                tr.removeMark(from, to, view.state.schema.marks.suggestion_add)
+
+            // check if this input is inside an existing suggestion_add or suggestion_delete mark
+            const $pos = view.state.doc.resolve(from)
+            const node = $pos.nodeAfter;
+            const marks = node ? node.marks : [];
+            const existingMark = marks.find(m => m.type === view.state.schema.marks.suggestion_add || m.type === view.state.schema.marks.suggestion_delete);
+
+            if (existingMark) {
+                console.log('input is already inside an existing suggestion_add or suggestion_delete mark.')
+                return false
             }
+            
+            // check if there is a suggestion_add mark immediately before this input
+            const $prevPos = view.state.doc.resolve(from)
+            const prevNode = $prevPos.nodeBefore;
+            const prevMarks = prevNode ? prevNode.marks : [];
+            const prevExistingMark = prevMarks.find(m => m.type === view.state.schema.marks.suggestion_add);
 
             // Insert the text
+
+            let newTo = from + text.length
+            let newFrom = from
+
+            if (prevExistingMark) {
+                console.log('prevExistingMark found at', $prevPos.pos)
+                // find the start of the prevExistingMark
+                const markTo = $prevPos.pos;
+                let markFrom = markTo;
+                while (markFrom > 0) {
+                    const $pos = view.state.doc.resolve(markFrom - 1);
+                    if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some(m => m.eq(prevExistingMark))) {
+                        break;
+                    }
+                    markFrom--;
+                }
+
+                console.log('removing prevExistingMark range:', markFrom, 'to', markTo)
+                // remove the prevExistingMark
+                tr.removeMark(markFrom, markTo, view.state.schema.marks.suggestion_add)
+
+                // extend the suggestion_add range to include the existing mark
+                newFrom =  Math.min(markFrom, from)
+                newTo = Math.max(markTo, from + text.length)
+                console.log('extended suggestion_add range to:', newFrom, 'to', newTo)
+            }
+
+            console.log('inserting text', text, 'at', from, 'to', to)
             tr.insertText(text, from, to)
 
+            console.log('creating new suggestion_add mark at', newFrom, 'to', newTo)
             // Create new mark with current timestamp and username
             const addMark = view.state.schema.marks.suggestion_add.create({
                 createdAt: Date.now(),
@@ -239,7 +282,7 @@ export const suggestionsPlugin = new Plugin({
             })
 
             // Apply mark to the newly inserted text
-            tr.addMark(from, from + text.length, addMark)
+            tr.addMark(newFrom, newTo, addMark)
 
             view.dispatch(tr)
             return true

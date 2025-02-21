@@ -5,6 +5,14 @@ import {Decoration, DecorationSet} from "prosemirror-view"
 export const suggestionsPluginKey = new PluginKey("suggestions")
 
 // Create the suggestions plugin
+// Default tooltip renderer that can be overridden
+const defaultTooltipRenderer = (mark, type) => {
+    const date = new Date(mark.attrs.createdAt).toLocaleDateString()
+    const text = type === 'delete' ? `Deleted by ${mark.attrs.username} on ${date}` :
+                                   `Added by ${mark.attrs.username} on ${date}`
+    return text
+}
+
 export const suggestionsPlugin = new Plugin({
     key: suggestionsPluginKey,
 
@@ -43,14 +51,6 @@ export const suggestionsPlugin = new Plugin({
         }
     },
 
-    // Default tooltip renderer - can be overridden by user
-    static defaultTooltipRenderer(mark, type) {
-        const date = new Date(mark.attrs.createdAt).toLocaleDateString()
-        const text = type === 'delete' ? `Deleted by ${mark.attrs.username} on ${date}` :
-                                       `Added by ${mark.attrs.username} on ${date}`
-        return text
-    }
-
     props: {
         decorations(state) {
             const decos = []
@@ -60,7 +60,7 @@ export const suggestionsPlugin = new Plugin({
                 
                 if (addMark) {
                     const tooltipContent = this.spec.tooltipRenderer?.(addMark, 'add') || 
-                                         suggestionsPlugin.defaultTooltipRenderer(addMark, 'add')
+                                         defaultTooltipRenderer(addMark, 'add')
                     decos.push(
                         Decoration.widget(pos, () => {
                             const tooltip = document.createElement('div')
@@ -77,7 +77,7 @@ export const suggestionsPlugin = new Plugin({
                 
                 if (delMark) {
                     const tooltipContent = this.spec.tooltipRenderer?.(delMark, 'delete') || 
-                                         suggestionsPlugin.defaultTooltipRenderer(delMark, 'delete')
+                                         defaultTooltipRenderer(delMark, 'delete')
                     decos.push(
                         Decoration.widget(pos, () => {
                             const tooltip = document.createElement('div')
@@ -171,24 +171,21 @@ export const suggestionsPlugin = new Plugin({
             if (!state.suggestionMode) return false
 
             const tr = view.state.tr
+            // First remove any existing marks in the range
+            if (to > from) {
+                tr.removeMark(from, to, view.state.schema.marks.suggestion_add)
+            }
+
+            // Insert the text
             tr.insertText(text, from, to)
 
-            // Check if cursor is inside or adjacent to an add mark
-            const $from = view.state.doc.resolve(from)
-            const existingMark = $from.marks().find(m => m.type === view.state.schema.marks.suggestion_add)
-
-            // Remove any existing suggestion marks in this range
-            tr.removeMark(
-                from,
-                from + text.length,
-                view.state.schema.marks.suggestion_add
-            )
-
-            // Apply the suggestion mark
-            const addMark = existingMark || view.state.schema.marks.suggestion_add.create({
+            // Create new mark with current timestamp and username
+            const addMark = view.state.schema.marks.suggestion_add.create({
                 createdAt: Date.now(),
                 username: state.username
             })
+
+            // Apply mark to the newly inserted text
             tr.addMark(from, from + text.length, addMark)
 
             view.dispatch(tr)

@@ -15,7 +15,8 @@ const suggestionMarks = {
     suggestion_add: {
         attrs: { 
             createdAt: { default: null },
-            username: { default: 'Anonymous' }
+            username: { default: 'Anonymous' },
+            data: { default: null }
         },
         inclusive: true,
         parseDOM: [{ tag: "span[data-suggestion-add]" }],
@@ -31,7 +32,8 @@ const suggestionMarks = {
         attrs: { 
             createdAt: { default: null },
             hiddenText: { default: "" },
-            username: { default: 'Anonymous' }
+            username: { default: 'Anonymous' },
+            data: { default: null }
         },
         inclusive: true,
         parseDOM: [{ tag: "span[data-suggestion-delete]" }],

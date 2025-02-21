@@ -52,13 +52,18 @@ const plugins = [
 ]
 ```
 
-### Toggle Suggestion Mode and Set Username
+### Toggle Suggestion Mode and Set Metadata
 
 ```javascript
-// Enable suggestion mode with username
+// Enable suggestion mode with username and custom data
 view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
   suggestionMode: true,
-  username: 'JohnDoe'
+  username: 'JohnDoe',
+  data: {
+    department: 'Engineering',
+    priority: 'high',
+    reviewerId: 'REV-123'
+  }
 }))
 
 // Disable suggestion mode
@@ -66,12 +71,18 @@ view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
   suggestionMode: false
 }))
 
-// Change username
+// Change username and data
 view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
   suggestionMode: true,
-  username: 'JaneSmith'
+  username: 'JaneSmith',
+  data: {
+    department: 'Marketing',
+    category: 'content'
+  }
 }))
 ```
+
+The `data` attribute can contain any JSON-serializable object. This data will be stored with the suggestion mark and displayed in the tooltip by default.
 
 Each suggestion will now be tagged with the username of the person who made it. This is useful for:
 - Tracking who made which suggestions

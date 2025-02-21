@@ -8,8 +8,23 @@ export const suggestionsPluginKey = new PluginKey("suggestions")
 // Default tooltip renderer that can be overridden
 const defaultTooltipRenderer = (mark, type) => {
     const date = new Date(mark.attrs.createdAt).toLocaleDateString()
-    const text = type === 'delete' ? `Deleted by ${mark.attrs.username} on ${date}` :
-                                   `Added by ${mark.attrs.username} on ${date}`
+    let text = type === 'delete' ? `Deleted by ${mark.attrs.username} on ${date}` :
+                                  `Added by ${mark.attrs.username} on ${date}`
+    
+    // Add custom data if present
+    if (mark.attrs.data) {
+        try {
+            const customData = typeof mark.attrs.data === 'string' ? 
+                             JSON.parse(mark.attrs.data) : 
+                             mark.attrs.data
+            const dataStr = Object.entries(customData)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join(', ')
+            text += `\nCustom data: ${dataStr}`
+        } catch (e) {
+            console.warn('Failed to parse custom data in suggestion mark:', e)
+        }
+    }
     return text
 }
 
@@ -138,7 +153,8 @@ export const suggestionsPlugin = new Plugin({
                             newTo,
                             view.state.schema.marks.suggestion_delete.create({
                                 createdAt: existingMark.attrs.createdAt,
-                                username: state.username
+                                username: state.username,
+                                data: state.data
                             })
                         )
                         console.log('extended mark to', newFrom, newTo)
@@ -182,7 +198,8 @@ export const suggestionsPlugin = new Plugin({
             // Create new mark with current timestamp and username
             const addMark = view.state.schema.marks.suggestion_add.create({
                 createdAt: Date.now(),
-                username: state.username
+                username: state.username,
+                data: state.data
             })
 
             // Apply mark to the newly inserted text

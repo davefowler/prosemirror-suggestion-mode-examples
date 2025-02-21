@@ -138,9 +138,11 @@ export const suggestionsPlugin = new Plugin({
 
             // Check if there's an existing suggestion_add mark right before this position
             let markFrom = from
+            let existingAddMark = null
+            
             if (from > 0) {
                 const beforeMarks = view.state.doc.resolve(from - 1).marks()
-                const existingAddMark = beforeMarks.find(mark => 
+                existingAddMark = beforeMarks.find(mark => 
                     mark.type.name === 'suggestion_add' &&
                     mark.attrs.username === this.getState(view.state).username
                 )

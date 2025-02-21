@@ -34,44 +34,49 @@ export const suggestionsPlugin = new Plugin({
             const tr = view.state.tr
 
 
-            // First find if there's an existing suggestion_add mark
+            // Insert the new text first
+            tr.insertText(text, from, to)
+
+            // Find if there's an immediately adjacent suggestion_add mark
             let markFrom = from
-            let existingAddMark = null
+            let markTo = from + text.length
             let existingCreatedAt = Date.now()
             
             if (from > 0) {
-                const beforeMarks = view.state.doc.resolve(from - 1).marks()
-                existingAddMark = beforeMarks.find(mark => 
+                const beforePos = from - 1
+                const beforeMarks = view.state.doc.resolve(beforePos).marks()
+                const existingAddMark = beforeMarks.find(mark => 
                     mark.type.name === 'suggestion_add' &&
                     mark.attrs.username === this.getState(view.state).username
                 )
                 
+                // Only extend the mark if we're immediately adjacent to it
                 if (existingAddMark) {
-                    existingCreatedAt = existingAddMark.attrs.createdAt
-                    // Find the start of the existing mark
-                    let pos = from - 1
-                    while (pos > 0) {
-                        const marks = view.state.doc.resolve(pos - 1).marks()
-                        const hasSameMark = marks.some(m => 
-                            m.type.name === 'suggestion_add' &&
-                            m.attrs.username === existingAddMark.attrs.username
-                        )
-                        if (!hasSameMark) break
-                        pos--
+                    const beforeText = view.state.doc.textBetween(beforePos, from)
+                    if (beforeText.length === 1) { // We're directly next to the mark
+                        existingCreatedAt = existingAddMark.attrs.createdAt
+                        // Find the start of the existing mark
+                        let pos = beforePos
+                        while (pos > 0) {
+                            const marks = view.state.doc.resolve(pos - 1).marks()
+                            const hasSameMark = marks.some(m => 
+                                m.type.name === 'suggestion_add' &&
+                                m.attrs.username === existingAddMark.attrs.username
+                            )
+                            if (!hasSameMark) break
+                            pos--
+                        }
+                        markFrom = pos
                     }
-                    markFrom = pos
                 }
             }
 
-            // Then handle the new text input
-            tr.insertText(text, from, to)
-
-            // Apply the suggestion mark
+            // Apply the suggestion mark only to the new text
             const addMark = view.state.schema.marks.suggestion_add.create({
-                createdAt: existingAddMark ? existingCreatedAt : Date.now(),
+                createdAt: existingCreatedAt,
                 username: this.getState(view.state).username
             })
-            tr.addMark(markFrom, from + text.length, addMark)
+            tr.addMark(markFrom, markTo, addMark)
             
             console.log('Suggestion addition:', {
                 text,

@@ -88,6 +88,7 @@ export const suggestionsPlugin = new Plugin({
                 username: pluginState.username
             })
             
+            console.log('addMark', addMark, markFrom, markTo)
             // Apply or extend the mark
             tr.addMark(markFrom, markTo, addMark)
             

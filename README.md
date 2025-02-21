@@ -27,9 +27,12 @@ npm start
 
 This will:
 1. Build the project
-2. Start a local development server
+2. Start a local development server on http://localhost:8080
 3. Open the example page in your browser
 4. Watch for changes and reload automatically
+
+The development server will be available at:
+http://localhost:8080
 
 ## Usage
 

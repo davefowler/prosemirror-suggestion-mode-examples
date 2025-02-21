@@ -1,4 +1,5 @@
 import {Plugin, PluginKey} from "prosemirror-state"
+import {Decoration, DecorationSet} from "prosemirror-view"
 
 // Plugin key for accessing the plugin state
 export const suggestionsPluginKey = new PluginKey("suggestions")
@@ -42,7 +43,58 @@ export const suggestionsPlugin = new Plugin({
         }
     },
 
+    // Default tooltip renderer - can be overridden by user
+    static defaultTooltipRenderer(mark, type) {
+        const date = new Date(mark.attrs.createdAt).toLocaleDateString()
+        const text = type === 'delete' ? `Deleted by ${mark.attrs.username} on ${date}` :
+                                       `Added by ${mark.attrs.username} on ${date}`
+        return text
+    }
+
     props: {
+        decorations(state) {
+            const decos = []
+            state.doc.descendants((node, pos) => {
+                const addMark = node.marks.find(m => m.type === state.schema.marks.suggestion_add)
+                const delMark = node.marks.find(m => m.type === state.schema.marks.suggestion_delete)
+                
+                if (addMark) {
+                    const tooltipContent = this.spec.tooltipRenderer?.(addMark, 'add') || 
+                                         suggestionsPlugin.defaultTooltipRenderer(addMark, 'add')
+                    decos.push(
+                        Decoration.widget(pos, () => {
+                            const tooltip = document.createElement('div')
+                            tooltip.className = 'suggestion-tooltip'
+                            tooltip.textContent = tooltipContent
+                            return tooltip
+                        }, {
+                            side: -1,
+                            key: `suggestion-add-${pos}`,
+                            class: 'suggestion-tooltip-wrapper'
+                        })
+                    )
+                }
+                
+                if (delMark) {
+                    const tooltipContent = this.spec.tooltipRenderer?.(delMark, 'delete') || 
+                                         suggestionsPlugin.defaultTooltipRenderer(delMark, 'delete')
+                    decos.push(
+                        Decoration.widget(pos, () => {
+                            const tooltip = document.createElement('div')
+                            tooltip.className = 'suggestion-tooltip'
+                            tooltip.textContent = tooltipContent
+                            return tooltip
+                        }, {
+                            side: -1,
+                            key: `suggestion-delete-${pos}`,
+                            class: 'suggestion-tooltip-wrapper'
+                        })
+                    )
+                }
+            })
+            return DecorationSet.create(state.doc, decos)
+        },
+
         handleKeyDown(view, event) {
             const state = this.getState(view.state)
             if (!state.suggestionMode) return false

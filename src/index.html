@@ -70,6 +70,46 @@
             text-decoration: line-through;
             color: #cc0000;
         }
+
+        /* Tooltip styles */
+        .suggestion-tooltip-wrapper {
+            position: relative;
+            display: inline;
+        }
+
+        .suggestion-tooltip {
+            visibility: hidden;
+            position: absolute;
+            z-index: 1000;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 10px;
+            background: #333;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .suggestion-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #333;
+        }
+
+        .suggestion-add:hover .suggestion-tooltip,
+        .suggestion-delete:hover .suggestion-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
         #modeIndicator {
             color: #666;
             font-size: 14px;

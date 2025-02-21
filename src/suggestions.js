@@ -47,7 +47,7 @@ export const suggestionsPlugin = new Plugin({
             
             console.log('Suggestion addition:', {
                 text,
-                from: markFrom,
+                from,
                 to: from + text.length
             })
             

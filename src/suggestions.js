@@ -48,6 +48,8 @@ export const suggestionsPlugin = new Plugin({
                         hiddenText: view.state.doc.textBetween($from.pos, $to.pos)
                     })
                     tr.addMark($from.pos, $to.pos, mark)
+                    // Move cursor to end of selection
+                    tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve($to.pos)))
                     view.dispatch(tr)
                     return true
                 } else {
@@ -96,19 +98,21 @@ export const suggestionsPlugin = new Plugin({
 
             const tr = view.state.tr
 
-            // If there's selected text, mark it as deleted
+            // If there's selected text, mark it as deleted and replace with new text
             if (from !== to) {
+                // First mark the selected text as deleted
                 const deleteMark = view.state.schema.marks.suggestion_delete.create({
                     createdAt: Date.now(),
                     hiddenText: view.state.doc.textBetween(from, to)
                 })
                 tr.addMark(from, to, deleteMark)
-                // Insert new text after the deletion
-                tr.insertText(text, to, to)
+                
+                // Then replace with new text at the same position
+                tr.insertText(text, from, to)
                 const addMark = view.state.schema.marks.suggestion_add.create({
                     createdAt: Date.now()
                 })
-                tr.addMark(to, to + text.length, addMark)
+                tr.addMark(from, from + text.length, addMark)
             } else {
                 // Just insert new text with addition mark
                 tr.insertText(text, from, to)

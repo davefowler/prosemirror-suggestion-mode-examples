@@ -34,12 +34,10 @@ export const suggestionsPlugin = new Plugin({
             const tr = view.state.tr
 
 
-            // Then handle the new text input
-            tr.insertText(text, from, to)
-
-            // Check if there's an existing suggestion_add mark right before this position
+            // First find if there's an existing suggestion_add mark
             let markFrom = from
             let existingAddMark = null
+            let existingCreatedAt = Date.now()
             
             if (from > 0) {
                 const beforeMarks = view.state.doc.resolve(from - 1).marks()
@@ -49,6 +47,7 @@ export const suggestionsPlugin = new Plugin({
                 )
                 
                 if (existingAddMark) {
+                    existingCreatedAt = existingAddMark.attrs.createdAt
                     // Find the start of the existing mark
                     let pos = from - 1
                     while (pos > 0) {
@@ -64,8 +63,12 @@ export const suggestionsPlugin = new Plugin({
                 }
             }
 
+            // Then handle the new text input
+            tr.insertText(text, from, to)
+
+            // Apply the suggestion mark
             const addMark = view.state.schema.marks.suggestion_add.create({
-                createdAt: existingAddMark ? existingAddMark.attrs.createdAt : Date.now(),
+                createdAt: existingAddMark ? existingCreatedAt : Date.now(),
                 username: this.getState(view.state).username
             })
             tr.addMark(markFrom, from + text.length, addMark)

@@ -10,7 +10,7 @@ export const suggestionsPlugin = new Plugin({
     state: {
         init() {
             return {
-                suggestionMode: false
+                suggestionMode: true
             }
         },
         
@@ -94,13 +94,24 @@ export const suggestionsPlugin = new Plugin({
             const state = this.getState(view.state)
             if (!state.suggestionMode) return false
 
-            // Add suggestion mark to new text
             const tr = view.state.tr
+
+            // If there's selected text, mark it as deleted first
+            if (from !== to) {
+                const deleteMark = view.state.schema.marks.suggestion_delete.create({
+                    createdAt: Date.now(),
+                    hiddenText: view.state.doc.textBetween(from, to)
+                })
+                tr.addMark(from, to, deleteMark)
+            }
+
+            // Insert and mark the new text
             tr.insertText(text, from, to)
-            const mark = view.state.schema.marks.suggestion_add.create({
+            const addMark = view.state.schema.marks.suggestion_add.create({
                 createdAt: Date.now()
             })
-            tr.addMark(from, from + text.length, mark)
+            tr.addMark(from, from + text.length, addMark)
+            
             view.dispatch(tr)
             return true
         }

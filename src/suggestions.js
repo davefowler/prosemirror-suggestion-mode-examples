@@ -118,66 +118,102 @@ export const suggestionsPlugin = new Plugin({
             if (event.key === "Delete" || event.key === "Backspace") {
                 const tr = view.state.tr
                 const {$from, $to} = view.state.selection
+
+                let delFrom = $from.pos
+                let delTo = $to.pos
                 
                 if ($from.pos === $to.pos) {
-                    const delFrom = event.key === "Backspace" ? $from.pos - 1 : $from.pos
-                    const delTo = event.key === "Backspace" ? $from.pos : $from.pos + 1
-                    
-                    if (delFrom < 0 || delTo > view.state.doc.content.size) return false
-
-                    // Resolve the position just behind the cursor for backspace
-                    const $delPos = view.state.doc.resolve(delTo)
-                    const node = $delPos.nodeAfter;
-                    const marks = node ? node.marks : [];
-                    const existingMark = marks.find(m => m.type === view.state.schema.marks.suggestion_delete);
-                    
-                    // Additional debugging output
-                    console.log('Marks at position', $delPos.pos, ':', marks);
-                    console.log('Existing suggestion_delete mark:', existingMark);
-                    console.log('the letter at position', $delPos.pos, 'is', node ? node.text : 'N/A', node ? node.type : 'N/A');
-                    
-                    if (existingMark) {
-                        console.log('existing mark found', existingMark)
-                        // Expand the existing mark
-                        tr.removeMark(
-                            existingMark.attrs.from,
-                            existingMark.attrs.to,
-                            view.state.schema.marks.suggestion_delete
-                        )
-                        console.log('removed mark from', existingMark.attrs.from, 'to', existingMark.attrs.to)
-
-                        const newFrom = Math.min(existingMark.attrs.from, delFrom)
-                        const newTo = Math.max(existingMark.attrs.to, delTo)
-                        tr.addMark(
-                            newFrom,
-                            newTo,
-                            view.state.schema.marks.suggestion_delete.create({
-                                createdAt: existingMark.attrs.createdAt,
-                                username: state.username,
-                                data: state.data
-                            })
-                        )
-                        console.log('extended mark to', newFrom, newTo)
-                    } else {
-                        // Apply a new suggestion_delete mark
-                        const deleteMark = view.state.schema.marks.suggestion_delete.create({
-                            createdAt: Date.now(),
-                            username: state.username
-                        })
-                        console.log('adding new mark from', delFrom, 'to', delTo)
-                        tr.addMark(delFrom, delTo, deleteMark)
-                    }
-
-                    // Move cursor appropriately
-                    if (event.key === "Backspace") {
-                        tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(delFrom)))
-                    } else {
-                        tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(delTo)))
-                    }
-
-                    view.dispatch(tr)
-                    return true
+                    delFrom = event.key === "Backspace" ? $from.pos - 1 : $from.pos
+                    delTo = event.key === "Backspace" ? $from.pos : $from.pos + 1
                 }
+                if (delFrom < 0 || delTo > view.state.doc.content.size) return false;
+
+                // Check if any part of the selected range is inside a suggestion_add mark
+                let isInsideAddMark = false;
+                view.state.doc.nodesBetween(delFrom, delTo, (node, pos) => {
+                    const marks = node.marks || [];
+                    if (marks.some(m => m.type === view.state.schema.marks.suggestion_add)) {
+                        isInsideAddMark = true;
+                        return false; // Stop iteration
+                    }
+                });
+
+                if (isInsideAddMark) {
+                    console.log('Selection is inside an add mark');
+                    // Perform a regular delete, not a suggestion_delete
+                    return false;
+                }
+
+                // check if a suggestion_delete mark exists just after this selection
+                const $delPos = view.state.doc.resolve(delTo)
+                const node = $delPos.nodeAfter;
+                const marks = node ? node.marks : [];
+                const existingMark = marks.find(m => m.type === view.state.schema.marks.suggestion_delete);
+                
+                // Additional debugging output
+                console.log('Marks at position', $delPos.pos, ':', marks);
+                console.log('Existing suggestion_delete mark:', existingMark);
+                console.log('the letter at position', $delPos.pos, 'is', node ? node.text : 'N/A', node ? node.type : 'N/A');
+                
+                if (existingMark) {
+                    let markFrom = $delPos.pos;
+                    let markTo = $delPos.pos;
+
+                    // Find the start of the mark
+                    while (markFrom > 0) {
+                        const $pos = view.state.doc.resolve(markFrom - 1);
+                        if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some(m => m.eq(existingMark))) {
+                            break;
+                        }
+                        markFrom--;
+                    }
+
+                    // Find the end of the mark
+                    while (markTo < view.state.doc.content.size) {
+                        const $pos = view.state.doc.resolve(markTo);
+                        if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some(m => m.eq(existingMark))) {
+                            break;
+                        }
+                        markTo++;
+                    }
+
+                    console.log('Existing mark range:', markFrom, 'to', markTo);
+                    // You can now use markFrom and markTo as needed
+                
+
+                    // Expand the existing mark
+                    tr.removeMark(
+                        markFrom,
+                        markTo,
+                        view.state.schema.marks.suggestion_delete
+                    )
+                    console.log('removed mark from', markFrom, 'to', markTo)
+                    // extend the del range to include the existing mark
+                    delFrom =  Math.min(markFrom, delFrom)
+                    delTo = Math.max(markTo, delTo)
+                }
+
+                // create a new suggestion_delete mark
+                tr.addMark(
+                    delFrom,
+                    delTo,
+                    view.state.schema.marks.suggestion_delete.create({
+                        createdAt: Date.now(),
+                        username: state.username,
+                        data: state.data
+                    })
+                )
+                console.log('created mark in range', delFrom, delTo)
+
+                // Move cursor appropriately
+                if (event.key === "Backspace") {
+                    tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(delFrom)))
+                } else {
+                    tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(delTo)))
+                }
+
+                view.dispatch(tr)
+                return true
             }
             return false
         },

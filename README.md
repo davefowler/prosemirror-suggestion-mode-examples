@@ -105,7 +105,7 @@ You can customize the content and appearance of suggestion tooltips in two ways:
 
 1. **Custom Tooltip Renderer**
 
-Provide a custom tooltip renderer function when creating the plugin:
+Provide a custom tooltip renderer function when creating the plugin.  If you added extra data to the suggestion mark you can access it in the tooltip renderer.  Below we've added a profile image url.
 
 ```javascript
 new Plugin({
@@ -113,7 +113,7 @@ new Plugin({
     tooltipRenderer: (mark, type) => {
         // mark contains attrs like username, createdAt
         // type is either 'add' or 'delete'
-        return `Custom tooltip for ${type} by ${mark.attrs.username}`
+        return `<img src="${mark.attrs.data.profileImageUrl}" /> ${mark.attrs.username} edited on ${mark.attrs.createdAt}`
     }
 })
 ```

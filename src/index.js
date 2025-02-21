@@ -13,7 +13,10 @@ import { suggestionsPlugin, suggestionsPluginKey } from "./suggestions"
 // Define suggestion marks
 const suggestionMarks = {
     suggestion_add: {
-        attrs: { createdAt: { default: null } },
+        attrs: { 
+            createdAt: { default: null },
+            username: { default: 'Anonymous' }
+        },
         inclusive: true,
         parseDOM: [{ tag: "span[data-suggestion-add]" }],
         toDOM() {
@@ -27,7 +30,8 @@ const suggestionMarks = {
     suggestion_delete: {
         attrs: { 
             createdAt: { default: null },
-            hiddenText: { default: "" }
+            hiddenText: { default: "" },
+            username: { default: 'Anonymous' }
         },
         inclusive: true,
         parseDOM: [{ tag: "span[data-suggestion-delete]" }],
@@ -93,7 +97,8 @@ window.addEventListener("load", () => {
     document.querySelector("#toggleSuggestionMode").addEventListener("click", () => {
         const state = suggestionsPluginKey.getState(view.state)
         view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
-            suggestionMode: !state.suggestionMode
+            suggestionMode: !state.suggestionMode,
+            username: state.username
         }))
     })
 })

@@ -52,19 +52,31 @@ const plugins = [
 ]
 ```
 
-### Toggle Suggestion Mode
+### Toggle Suggestion Mode and Set Username
 
 ```javascript
-// Enable suggestion mode
+// Enable suggestion mode with username
 view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
-  suggestionMode: true
+  suggestionMode: true,
+  username: 'JohnDoe'
 }))
 
 // Disable suggestion mode
 view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
   suggestionMode: false
 }))
+
+// Change username
+view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
+  suggestionMode: true,
+  username: 'JaneSmith'
+}))
 ```
+
+Each suggestion will now be tagged with the username of the person who made it. This is useful for:
+- Tracking who made which suggestions
+- Filtering suggestions by user
+- Displaying user information in the UI when hovering over suggestions
 
 ### Accept/Reject Suggestions
 

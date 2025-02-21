@@ -10,7 +10,8 @@ export const suggestionsPlugin = new Plugin({
     state: {
         init() {
             return {
-                suggestionMode: true
+                suggestionMode: true,
+                username: 'Anonymous'
             }
         },
         
@@ -50,7 +51,8 @@ export const suggestionsPlugin = new Plugin({
                     
                     const mark = view.state.schema.marks.suggestion_delete.create({
                         createdAt: Date.now(),
-                        hiddenText: selectedText
+                        hiddenText: selectedText,
+                        username: this.getState(view.state).username
                     })
                     tr.addMark($from.pos, $to.pos, mark)
                     tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve($to.pos)))
@@ -87,7 +89,8 @@ export const suggestionsPlugin = new Plugin({
                     const deletedText = view.state.doc.textBetween(deletePos, pos)
                     const mark = view.state.schema.marks.suggestion_delete.create({
                         createdAt: Date.now(),
-                        hiddenText: deletedText
+                        hiddenText: deletedText,
+                        username: this.getState(view.state).username
                     })
                     tr.addMark(deletePos, pos, mark)
                     
@@ -133,7 +136,8 @@ export const suggestionsPlugin = new Plugin({
             // Then handle the new text input
             tr.insertText(text, from, to)
             const addMark = view.state.schema.marks.suggestion_add.create({
-                createdAt: Date.now()
+                createdAt: Date.now(),
+                username: this.getState(view.state).username
             })
             tr.addMark(from, from + text.length, addMark)
             

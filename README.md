@@ -88,6 +88,55 @@ suggestionsPlugin.accept(view)
 suggestionsPlugin.reject(view)
 ```
 
+### Customizing Tooltips
+
+You can customize the content and appearance of suggestion tooltips in two ways:
+
+1. **Custom Tooltip Renderer**
+
+Provide a custom tooltip renderer function when creating the plugin:
+
+```javascript
+new Plugin({
+    ...suggestionsPlugin,
+    tooltipRenderer: (mark, type) => {
+        // mark contains attrs like username, createdAt
+        // type is either 'add' or 'delete'
+        return `Custom tooltip for ${type} by ${mark.attrs.username}`
+    }
+})
+```
+
+2. **CSS Styling**
+
+Override the default tooltip styles in your CSS:
+
+```css
+.suggestion-tooltip {
+    /* Change tooltip background */
+    background: #444;
+    
+    /* Modify padding/spacing */
+    padding: 8px 12px;
+    
+    /* Customize font */
+    font-size: 13px;
+    font-family: sans-serif;
+}
+
+/* Style the tooltip arrow */
+.suggestion-tooltip::after {
+    border-top-color: #444;
+}
+
+/* Adjust tooltip position */
+.suggestion-tooltip-wrapper {
+    margin-top: 5px;
+}
+```
+
+The tooltipRenderer function gives you full control over the tooltip content, while CSS customization lets you style the tooltip appearance.
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

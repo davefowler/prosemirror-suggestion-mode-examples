@@ -55,6 +55,12 @@ export const suggestionsPlugin = new Plugin({
                     tr.addMark($from.pos, $to.pos, mark)
                     tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve($to.pos)))
                     view.dispatch(tr)
+                    console.log('Suggestion deletion:', {
+                        type: 'selection',
+                        text: selectedText,
+                        from: $from.pos,
+                        to: $to.pos
+                    })
                     return true
                 } else {
                     // Handle single character deletion
@@ -78,9 +84,10 @@ export const suggestionsPlugin = new Plugin({
                         return false // Let normal deletion happen for already marked text
                     }
 
+                    const deletedText = view.state.doc.textBetween(deletePos, pos)
                     const mark = view.state.schema.marks.suggestion_delete.create({
                         createdAt: Date.now(),
-                        hiddenText: view.state.doc.textBetween(deletePos, pos)
+                        hiddenText: deletedText
                     })
                     tr.addMark(deletePos, pos, mark)
                     
@@ -90,6 +97,11 @@ export const suggestionsPlugin = new Plugin({
                     }
                     
                     view.dispatch(tr)
+                    console.log('Suggestion deletion:', {
+                        type: event.keyCode === 8 ? 'backspace' : 'delete',
+                        text: deletedText,
+                        pos: deletePos
+                    })
                     return true
                 }
             }
@@ -126,6 +138,12 @@ export const suggestionsPlugin = new Plugin({
                 
                 // Then addition mark on the new text
                 tr.addMark(from, from + text.length, addMark)
+                console.log('Suggestion replacement:', {
+                    oldText: selectedText,
+                    newText: text,
+                    from,
+                    to
+                })
             } else {
                 // Just insert new text with addition mark
                 tr.insertText(text, from, to)
@@ -133,6 +151,11 @@ export const suggestionsPlugin = new Plugin({
                     createdAt: Date.now()
                 })
                 tr.addMark(from, from + text.length, addMark)
+                console.log('Suggestion addition:', {
+                    text,
+                    from,
+                    to
+                })
             }
             
             view.dispatch(tr)

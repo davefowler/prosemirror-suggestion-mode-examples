@@ -18,11 +18,11 @@ export const suggestionsPlugin = new Plugin({
         
         apply(tr, value) {
             const meta = tr.getMeta(suggestionsPlugin)
-            if (meta && meta.hasOwnProperty('suggestionMode')) {
+            if (meta) {
+                // Handle all meta updates, not just suggestionMode
                 return {
                     ...value,
-                    suggestionMode: meta.suggestionMode,
-                    activeMarkRange: null
+                    ...meta
                 }
             }
             
@@ -42,6 +42,60 @@ export const suggestionsPlugin = new Plugin({
     },
 
     props: {
+        handleKeyDown(view, event) {
+            const state = this.getState(view.state)
+            if (!state.suggestionMode) return false
+
+            // Handle delete and backspace
+            if (event.key === "Delete" || event.key === "Backspace") {
+                const tr = view.state.tr
+                const {$from, $to} = view.state.selection
+                
+                if ($from.pos === $to.pos) {
+                    // If no selection, delete one character
+                    const delFrom = event.key === "Backspace" ? $from.pos - 1 : $from.pos
+                    const delTo = event.key === "Backspace" ? $from.pos : $from.pos + 1
+                    
+                    if (delFrom < 0 || delTo > view.state.doc.content.size) return false
+                    
+                    tr.delete(delFrom, delTo)
+
+                    // Update mark range
+                    let markRange = state.activeMarkRange
+                    if (markRange) {
+                        if (event.key === "Backspace") {
+                            markRange = {
+                                ...markRange,
+                                from: Math.min(markRange.from, delFrom),
+                                to: Math.max(delFrom, markRange.to - 1)
+                            }
+                        } else {
+                            markRange = {
+                                ...markRange,
+                                from: Math.min(markRange.from, delFrom),
+                                to: Math.max(delTo, markRange.to - 1)
+                            }
+                        }
+
+                        // Only keep mark if there's still content
+                        if (markRange.from < markRange.to) {
+                            tr.setMeta(suggestionsPlugin, {
+                                activeMarkRange: markRange
+                            })
+                        } else {
+                            tr.setMeta(suggestionsPlugin, {
+                                activeMarkRange: null
+                            })
+                        }
+                    }
+
+                    view.dispatch(tr)
+                    return true
+                }
+            }
+            return false
+        },
+
         handleTextInput(view, from, to, text) {
             const state = this.getState(view.state)
             if (!state.suggestionMode) return false
@@ -54,6 +108,7 @@ export const suggestionsPlugin = new Plugin({
             
             // If no active mark, or cursor is not at the end of current mark
             if (!markRange || from !== markRange.to) {
+                console.log('starting new mark as cursor is not at the end of current mark or no active mark', markRange, from, to, text)
                 // Start new mark
                 markRange = {
                     from: from,
@@ -61,6 +116,7 @@ export const suggestionsPlugin = new Plugin({
                     createdAt: Date.now()
                 }
             } else {
+                console.log('extending existing mark', markRange, from, to, text)
                 // Extend existing mark
                 markRange = {
                     ...markRange,
@@ -82,9 +138,8 @@ export const suggestionsPlugin = new Plugin({
             })
             tr.addMark(markRange.from, markRange.to, addMark)
 
-            // Update plugin state with new mark range
+            // Update plugin state with new mark range - only set the activeMarkRange in meta
             tr.setMeta(suggestionsPlugin, {
-                ...state,
                 activeMarkRange: markRange
             })
 

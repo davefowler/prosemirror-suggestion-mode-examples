@@ -68,20 +68,26 @@ export const suggestionsPlugin = new Plugin({
                 }
             }
 
-            // Apply the suggestion mark
+            // Remove any existing suggestion marks in this range
+            tr.removeMark(
+                markRange.from,
+                markRange.to,
+                view.state.schema.marks.suggestion_add
+            )
+
+            // Apply a single suggestion mark for the entire range
             const addMark = view.state.schema.marks.suggestion_add.create({
                 createdAt: markRange.createdAt,
                 username: state.username
             })
-            
             tr.addMark(markRange.from, markRange.to, addMark)
-            
+
             // Update plugin state with new mark range
             tr.setMeta(suggestionsPlugin, {
                 ...state,
                 activeMarkRange: markRange
             })
-            
+
             view.dispatch(tr)
             return true
         }

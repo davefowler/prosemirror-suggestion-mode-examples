@@ -22,7 +22,7 @@ npm install
 To start the development server:
 
 ```bash
-npm run dev
+npm start
 ```
 
 This will:

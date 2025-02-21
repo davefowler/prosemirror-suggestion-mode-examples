@@ -26,6 +26,41 @@ export const suggestionsPlugin = new Plugin({
     },
 
     props: {
-        // Add plugin props here
+        handleKeyDown(view, event) {
+            const state = this.getState(view.state)
+            if (!state.suggestionMode) return false
+
+            // Handle deletions (Backspace and Delete keys)
+            if (event.keyCode === 8 || event.keyCode === 46) {
+                const { $from, $to } = view.state.selection
+                if ($from.pos !== $to.pos) {
+                    // There is a selection to delete
+                    const tr = view.state.tr
+                    const mark = view.state.schema.marks.suggestion_delete.create({
+                        createdAt: Date.now(),
+                        hiddenText: view.state.doc.textBetween($from.pos, $to.pos)
+                    })
+                    tr.addMark($from.pos, $to.pos, mark)
+                    view.dispatch(tr)
+                    return true
+                }
+            }
+            return false
+        },
+
+        handleTextInput(view, from, to, text) {
+            const state = this.getState(view.state)
+            if (!state.suggestionMode) return false
+
+            // Add suggestion mark to new text
+            const tr = view.state.tr
+            tr.insertText(text, from, to)
+            const mark = view.state.schema.marks.suggestion_add.create({
+                createdAt: Date.now()
+            })
+            tr.addMark(from, from + text.length, mark)
+            view.dispatch(tr)
+            return true
+        }
     }
 })

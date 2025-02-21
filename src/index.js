@@ -10,9 +10,43 @@ import { suggestionsPlugin, suggestionsPluginKey } from "./suggestions"
 
 // Mix the nodes from prosemirror-schema-list into the basic schema to
 // support lists and paragraphs
+// Define suggestion marks
+const suggestionMarks = {
+    suggestion_add: {
+        attrs: { createdAt: { default: null } },
+        inclusive: true,
+        parseDOM: [{ tag: "span[data-suggestion-add]" }],
+        toDOM() {
+            return ["span", { 
+                "data-suggestion-add": "true", 
+                class: "suggestion-add",
+                style: "background-color: #e6ffe6;" 
+            }, 0]
+        }
+    },
+    suggestion_delete: {
+        attrs: { 
+            createdAt: { default: null },
+            hiddenText: { default: "" }
+        },
+        inclusive: true,
+        parseDOM: [{ tag: "span[data-suggestion-delete]" }],
+        toDOM(node) {
+            return ["span", {
+                "data-suggestion-delete": "true",
+                class: "suggestion-delete",
+                "data-hidden-text": node.attrs.hiddenText
+            }, 0]
+        }
+    }
+}
+
 const mySchema = new Schema({
     nodes: addListNodes(schema.spec.nodes, 'paragraph block*', 'block'),
-    marks: schema.spec.marks
+    marks: {
+        ...schema.spec.marks,
+        ...suggestionMarks
+    }
 })
 
 // Initialize the editor with the suggestions plugin
@@ -48,9 +82,7 @@ window.addEventListener("load", () => {
             // Update the mode indicator when suggestion mode changes
             const suggestionState = suggestionsPluginKey.getState(newState)
             const modeIndicator = document.querySelector("#modeIndicator")
-            modeIndicator.textContent = suggestionState.suggestionMode ? 
-                "(ON)" : 
-                "(OFF)"
+            modeIndicator.textContent = ""
             
             const toggleButton = document.querySelector("#toggleSuggestionMode")
             toggleButton.classList.toggle('active', suggestionState.suggestionMode)

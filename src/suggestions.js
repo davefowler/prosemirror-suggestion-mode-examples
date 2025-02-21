@@ -33,9 +33,16 @@ export const suggestionsPlugin = new Plugin({
             // Handle deletions (Backspace and Delete keys)
             if (event.keyCode === 8 || event.keyCode === 46) {
                 const { $from, $to } = view.state.selection
+                const tr = view.state.tr
+
+                // Check if we're inside a suggestion_add mark
+                const marks = $from.marks()
+                if (marks.some(mark => mark.type.name === 'suggestion_add')) {
+                    return false // Let normal deletion happen inside suggestion_add
+                }
+
                 if ($from.pos !== $to.pos) {
-                    // There is a selection to delete
-                    const tr = view.state.tr
+                    // Handle selection deletion
                     const mark = view.state.schema.marks.suggestion_delete.create({
                         createdAt: Date.now(),
                         hiddenText: view.state.doc.textBetween($from.pos, $to.pos)
@@ -43,24 +50,39 @@ export const suggestionsPlugin = new Plugin({
                     tr.addMark($from.pos, $to.pos, mark)
                     view.dispatch(tr)
                     return true
-                } else if (event.keyCode === 8 && $from.pos > 0) {
-                    // Backspace at a single position
-                    const tr = view.state.tr
+                } else {
+                    // Handle single character deletion
+                    let pos, deletePos
+                    if (event.keyCode === 8 && $from.pos > 0) { // Backspace
+                        deletePos = $from.pos - 1
+                        pos = $from.pos
+                    } else if (event.keyCode === 46 && $from.pos < view.state.doc.content.size) { // Delete
+                        deletePos = $from.pos
+                        pos = $from.pos + 1
+                    } else {
+                        return false
+                    }
+
+                    // Check if the character to delete already has suggestion marks
+                    const deleteMarks = view.state.doc.resolve(deletePos).marks()
+                    if (deleteMarks.some(mark => 
+                        mark.type.name === 'suggestion_add' || 
+                        mark.type.name === 'suggestion_delete'
+                    )) {
+                        return false // Let normal deletion happen for already marked text
+                    }
+
                     const mark = view.state.schema.marks.suggestion_delete.create({
                         createdAt: Date.now(),
-                        hiddenText: view.state.doc.textBetween($from.pos - 1, $from.pos)
+                        hiddenText: view.state.doc.textBetween(deletePos, pos)
                     })
-                    tr.addMark($from.pos - 1, $from.pos, mark)
-                    view.dispatch(tr)
-                    return true
-                } else if (event.keyCode === 46 && $from.pos < view.state.doc.content.size) {
-                    // Delete at a single position
-                    const tr = view.state.tr
-                    const mark = view.state.schema.marks.suggestion_delete.create({
-                        createdAt: Date.now(),
-                        hiddenText: view.state.doc.textBetween($from.pos, $from.pos + 1)
-                    })
-                    tr.addMark($from.pos, $from.pos + 1, mark)
+                    tr.addMark(deletePos, pos, mark)
+                    
+                    // Move cursor for backspace
+                    if (event.keyCode === 8) {
+                        tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(deletePos)))
+                    }
+                    
                     view.dispatch(tr)
                     return true
                 }

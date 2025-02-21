@@ -58,23 +58,47 @@ export const suggestionsPlugin = new Plugin({
                     
                     if (delFrom < 0 || delTo > view.state.doc.content.size) return false
 
-                    // Check if cursor is inside or adjacent to a delete mark
-                    const $delPos = view.state.doc.resolve(delFrom)
-                    const existingMark = $delPos.marks().find(m => m.type === view.state.schema.marks.suggestion_delete)
-                    console.log('existing del Mark?', existingMark)
-                    // Remove any existing suggestion marks in this range
-                    tr.removeMark(
-                        delFrom,
-                        delTo,
-                        view.state.schema.marks.suggestion_delete
-                    )
+                    // Resolve the position just behind the cursor for backspace
+                    const $delPos = view.state.doc.resolve(delTo)
+                    const node = $delPos.nodeAfter;
+                    const marks = node ? node.marks : [];
+                    const existingMark = marks.find(m => m.type === view.state.schema.marks.suggestion_delete);
+                    
+                    // Additional debugging output
+                    console.log('Marks at position', $delPos.pos, ':', marks);
+                    console.log('Existing suggestion_delete mark:', existingMark);
+                    console.log('the letter at position', $delPos.pos, 'is', node ? node.text : 'N/A', node ? node.type : 'N/A');
+                    
+                    if (existingMark) {
+                        console.log('existing mark found', existingMark)
+                        // Expand the existing mark
+                        tr.removeMark(
+                            existingMark.attrs.from,
+                            existingMark.attrs.to,
+                            view.state.schema.marks.suggestion_delete
+                        )
+                        console.log('removed mark from', existingMark.attrs.from, 'to', existingMark.attrs.to)
 
-                    // Apply the suggestion_delete mark
-                    const deleteMark = existingMark || view.state.schema.marks.suggestion_delete.create({
-                        createdAt: Date.now(),
-                        username: state.username
-                    })
-                    tr.addMark(delFrom, delTo, deleteMark)
+                        const newFrom = Math.min(existingMark.attrs.from, delFrom)
+                        const newTo = Math.max(existingMark.attrs.to, delTo)
+                        tr.addMark(
+                            newFrom,
+                            newTo,
+                            view.state.schema.marks.suggestion_delete.create({
+                                createdAt: existingMark.attrs.createdAt,
+                                username: state.username
+                            })
+                        )
+                        console.log('extended mark to', newFrom, newTo)
+                    } else {
+                        // Apply a new suggestion_delete mark
+                        const deleteMark = view.state.schema.marks.suggestion_delete.create({
+                            createdAt: Date.now(),
+                            username: state.username
+                        })
+                        console.log('adding new mark from', delFrom, 'to', delTo)
+                        tr.addMark(delFrom, delTo, deleteMark)
+                    }
 
                     // Move cursor appropriately
                     if (event.key === "Backspace") {

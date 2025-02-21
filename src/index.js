@@ -88,8 +88,8 @@ window.addEventListener("load", () => {
             const modeIndicator = document.querySelector("#modeIndicator")
             modeIndicator.textContent = ""
             
-            const toggleButton = document.querySelector("#toggleSuggestionMode")
-            toggleButton.classList.toggle('active', suggestionState.suggestionMode)
+            const toggleCheckbox = document.querySelector("#toggleSuggestionMode")
+            toggleCheckbox.checked = suggestionState.suggestionMode
 
             // Update deletion marks based on showDeletedText setting
             document.querySelectorAll('.suggestion-delete').forEach(el => {
@@ -100,10 +100,10 @@ window.addEventListener("load", () => {
     })
 
     // Add event listeners for the controls
-    document.querySelector("#toggleSuggestionMode").addEventListener("click", () => {
+    document.querySelector("#toggleSuggestionMode").addEventListener("change", (e) => {
         const state = suggestionsPluginKey.getState(view.state)
         view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
-            suggestionMode: !state.suggestionMode,
+            suggestionMode: e.target.checked,
             username: state.username
         }))
     })

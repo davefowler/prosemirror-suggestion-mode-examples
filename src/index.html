@@ -27,20 +27,6 @@
             gap: 10px;
             align-items: center;
         }
-        button {
-            padding: 8px 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background: #fff;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        button:hover {
-            background: #f5f5f5;
-        }
-        button.active {
-            background: #e6ffe6;
-        }
         .suggestion-add {
             background-color: #e6ffe6;
             border-radius: 2px;
@@ -92,7 +78,9 @@
 </head>
 <body>
     <div class="controls">
-        <button id="toggleSuggestionMode">Suggestion Mode</button>
+        <label>
+            <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
+        </label>
         <label style="margin-left: 20px;">
             <input type="checkbox" id="showDeletedText"> Show suggested deletes
         </label>

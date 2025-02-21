@@ -96,21 +96,27 @@ export const suggestionsPlugin = new Plugin({
 
             const tr = view.state.tr
 
-            // If there's selected text, mark it as deleted first
+            // If there's selected text, mark it as deleted
             if (from !== to) {
                 const deleteMark = view.state.schema.marks.suggestion_delete.create({
                     createdAt: Date.now(),
                     hiddenText: view.state.doc.textBetween(from, to)
                 })
                 tr.addMark(from, to, deleteMark)
+                // Insert new text after the deletion
+                tr.insertText(text, to, to)
+                const addMark = view.state.schema.marks.suggestion_add.create({
+                    createdAt: Date.now()
+                })
+                tr.addMark(to, to + text.length, addMark)
+            } else {
+                // Just insert new text with addition mark
+                tr.insertText(text, from, to)
+                const addMark = view.state.schema.marks.suggestion_add.create({
+                    createdAt: Date.now()
+                })
+                tr.addMark(from, from + text.length, addMark)
             }
-
-            // Insert and mark the new text
-            tr.insertText(text, from, to)
-            const addMark = view.state.schema.marks.suggestion_add.create({
-                createdAt: Date.now()
-            })
-            tr.addMark(from, from + text.length, addMark)
             
             view.dispatch(tr)
             return true

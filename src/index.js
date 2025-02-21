@@ -22,7 +22,13 @@ window.addEventListener("load", () => {
         schema: mySchema,
         doc: mySchema.node("doc", null, [
             mySchema.node("paragraph", null, [
-                mySchema.text("Start typing here...")
+                mySchema.text("We choose to go to the Moon in this decade and do the other things, not because they are easy, but because they are hard, because that goal will serve to organize and measure the best of our energies and skills, because that challenge is one that we are willing to accept, one we are unwilling to postpone, and one which we intend to win, and the others, too.")
+            ]),
+            mySchema.node("paragraph", null, [
+                mySchema.text("We set sail on this new sea because there is new knowledge to be gained, and new rights to be won, and they must be won and used for the progress of all people. For space science, like nuclear science and all technology, has no conscience of its own.")
+            ]),
+            mySchema.node("paragraph", null, [
+                mySchema.text("Whether it will become a force for good or ill depends on man, and only if the United States occupies a position of pre-eminence can we help decide whether this new ocean will be a sea of peace or a new terrifying theater of war.")
             ])
         ]),
         plugins: [

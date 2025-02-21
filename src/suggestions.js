@@ -15,7 +15,12 @@ export const suggestionsPlugin = new Plugin({
         },
         
         apply(tr, value) {
-            // Handle suggestion mode changes here
+            const meta = tr.getMeta(suggestionsPlugin)
+            if (meta && meta.hasOwnProperty('suggestionMode')) {
+                return {
+                    suggestionMode: meta.suggestionMode
+                }
+            }
             return value
         }
     },

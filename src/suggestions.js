@@ -100,27 +100,28 @@ export const suggestionsPlugin = new Plugin({
 
             // If there's selected text, mark it as deleted and replace with new text
             if (from !== to) {
-                // Store the selected text
+                // Get the selected text
                 const selectedText = view.state.doc.textBetween(from, to)
                 
-                // First mark the selected text as deleted
+                // Create the deletion mark
                 const deleteMark = view.state.schema.marks.suggestion_delete.create({
                     createdAt: Date.now(),
                     hiddenText: selectedText
                 })
-                tr.addMark(from, to, deleteMark)
                 
-                // Remove any existing suggestion marks from the new position
-                tr.removeMark(to, to + text.length)
-                
-                // Insert the new text after the deletion
-                tr.insertText(text, to, to)
-                
-                // Add the suggestion_add mark to only the new text
+                // Create the addition mark
                 const addMark = view.state.schema.marks.suggestion_add.create({
                     createdAt: Date.now()
                 })
-                tr.addMark(to, to + text.length, addMark)
+                
+                // First replace the text
+                tr.replaceWith(from, to, view.state.schema.text(text))
+                
+                // Then apply the marks in order: first deletion on old text position
+                tr.addMark(from, from + text.length, deleteMark)
+                
+                // Then addition mark on the new text
+                tr.addMark(from, from + text.length, addMark)
             } else {
                 // Just insert new text with addition mark
                 tr.insertText(text, from, to)

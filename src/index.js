@@ -17,9 +17,14 @@ const mySchema = new Schema({
 
 // Initialize the editor with the suggestions plugin
 window.addEventListener("load", () => {
-    // Create the initial editor state
+    // Create the initial editor state with some starter content
     const state = EditorState.create({
         schema: mySchema,
+        doc: mySchema.node("doc", null, [
+            mySchema.node("paragraph", null, [
+                mySchema.text("Start typing here...")
+            ])
+        ]),
         plugins: [
             history(),
             keymap(baseKeymap),
@@ -38,13 +43,11 @@ window.addEventListener("load", () => {
             const suggestionState = suggestionsPluginKey.getState(newState)
             const modeIndicator = document.querySelector("#modeIndicator")
             modeIndicator.textContent = suggestionState.suggestionMode ? 
-                "(Suggestion Mode ON)" : 
-                "(Suggestion Mode OFF)"
+                "(ON)" : 
+                "(OFF)"
             
             const toggleButton = document.querySelector("#toggleSuggestionMode")
-            toggleButton.style.backgroundColor = suggestionState.suggestionMode ? 
-                "#e6ffe6" : 
-                "#fff"
+            toggleButton.classList.toggle('active', suggestionState.suggestionMode)
         }
     })
 

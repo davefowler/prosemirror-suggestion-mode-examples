@@ -98,7 +98,6 @@ export const suggestionsPlugin = new Plugin({
                             Decoration.widget(pos, () => {
                                 const container = document.createElement('span')
                                 container.className = 'deletion-marker'
-                                
                                 // Create the hover tooltip
                                 const tooltip = document.createElement('span')
                                 tooltip.className = 'deletion-tooltip'
@@ -107,7 +106,7 @@ export const suggestionsPlugin = new Plugin({
                                 
                                 return container
                             }, {
-                                side: -1,
+                                side: 1,
                                 key: `deletion-marker-${pos}`
                             })
                         )

@@ -1,5 +1,6 @@
 import {Plugin, PluginKey} from "prosemirror-state"
 import {Decoration, DecorationSet} from "prosemirror-view"
+import {ReplaceStep} from "prosemirror-transform"
 
 // Plugin key for accessing the plugin state
 export const suggestionsPluginKey = new PluginKey("suggestions")
@@ -31,6 +32,77 @@ const defaultTooltipRenderer = (mark, type) => {
 export const suggestionsPlugin = new Plugin({
     key: suggestionsPluginKey,
 
+    // // Add this new appendTransaction hook before the state definition
+    // appendTransaction(transactions, oldState, newState) {
+    //     // Only process if suggestion mode is on
+    //     const pluginState = this.getState(oldState)
+    //     if (!pluginState.suggestionMode) return null
+
+    //     // Skip if any of the transactions are from our plugin
+    //     if (transactions.some(tr => tr.getMeta(this))) return null
+
+    //     // Look for replace steps that might be text replacements
+    //     let tr = newState.tr.setMeta(this, true)  // Mark this as our transaction
+    //     let hasChanges = false
+
+    //     transactions.forEach(transaction => {
+    //         // Skip if this is a suggestion transaction
+    //         if (transaction.getMeta(this)) return
+
+    //         transaction.steps.forEach((step, index) => {
+    //             if (step instanceof ReplaceStep) {
+    //                 let from = step.from
+    //                 const to = step.to
+                    
+    //                 // If there's a real selection (not just cursor movement)
+    //                 if (to - from > 0) {
+    //                     console.log('Found replace step:', from, to)
+                        
+    //                     // Extract the deleted/replaced content from the old document state
+    //                     const replacedText = oldState.doc.textBetween(from, to, " ");
+    //                     if (replacedText.length > 0) {
+    //                         console.log(`Deletion detected from ${from} to ${to}: "${replacedText}"`);
+                            
+    //                         // Insert the deleted text back in at the end
+    //                         const replacedFrom = to + 1
+    //                         const replacedTo = from + replacedText.length
+    //                         tr.insertText(replacedText, replacedFrom)
+    //                         tr.addMark(
+    //                             replacedFrom,
+    //                             replacedTo,
+    //                             newState.schema.marks.suggestion_delete.create({
+    //                                 createdAt: Date.now(),
+    //                                 username: pluginState.username,
+    //                                 data: pluginState.data,
+    //                             })
+    //                         )
+    //                         hasChanges = true
+    //                     }
+
+    //                     // Then if new text has been replaced, mark it as suggestion_add
+    //                     if (step.slice?.content.size > 0) {
+    //                         const newText = step.slice.content.textBetween(0, step.slice.content.size, " ");
+    //                         if (newText.length > 0) {
+    //                             tr.addMark(
+    //                                 from,
+    //                                 from + newText.length,
+    //                                 newState.schema.marks.suggestion_add.create({
+    //                                     createdAt: Date.now(),
+    //                                     username: pluginState.username,
+    //                                     data: pluginState.data,
+    //                                 })
+    //                             );
+    //                             hasChanges = true;
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         });
+    //     });
+
+    //     return hasChanges ? tr : null;
+    // },
+
     state: {
         init() {
             return {
@@ -42,6 +114,26 @@ export const suggestionsPlugin = new Plugin({
         },
         
         apply(tr, value) {
+            // Add debugging for transactions
+            if (tr.docChanged) {
+                console.log('Transaction:', {
+                    'steps': tr.steps.map(step => ({
+                        stepType: step.constructor.name,
+                        stepJSON: step.toJSON(),
+                        from: step.from,
+                        to: step.to,
+                        slice: step.slice?.content?.toString(),
+                    })),
+                    'selection': {
+                        'from': tr.selection.from,
+                        'to': tr.selection.to,
+                        'empty': tr.selection.empty
+                    },
+                    'before': tr.before.textBetween(0, tr.before.content.size),
+                    'after': tr.doc.textBetween(0, tr.doc.content.size)
+                });
+            }
+
             const meta = tr.getMeta(suggestionsPlugin)
             if (meta) {
                 // Handle all meta updates, not just suggestionMode
@@ -258,13 +350,17 @@ export const suggestionsPlugin = new Plugin({
 
         handleTextInput(view, from, to, text) {
             const state = this.getState(view.state)
+            console.log('handleTextInput', from, to, text.length, 'text is:', text)
             if (!state.suggestionMode) return false
-
             // Check if the input text matches the text being deleted
             const deletedText = view.state.doc.textBetween(from, to);
             if (text === deletedText) {
                 console.log('Ignoring redundant input:', text);
                 return true;  // ignore the redundant input
+            }
+            console.log('deleted text?', deletedText)
+            if (deletedText.length > 0) {
+
             }
 
             console.log('handleTextInput', from, to, text.length, 'text is:', text)
@@ -326,11 +422,35 @@ export const suggestionsPlugin = new Plugin({
                 data: state.data
             })
 
-            // Apply mark to the newly inserted text
             tr.addMark(newFrom, newTo, addMark)
+
+            if (deletedText.length > 0) {
+                // Apply mark to the newly inserted text
+                const deletedFrom = newTo
+                const deletedTo = deletedFrom + deletedText.length
+                tr.insertText(deletedText, deletedFrom, deletedFrom + deletedText.length)
+                const deletedMark = view.state.schema.marks.suggestion_delete.create({
+                    createdAt: Date.now(),
+                    username: state.username,
+                    data: state.data
+                })
+                tr.addMark(deletedFrom, deletedTo, deletedMark)
+            }
 
             view.dispatch(tr)
             return true; // input handled.  returning true to stop further processing
+        },
+
+        handleDOMEvents: {
+            beforeinput: (view, event) => {
+                console.log('beforeinput event:', {
+                    inputType: event.inputType,
+                    data: event.data,
+                    targetRange: event.getTargetRanges(),
+                    selection: view.state.selection
+                });
+                return false; // Let ProseMirror handle it for now
+            }
         }
     }
 })

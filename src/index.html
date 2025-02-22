@@ -10,6 +10,9 @@
             margin: 0;
             padding: 20px;
         }
+        .ProseMirror {
+           white-space: pre-wrap;
+        }
         .editor {
             background: white;
             padding: 20px;
@@ -34,6 +37,11 @@
         .suggestion-delete {
             position: relative;
             cursor: pointer;
+
+            background-color: #ffe6e6;
+            text-decoration: line-through;
+            color: #cc0000;
+
         }
         /* When compact (showDeletedText is false) */
         .suggestion-delete.compact {
@@ -42,13 +50,14 @@
             height: 12px;
             background-color: #ffcccc;
             border-radius: 2px;
+
+            /* hide only the text nothing else */
+            text-indent: -9999px;
+            overflow: hidden;
+            white-space: nowrap;
+
         }
-        /* When expanded (showDeletedText is true) */
-        .suggestion-delete.expanded {
-            background-color: #ffe6e6;
-            text-decoration: line-through;
-            color: #cc0000;
-        }
+  
 
         /* Tooltip styles */
         .suggestion-tooltip-wrapper {
@@ -94,16 +103,7 @@
             font-size: 14px;
         }
 
-        /* Updated deletion styles */
-        .suggestion-delete.hidden {
-            display: none;
-        }
-        
-        .suggestion-delete.visible {
-            background-color: #ffe6e6;
-            text-decoration: line-through;
-            color: #cc0000;
-        }
+       
 
         /* Deletion marker styles */
         .deletion-marker {
@@ -155,7 +155,7 @@
             <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
         </label>
         <label style="margin-left: 20px;">
-            <input type="checkbox" id="showDeletedText"> Show suggested deletes
+            <input type="checkbox" id="showDeletedText" checked> Show suggested deletes
         </label>
         <span id="modeIndicator"></span>
     </div>

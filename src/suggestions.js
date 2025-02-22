@@ -33,6 +33,7 @@ export const suggestionsPlugin = new Plugin({
     key: suggestionsPluginKey,
 
     appendTransaction(transactions, oldState, newState) {
+        // handle when a selection is deleted
         const pluginState = this.getState(oldState)
         if (!pluginState.suggestionMode) return null
 
@@ -40,8 +41,12 @@ export const suggestionsPlugin = new Plugin({
         let changed = false
         
         transactions.forEach(transaction => {
+            // todo remove this getMeta stuff not needed
             // Skip if this is a suggestion transaction
-            if (transaction.getMeta(this)) return
+            if (transaction.getMeta(this)) {
+                console.log('skipping suggestion transaction', transaction)
+                return
+            }
 
             transaction.steps.forEach(step => {
                 if (step instanceof ReplaceStep) {
@@ -55,11 +60,17 @@ export const suggestionsPlugin = new Plugin({
                     // Re-insert the old text and add a suggestion_delete
                     tr.setMeta(this, true)
                     tr.insertText(text, from, from)
-                    tr.addMark(from, from + text.length, newState.schema.marks.suggestion_delete.create({
+                    const markTo = from + text.length
+                    console.log('inserting mark on', text, 'at', from, 'to', markTo)
+                    tr.addMark(from, markTo, newState.schema.marks.suggestion_delete.create({
                         createdAt: Date.now(),
                         username: pluginState.username,
-                        data: pluginState.data,
+                        data: {...pluginState.data, uniqueId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)}
                     }))
+                    
+                    // set the selection to the beginning of the text
+                    tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(from)))
+
                     console.log('added suggestion_delete mark at', from, 'to', from + text.length)
                     changed = true
                 }
@@ -76,7 +87,7 @@ export const suggestionsPlugin = new Plugin({
                 suggestionMode: true,
                 username: 'Anonymous',
                 activeMarkRange: null, // Will store {from, to, createdAt}
-                showDeletedText: false // New setting to control deletion display
+                showDeletedText: true // New setting to control deletion display
             }
         },
         
@@ -124,34 +135,31 @@ export const suggestionsPlugin = new Plugin({
                         // When not showing deleted text, create a deletion marker with hover tooltip
                         decos.push(
                             Decoration.widget(pos, () => {
-                                const container = document.createElement('span')
-                                container.className = 'deletion-marker'
                                 // Create the hover tooltip
                                 const tooltip = document.createElement('span')
                                 tooltip.className = 'deletion-tooltip'
                                 tooltip.textContent = node.text || ''
-                                container.appendChild(tooltip)
                                 
-                                return container
+                                return tooltip
                             }, {
                                 side: 1,
                                 key: `deletion-marker-${pos}`
                             })
                         )
-                        
+                        // WARNING - enabling this makes slection deletes break - it will turn two selection deletes into 3 as it tries to merge with the text node
                         // Hide the actual deleted text
-                        decos.push(
-                            Decoration.inline(pos, pos + node.nodeSize, {
-                                class: 'suggestion-delete hidden'
-                            })
-                        )
-                    } else {
-                        // When showing deleted text, show it with strikethrough
-                        decos.push(
-                            Decoration.inline(pos, pos + node.nodeSize, {
-                                class: 'suggestion-delete visible'
-                            })
-                        )
+                        // decos.push(
+                        //     Decoration.inline(pos, pos + node.nodeSize, {
+                        //         class: 'suggestion-delete hidden'
+                        //     })
+                        // )
+                    // } else {
+                    //     // When showing deleted text, show it with strikethrough
+                    //     decos.push(
+                    //         Decoration.inline(pos, pos + node.nodeSize, {
+                    //             class: 'suggestion-delete visible'
+                    //         })
+                    //     )
                     }
                     
                     // Add metadata tooltip (author, date, etc.)
@@ -267,6 +275,7 @@ export const suggestionsPlugin = new Plugin({
                         createdAt: Date.now(),
                         username: state.username,
                         data: state.data
+                        
                     })
                 )
                 console.log('created suggestion_delete mark in range', delFrom, delTo)

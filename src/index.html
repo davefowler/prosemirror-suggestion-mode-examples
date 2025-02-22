@@ -35,6 +35,7 @@
             position: relative;
             cursor: pointer;
         }
+        /* When compact (showDeletedText is false) */
         .suggestion-delete.compact {
             display: inline-block;
             width: 12px;
@@ -42,29 +43,7 @@
             background-color: #ffcccc;
             border-radius: 2px;
         }
-        .suggestion-delete.compact::after {
-            content: "×";
-            position: absolute;
-            left: 2px;
-            top: -2px;
-            font-size: 12px;
-            color: #cc0000;
-        }
-        .suggestion-delete.compact:hover::after {
-            content: attr(data-hidden-text);
-            position: absolute;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 5px 8px;
-            max-width: 200px;
-            left: 16px;
-            top: -4px;
-            width: max-content;
-            z-index: 1000;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            font-size: 14px;
-        }
+        /* When expanded (showDeletedText is true) */
         .suggestion-delete.expanded {
             background-color: #ffe6e6;
             text-decoration: line-through;

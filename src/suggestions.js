@@ -68,19 +68,18 @@ export const suggestionsPlugin = new Plugin({
 
     props: {
         decorations(state) {
+            const pluginState = this.getState(state)
             const decos = []
+            
             state.doc.descendants((node, pos) => {
-                const addMark = node.marks.find(m => m.type === state.schema.marks.suggestion_add)
-                const delMark = node.marks.find(m => m.type === state.schema.marks.suggestion_delete)
-                
+                // Handle suggestion_add marks
+                const addMark = node.marks.find(m => m.type.name === 'suggestion_add')
                 if (addMark) {
-                    const tooltipContent = this.spec.tooltipRenderer?.(addMark, 'add') || 
-                                         defaultTooltipRenderer(addMark, 'add')
                     decos.push(
                         Decoration.widget(pos, () => {
                             const tooltip = document.createElement('div')
                             tooltip.className = 'suggestion-tooltip'
-                            tooltip.textContent = tooltipContent
+                            tooltip.textContent = defaultTooltipRenderer(addMark, 'add')
                             return tooltip
                         }, {
                             side: -1,
@@ -90,14 +89,15 @@ export const suggestionsPlugin = new Plugin({
                     )
                 }
                 
+                // Handle suggestion_delete marks
+                const delMark = node.marks.find(m => m.type.name === 'suggestion_delete')
                 if (delMark) {
-                    const tooltipContent = this.spec.tooltipRenderer?.(delMark, 'delete') || 
-                                         defaultTooltipRenderer(delMark, 'delete')
+                    // Add tooltip
                     decos.push(
                         Decoration.widget(pos, () => {
                             const tooltip = document.createElement('div')
                             tooltip.className = 'suggestion-tooltip'
-                            tooltip.textContent = tooltipContent
+                            tooltip.textContent = defaultTooltipRenderer(delMark, 'delete')
                             return tooltip
                         }, {
                             side: -1,
@@ -105,20 +105,31 @@ export const suggestionsPlugin = new Plugin({
                             class: 'suggestion-tooltip-wrapper'
                         })
                     )
+                    
+                    // Add inline decoration for visibility control
+                    decos.push(
+                        Decoration.inline(pos, pos + node.nodeSize, {
+                            class: pluginState.showDeletedText ? 'suggestion-delete expanded' : 'suggestion-delete compact'
+                        })
+                    )
                 }
             })
+            
             return DecorationSet.create(state.doc, decos)
         },
 
         handleKeyDown(view, event) {
             const state = this.getState(view.state)
+            console.log('handleKeyDown: suggestionMode is', state.suggestionMode, 'and event.key is', event.key)
             if (!state.suggestionMode) return false
 
             // Handle delete and backspace
             if (event.key === "Delete" || event.key === "Backspace") {
+                event.preventDefault();
+                
                 const tr = view.state.tr
                 const {$from, $to} = view.state.selection
-
+                console.log('handleKeyDown: deleting', $from.pos, $to.pos)
                 let delFrom = $from.pos
                 let delTo = $to.pos
                 
@@ -134,14 +145,14 @@ export const suggestionsPlugin = new Plugin({
                     const marks = node.marks || [];
                     if (marks.some(m => m.type === view.state.schema.marks.suggestion_add)) {
                         isInsideAddMark = true;
-                        return false; // Stop iteration
+                        return false; // let it continue and perform the delete
                     }
                 });
 
                 if (isInsideAddMark) {
                     console.log('Selection is inside an add mark');
                     // Perform a regular delete, not a suggestion_delete
-                    return false;
+                    return false; // let it continue and perform the delete
                 }
 
                 // check if a suggestion_delete mark exists just after this selection
@@ -203,7 +214,7 @@ export const suggestionsPlugin = new Plugin({
                         data: state.data
                     })
                 )
-                console.log('created mark in range', delFrom, delTo)
+                console.log('created suggestion_delete mark in range', delFrom, delTo)
 
                 // Move cursor appropriately
                 if (event.key === "Backspace") {
@@ -213,7 +224,7 @@ export const suggestionsPlugin = new Plugin({
                 }
 
                 view.dispatch(tr)
-                return true
+                return true // delete handled.  returning true to stop further processing
             }
             return false
         },
@@ -222,7 +233,14 @@ export const suggestionsPlugin = new Plugin({
             const state = this.getState(view.state)
             if (!state.suggestionMode) return false
 
-            console.log('handleTextInput', from, to, text)
+            // Check if the input text matches the text being deleted
+            const deletedText = view.state.doc.textBetween(from, to);
+            if (text === deletedText) {
+                console.log('Ignoring redundant input:', text);
+                return true;  // ignore the redundant input
+            }
+
+            console.log('handleTextInput', from, to, text.length, 'text is:', text)
             const tr = view.state.tr
 
             // check if this input is inside an existing suggestion_add or suggestion_delete mark
@@ -232,8 +250,8 @@ export const suggestionsPlugin = new Plugin({
             const existingMark = marks.find(m => m.type === view.state.schema.marks.suggestion_add || m.type === view.state.schema.marks.suggestion_delete);
 
             if (existingMark) {
-                console.log('input is already inside an existing suggestion_add or suggestion_delete mark.')
-                return false
+                console.log('handleTextInput: input is already inside an existing suggestion_add or suggestion_delete mark.')
+                return false; // allow the input to be processed
             }
             
             // check if there is a suggestion_add mark immediately before this input
@@ -285,7 +303,7 @@ export const suggestionsPlugin = new Plugin({
             tr.addMark(newFrom, newTo, addMark)
 
             view.dispatch(tr)
-            return true
+            return true; // input handled.  returning true to stop further processing
         }
     }
 })

@@ -92,7 +92,42 @@ export const suggestionsPlugin = new Plugin({
                 // Handle suggestion_delete marks
                 const delMark = node.marks.find(m => m.type.name === 'suggestion_delete')
                 if (delMark) {
-                    // Add tooltip
+                    if (!pluginState.showDeletedText) {
+                        // When not showing deleted text, create a deletion marker with hover tooltip
+                        decos.push(
+                            Decoration.widget(pos, () => {
+                                const container = document.createElement('span')
+                                container.className = 'deletion-marker'
+                                
+                                // Create the hover tooltip
+                                const tooltip = document.createElement('span')
+                                tooltip.className = 'deletion-tooltip'
+                                tooltip.textContent = node.text || ''
+                                container.appendChild(tooltip)
+                                
+                                return container
+                            }, {
+                                side: -1,
+                                key: `deletion-marker-${pos}`
+                            })
+                        )
+                        
+                        // Hide the actual deleted text
+                        decos.push(
+                            Decoration.inline(pos, pos + node.nodeSize, {
+                                class: 'suggestion-delete hidden'
+                            })
+                        )
+                    } else {
+                        // When showing deleted text, show it with strikethrough
+                        decos.push(
+                            Decoration.inline(pos, pos + node.nodeSize, {
+                                class: 'suggestion-delete visible'
+                            })
+                        )
+                    }
+                    
+                    // Add metadata tooltip (author, date, etc.)
                     decos.push(
                         Decoration.widget(pos, () => {
                             const tooltip = document.createElement('div')
@@ -103,13 +138,6 @@ export const suggestionsPlugin = new Plugin({
                             side: -1,
                             key: `suggestion-delete-${pos}`,
                             class: 'suggestion-tooltip-wrapper'
-                        })
-                    )
-                    
-                    // Add inline decoration for visibility control
-                    decos.push(
-                        Decoration.inline(pos, pos + node.nodeSize, {
-                            class: pluginState.showDeletedText ? 'suggestion-delete expanded' : 'suggestion-delete compact'
                         })
                     )
                 }

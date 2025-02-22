@@ -93,6 +93,60 @@
             color: #666;
             font-size: 14px;
         }
+
+        /* Updated deletion styles */
+        .suggestion-delete.hidden {
+            display: none;
+        }
+        
+        .suggestion-delete.visible {
+            background-color: #ffe6e6;
+            text-decoration: line-through;
+            color: #cc0000;
+        }
+
+        /* Deletion marker styles */
+        .deletion-marker {
+            position: relative;
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: #ff4444;
+            border-radius: 50%;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+
+        /* Deletion tooltip styles */
+        .deletion-tooltip {
+            visibility: hidden;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background: #333;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 4px;
+        }
+
+        .deletion-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #333;
+        }
+
+        .deletion-marker:hover .deletion-tooltip {
+            visibility: visible;
+        }
     </style>
 </head>
 <body>

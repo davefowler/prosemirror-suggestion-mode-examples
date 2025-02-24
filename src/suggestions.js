@@ -56,7 +56,11 @@ export const suggestionsPlugin = new Plugin({
                     const newText = step.slice.content.textBetween(0, step.slice.content.size, " ")
 
                     console.log('replace step', step, 'text is', text, 'newText is', newText)
-
+                    if (from === to) {
+                        // This case will be handled in handleTextInput
+                        console.log('skipping replace step', step, 'text is', text, 'newText is', newText)
+                        return false
+                    }
                     // Re-insert the old text and add a suggestion_delete
                     tr.setMeta(this, true)
                     tr.insertText(text, from, from)
@@ -69,7 +73,15 @@ export const suggestionsPlugin = new Plugin({
                     }))
                     
                     // set the selection to the beginning of the text
-                    tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(from)))
+                    if (newText.length > 0) {
+                        tr.insertText(newText, from, from)
+                        tr.addMark(from, from + newText.length, newState.schema.marks.suggestion_add.create({
+                            createdAt: Date.now(),
+                            username: pluginState.username,
+                            data: pluginState.data,
+                        }))
+                    }
+                    tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(from+newText.length)))
 
                     console.log('added suggestion_delete mark at', from, 'to', from + text.length)
                     changed = true

@@ -6,7 +6,7 @@ const suggestion_add = {
     parseDOM: [{tag: "span[data-suggestion-add]"}],
     toDOM() {
         return ["span", {
-            "data-suggestion-add": "true",
+            "data-suggestion-add": "false",
             "class": "suggestion-add"
         }, 0]
     }
@@ -20,7 +20,7 @@ const suggestion_delete = {
     parseDOM: [{tag: "span[data-suggestion-delete]"}],
     toDOM(node) {
         return ["span", {
-            "data-suggestion-delete": "true",
+            "data-suggestion-delete": "false",
             "class": "suggestion-delete",
             "data-hidden-text": node.attrs.hiddenText
         }, 0]

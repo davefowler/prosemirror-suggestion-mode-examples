@@ -2,7 +2,7 @@
   "name": "prosemirror-suggestions",
   "version": "1.0.0",
   "description": "ProseMirror extension for suggestion/track changes mode",
-  "main": "src/index.js",
+  "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack serve --mode development",
@@ -20,8 +20,8 @@
     "prosemirror-view": "^1.31.7"
   },
   "devDependencies": {
-    "@babel/core": "^7.26.9",
-    "babel-loader": "^9.2.1",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"

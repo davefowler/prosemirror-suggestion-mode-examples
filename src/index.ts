@@ -49,11 +49,10 @@ const suggestionMarks = {
 // support lists and paragraphs
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, 'paragraph block*', 'block'),
-  marks: {
-    ...schema.spec.marks,
+  marks: Object.assign({}, schema.spec.marks, {
     suggestion_add: suggestionMarks.suggestion_add,
     suggestion_delete: suggestionMarks.suggestion_delete
-  }
+  })
 });
 
 // Initialize the editor with the suggestions plugin

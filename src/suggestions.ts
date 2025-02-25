@@ -269,7 +269,7 @@ export const suggestionsPlugin = new Plugin({
 
       // Handle delete and backspace
       if (event.key === "Delete" || event.key === "Backspace") {
-        event.preventDefault();
+        // event.preventDefault();
 
         const tr = view.state.tr;
         const { $from, $to } = view.state.selection;
@@ -300,7 +300,7 @@ export const suggestionsPlugin = new Plugin({
         if (isInsideAddMark) {
           console.log("Selection is inside an add mark");
           // Perform a regular delete, not a suggestion_delete
-          return false; // let it continue and perform the delete
+          return false;
         }
 
         // check if a suggestion_delete mark exists just after this selection

@@ -27,125 +27,18 @@
             align-items: center;
         }
         .suggestion-add {
-            background-color: #e6ffe6;
+            color: #e6ffe6;
+            text-decoration: underline;
             border-radius: 2px;
         }
         .suggestion-delete {
-            position: relative;
-            cursor: pointer;
-
-            background-color: #ffe6e6;
             text-decoration: line-through;
             color: #cc0000;
-
-        }
-        /* When compact (showDeletedText is false) */
-        .suggestion-delete.compact {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            background-color: #ffcccc;
-            border-radius: 2px;
-
-            /* hide only the text nothing else */
-            text-indent: -9999px;
-            overflow: hidden;
-            white-space: nowrap;
-
-        }
-  
-
-        /* Tooltip styles */
-        .suggestion-tooltip-wrapper {
-            position: relative;
-            display: inline;
-        }
-
-        .suggestion-tooltip {
-            visibility: hidden;
-            position: absolute;
-            z-index: 1000;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 6px 10px;
-            background: #333;
-            color: white;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .suggestion-tooltip::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 5px solid transparent;
-            border-top-color: #333;
-        }
-
-        .suggestion-add:hover .suggestion-tooltip,
-        .suggestion-delete:hover .suggestion-tooltip {
-            visibility: visible;
-            opacity: 1;
-        }
-        #modeIndicator {
-            color: #666;
-            font-size: 14px;
-        }
-
-       
-
-        /* Deletion marker styles */
-        .deletion-marker {
-            position: relative;
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            background-color: #ff4444;
-            border-radius: 2px;
-            cursor: pointer;
-            vertical-align: middle;
-        }
-
-        /* Deletion tooltip styles */
-        .deletion-tooltip {
-            visibility: hidden;
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 4px 8px;
-            background: #ffcccc;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            z-index: 1000;
-            margin-bottom: 4px;
-            
-        }
-
-        .deletion-tooltip::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 5px solid transparent;
-            border-top-color: #ffcccc;
-        }
-
-        .deletion-marker:hover .deletion-tooltip {
-            visibility: visible;
         }
     </style>
 </head>
 <body>
+    <title><a href="https://github.com/davefowler/prosemirror-suggestions">ProseMirror Suggestions</a> Demo</title>
     <div class="controls">
         <label>
             <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode

@@ -5,7 +5,7 @@ import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 
 // Define interfaces for plugin state
 interface SuggestionsPluginState {
-  suggestionMode: boolean;
+  inSuggestionMode: boolean;
   username: string;
   activeMarkRange: { from: number; to: number; createdAt: number } | null;
   showDeletedText: boolean;
@@ -14,26 +14,31 @@ interface SuggestionsPluginState {
 }
 
 // Plugin key for accessing the plugin state
-export const suggestionsPluginKey = new PluginKey<SuggestionsPluginState>("suggestions");
+export const suggestionsPluginKey = new PluginKey<SuggestionsPluginState>(
+  "suggestions"
+);
 
 // Default tooltip renderer that can be overridden
-const defaultTooltipRenderer = (mark: Mark, type: 'add' | 'delete'): string => {
+const defaultTooltipRenderer = (mark: Mark, type: "add" | "delete"): string => {
   const date = new Date(mark.attrs.createdAt).toLocaleDateString();
-  let text = type === 'delete' ? `Deleted by ${mark.attrs.username} on ${date}` :
-                               `Added by ${mark.attrs.username} on ${date}`;
-  
+  let text =
+    type === "delete"
+      ? `Deleted by ${mark.attrs.username} on ${date}`
+      : `Added by ${mark.attrs.username} on ${date}`;
+
   // Add custom data if present
   if (mark.attrs.data) {
     try {
-      const customData = typeof mark.attrs.data === 'string' ? 
-                       JSON.parse(mark.attrs.data) : 
-                       mark.attrs.data;
+      const customData =
+        typeof mark.attrs.data === "string"
+          ? JSON.parse(mark.attrs.data)
+          : mark.attrs.data;
       const dataStr = Object.entries(customData)
         .map(([key, value]) => `${key}: ${value}`)
-        .join(', ');
+        .join(", ");
       text += `\nCustom data: ${dataStr}`;
     } catch (e) {
-      console.warn('Failed to parse custom data in suggestion mark:', e);
+      console.warn("Failed to parse custom data in suggestion mark:", e);
     }
   }
   return text;
@@ -43,58 +48,98 @@ const defaultTooltipRenderer = (mark: Mark, type: 'add' | 'delete'): string => {
 export const suggestionsPlugin = new Plugin({
   key: suggestionsPluginKey,
 
-  appendTransaction(transactions: readonly Transaction[], oldState: EditorState, newState: EditorState) {
+  appendTransaction(
+    transactions: readonly Transaction[],
+    oldState: EditorState,
+    newState: EditorState
+  ) {
     // handle when a selection is deleted
     const pluginState = this.getState(oldState);
-    if (!pluginState?.suggestionMode) return null;
+    if (!pluginState?.inSuggestionMode) return null;
 
     let tr = newState.tr;
     let changed = false;
-    
-    transactions.forEach(transaction => {
+
+    transactions.forEach((transaction) => {
       // Skip if this is a suggestion transaction
       if (transaction.getMeta(suggestionsPluginKey)) {
-        console.log('skipping suggestion transaction', transaction);
+        console.log("skipping suggestion transaction", transaction);
         return;
       }
 
-      transaction.steps.forEach(step => {
+      transaction.steps.forEach((step) => {
         if (step instanceof ReplaceStep) {
           const from = step.from;
           const to = step.to;
           const text = oldState.doc.textBetween(from, to, " ");
-          const newText = step.slice.content.textBetween(0, step.slice.content.size, " ");
+          const newText = step.slice.content.textBetween(
+            0,
+            step.slice.content.size,
+            " "
+          );
 
-          console.log('replace step', step, 'text is', text, 'newText is', newText);
+          console.log(
+            "replace step",
+            step,
+            "text is",
+            text,
+            "newText is",
+            newText
+          );
           if (from === to) {
             // This case will be handled in handleTextInput
-            console.log('skipping replace step', step, 'text is', text, 'newText is', newText);
+            console.log(
+              "skipping replace step",
+              step,
+              "text is",
+              text,
+              "newText is",
+              newText
+            );
             return false;
           }
           // Re-insert the old text and add a suggestion_delete
           tr.setMeta(suggestionsPluginKey, true);
           tr.insertText(text, from, from);
           const markTo = from + text.length;
-          console.log('inserting mark on', text, 'at', from, 'to', markTo);
-          tr.addMark(from, markTo, newState.schema.marks.suggestion_delete.create({
-            createdAt: Date.now(),
-            username: pluginState.username,
-            data: {...pluginState.data, uniqueId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)}
-          }));
-          
+          console.log("inserting mark on", text, "at", from, "to", markTo);
+          tr.addMark(
+            from,
+            markTo,
+            newState.schema.marks.suggestion_delete.create({
+              createdAt: Date.now(),
+              username: pluginState.username,
+              data: {
+                ...pluginState.data,
+                uniqueId:
+                  Math.random().toString(36).substring(2, 15) +
+                  Math.random().toString(36).substring(2, 15),
+              },
+            })
+          );
+
           // set the selection to the beginning of the text
           if (newText.length > 0) {
             tr.insertText(newText, from, from);
-            tr.addMark(from, from + newText.length, newState.schema.marks.suggestion_add.create({
-              createdAt: Date.now(),
-              username: pluginState.username,
-              data: pluginState.data,
-            }));
+            tr.addMark(
+              from,
+              from + newText.length,
+              newState.schema.marks.suggestion_add.create({
+                createdAt: Date.now(),
+                username: pluginState.username,
+                data: pluginState.data,
+              })
+            );
           }
           const Selection = newState.selection.constructor as any;
-          tr.setSelection(Selection.create(tr.doc, from+newText.length));
+          tr.setSelection(Selection.create(tr.doc, from + newText.length));
 
-          console.log('added suggestion_delete mark at', from, 'to', from + text.length);
+          console.log(
+            "added suggestion_delete mark at",
+            from,
+            "to",
+            from + text.length
+          );
           changed = true;
         }
       });
@@ -107,107 +152,131 @@ export const suggestionsPlugin = new Plugin({
   state: {
     init(): SuggestionsPluginState {
       return {
-        suggestionMode: true,
-        username: 'Anonymous',
+        inSuggestionMode: true,
+        username: "Anonymous",
         activeMarkRange: null,
-        showDeletedText: true
+        showDeletedText: true,
       };
     },
-    
-    apply(tr: Transaction, value: SuggestionsPluginState): SuggestionsPluginState {
+
+    apply(
+      tr: Transaction,
+      value: SuggestionsPluginState
+    ): SuggestionsPluginState {
       // If there's metadata associated with this transaction, merge it into the current state
       const meta = tr.getMeta(suggestionsPlugin);
       if (meta) {
         return {
           ...value,
-          ...meta
+          ...meta,
         };
       }
       // Otherwise, return the existing state as-is
       return value;
-    }
+    },
   },
 
   props: {
     decorations(state: EditorState) {
       const pluginState = this.getState(state);
       if (!pluginState) return DecorationSet.empty;
-      
+
       const decos: Decoration[] = [];
-      
+
       state.doc.descendants((node: Node, pos: number) => {
         // Handle suggestion_add marks
-        const addMark = node.marks.find((m: Mark) => m.type.name === 'suggestion_add');
+        const addMark = node.marks.find(
+          (m: Mark) => m.type.name === "suggestion_add"
+        );
         if (addMark) {
           decos.push(
-            Decoration.widget(pos, () => {
-              const tooltip = document.createElement('div');
-              tooltip.className = 'suggestion-tooltip';
-              tooltip.textContent = defaultTooltipRenderer(addMark, 'add');
-              return tooltip;
-            }, {
-              side: -1,
-              key: `suggestion-add-${pos}`,
-              class: 'suggestion-tooltip-wrapper'
-            })
+            Decoration.widget(
+              pos,
+              () => {
+                const tooltip = document.createElement("div");
+                tooltip.className = "suggestion-tooltip";
+                tooltip.textContent = defaultTooltipRenderer(addMark, "add");
+                return tooltip;
+              },
+              {
+                side: -1,
+                key: `suggestion-add-${pos}`,
+                class: "suggestion-tooltip-wrapper",
+              }
+            )
           );
         }
-        
+
         // Handle suggestion_delete marks
-        const delMark = node.marks.find((m: Mark) => m.type.name === 'suggestion_delete');
+        const delMark = node.marks.find(
+          (m: Mark) => m.type.name === "suggestion_delete"
+        );
         if (delMark) {
           if (!pluginState.showDeletedText) {
             // When not showing deleted text, create a deletion marker with hover tooltip
             decos.push(
-              Decoration.widget(pos, () => {
-                // Create the hover tooltip
-                const tooltip = document.createElement('span');
-                tooltip.className = 'deletion-tooltip';
-                tooltip.textContent = node.text || '';
-                
-                return tooltip;
-              }, {
-                side: 1,
-                key: `deletion-marker-${pos}`
-              })
+              Decoration.widget(
+                pos,
+                () => {
+                  // Create the hover tooltip
+                  const tooltip = document.createElement("span");
+                  tooltip.className = "deletion-tooltip";
+                  tooltip.textContent = node.text || "";
+
+                  return tooltip;
+                },
+                {
+                  side: 1,
+                  key: `deletion-marker-${pos}`,
+                }
+              )
             );
           }
-          
+
           // Add metadata tooltip (author, date, etc.)
           decos.push(
-            Decoration.widget(pos, () => {
-              const tooltip = document.createElement('div');
-              tooltip.className = 'suggestion-tooltip';
-              tooltip.textContent = defaultTooltipRenderer(delMark, 'delete');
-              return tooltip;
-            }, {
-              side: -1,
-              key: `suggestion-delete-${pos}`,
-              class: 'suggestion-tooltip-wrapper'
-            })
+            Decoration.widget(
+              pos,
+              () => {
+                const tooltip = document.createElement("div");
+                tooltip.className = "suggestion-tooltip";
+                tooltip.textContent = defaultTooltipRenderer(delMark, "delete");
+                return tooltip;
+              },
+              {
+                side: -1,
+                key: `suggestion-delete-${pos}`,
+                class: "suggestion-tooltip-wrapper",
+              }
+            )
           );
         }
       });
-      
+
       return DecorationSet.create(state.doc, decos);
     },
 
     handleKeyDown(view: EditorView, event: KeyboardEvent) {
       const state = this.getState(view.state);
-      if (!state?.suggestionMode) return false;
+      if (!state?.inSuggestionMode) return false;
 
-      console.log('handleKeyDown: suggestionMode is', state.suggestionMode, 'and event.key is', event.key);
+      console.log(
+        "handleKeyDown: inSuggestionMode is",
+        state.inSuggestionMode,
+        "and event.key is",
+        event.key
+      );
 
       // Handle delete and backspace
       if (event.key === "Delete" || event.key === "Backspace") {
         event.preventDefault();
-        
+
         const tr = view.state.tr;
-        const {$from, $to} = view.state.selection;
-        console.log('handleKeyDown: deleting', $from.pos, $to.pos);
+        const { $from, $to } = view.state.selection;
+        console.log("handleKeyDown: deleting", $from.pos, $to.pos);
         let delFrom = $from.pos;
         let delTo = $to.pos;
-        
+
         if ($from.pos === $to.pos) {
           delFrom = event.key === "Backspace" ? $from.pos - 1 : $from.pos;
           delTo = event.key === "Backspace" ? $from.pos : $from.pos + 1;
@@ -218,14 +287,18 @@ export const suggestionsPlugin = new Plugin({
         let isInsideAddMark = false;
         view.state.doc.nodesBetween(delFrom, delTo, (node, pos) => {
           const marks = node.marks || [];
-          if (marks.some((m: Mark) => m.type === view.state.schema.marks.suggestion_add)) {
+          if (
+            marks.some(
+              (m: Mark) => m.type === view.state.schema.marks.suggestion_add
+            )
+          ) {
             isInsideAddMark = true;
             return false; // let it continue and perform the delete
           }
         });
 
         if (isInsideAddMark) {
-          console.log('Selection is inside an add mark');
+          console.log("Selection is inside an add mark");
           // Perform a regular delete, not a suggestion_delete
           return false; // let it continue and perform the delete
         }
@@ -234,13 +307,21 @@ export const suggestionsPlugin = new Plugin({
         const $delPos = view.state.doc.resolve(delTo);
         const node = $delPos.nodeAfter;
         const marks = node ? node.marks : [];
-        const existingMark = marks.find((m: Mark) => m.type === view.state.schema.marks.suggestion_delete);
-        
+        const existingMark = marks.find(
+          (m: Mark) => m.type === view.state.schema.marks.suggestion_delete
+        );
+
         // Additional debugging output
-        console.log('Marks at position', $delPos.pos, ':', marks);
-        console.log('Existing suggestion_delete mark:', existingMark);
-        console.log('the letter at position', $delPos.pos, 'is', node ? node.text : 'N/A', node ? node.type.name : 'N/A');
-        
+        console.log("Marks at position", $delPos.pos, ":", marks);
+        console.log("Existing suggestion_delete mark:", existingMark);
+        console.log(
+          "the letter at position",
+          $delPos.pos,
+          "is",
+          node ? node.text : "N/A",
+          node ? node.type.name : "N/A"
+        );
+
         if (existingMark) {
           let markFrom = $delPos.pos;
           let markTo = $delPos.pos;
@@ -248,7 +329,10 @@ export const suggestionsPlugin = new Plugin({
           // Find the start of the mark
           while (markFrom > 0) {
             const $pos = view.state.doc.resolve(markFrom - 1);
-            if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some((m: Mark) => m.eq(existingMark))) {
+            if (
+              !$pos.nodeAfter ||
+              !$pos.nodeAfter.marks.some((m: Mark) => m.eq(existingMark))
+            ) {
               break;
             }
             markFrom--;
@@ -257,21 +341,24 @@ export const suggestionsPlugin = new Plugin({
           // Find the end of the mark
           while (markTo < view.state.doc.content.size) {
             const $pos = view.state.doc.resolve(markTo);
-            if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some((m: Mark) => m.eq(existingMark))) {
+            if (
+              !$pos.nodeAfter ||
+              !$pos.nodeAfter.marks.some((m: Mark) => m.eq(existingMark))
+            ) {
               break;
             }
             markTo++;
           }
 
-          console.log('Existing mark range:', markFrom, 'to', markTo);
-          
+          console.log("Existing mark range:", markFrom, "to", markTo);
+
           // Expand the existing mark
           tr.removeMark(
             markFrom,
             markTo,
             view.state.schema.marks.suggestion_delete
           );
-          console.log('removed mark from', markFrom, 'to', markTo);
+          console.log("removed mark from", markFrom, "to", markTo);
           // extend the del range to include the existing mark
           delFrom = Math.min(markFrom, delFrom);
           delTo = Math.max(markTo, delTo);
@@ -284,10 +371,10 @@ export const suggestionsPlugin = new Plugin({
           view.state.schema.marks.suggestion_delete.create({
             createdAt: Date.now(),
             username: state.username,
-            data: state.data
+            data: state.data,
           })
         );
-        console.log('created suggestion_delete mark in range', delFrom, delTo);
+        console.log("created suggestion_delete mark in range", delFrom, delTo);
 
         // Move cursor appropriately
         if (event.key === "Backspace") {
@@ -306,100 +393,132 @@ export const suggestionsPlugin = new Plugin({
 
     handleTextInput(view: EditorView, from: number, to: number, text: string) {
       const state = this.getState(view.state);
-      if (!state?.suggestionMode) return false;
+      if (!state?.inSuggestionMode) return false;
 
       const meta = view.state.tr.getMeta(suggestionsPlugin);
-      console.log('meta is', meta);
+      console.log("meta is", meta);
       // If we set skipHandleTextInput, skip this entire handler:
       if (meta && meta.skipHandleTextInput) {
-        console.log('skipHandleTextInput is true, skipping handleTextInput', from, to, text);
+        console.log(
+          "skipHandleTextInput is true, skipping handleTextInput",
+          from,
+          to,
+          text
+        );
         return false;
       }
-      console.log('1. handleTextInput', from, to, text.length, 'text is:', text);
+      console.log(
+        "1. handleTextInput",
+        from,
+        to,
+        text.length,
+        "text is:",
+        text
+      );
 
       // Check if the input text matches the text being deleted
       const replacedText = view.state.doc.textBetween(from, to);
       if (text === replacedText) {
-        console.log('Ignoring redundant input:', text);
-        return true;  // ignore the redundant input
+        console.log("Ignoring redundant input:", text);
+        return true; // ignore the redundant input
       }
 
       const tr = view.state.tr;
-      console.log('setting skipHandleTextInput meta');
+      console.log("setting skipHandleTextInput meta");
       tr.setMeta(suggestionsPlugin, { skipHandleTextInput: true });
 
       // check if this input is inside an existing suggestion_add or suggestion_delete mark
       const $pos = view.state.doc.resolve(from);
       const node = $pos.nodeAfter;
       const marks = node ? node.marks : [];
-      const existingMark = marks.find((m: Mark) => 
-        m.type === view.state.schema.marks.suggestion_add || 
-        m.type === view.state.schema.marks.suggestion_delete
+      const existingMark = marks.find(
+        (m: Mark) =>
+          m.type === view.state.schema.marks.suggestion_add ||
+          m.type === view.state.schema.marks.suggestion_delete
       );
 
       if (existingMark) {
-        console.log('handleTextInput: input is already inside an existing suggestion_add or suggestion_delete mark.');
+        console.log(
+          "handleTextInput: input is already inside an existing suggestion_add or suggestion_delete mark."
+        );
         return false; // allow the input to be processed
       }
-      
+
       // check if there is a suggestion_add mark immediately before this input
       const $prevPos = view.state.doc.resolve(from);
       const prevNode = $prevPos.nodeBefore;
       const prevMarks = prevNode ? prevNode.marks : [];
-      const prevExistingMark = prevMarks.find((m: Mark) => m.type === view.state.schema.marks.suggestion_add);
+      const prevExistingMark = prevMarks.find(
+        (m: Mark) => m.type === view.state.schema.marks.suggestion_add
+      );
 
       // Insert the text
       let newTo = from + text.length;
       let newFrom = from;
 
       if (prevExistingMark) {
-        console.log('prevExistingMark found at', $prevPos.pos);
+        console.log("prevExistingMark found at", $prevPos.pos);
         // find the start of the prevExistingMark
         const markTo = $prevPos.pos;
         let markFrom = markTo;
         while (markFrom > 0) {
           const $pos = view.state.doc.resolve(markFrom - 1);
-          if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some((m: Mark) => m.eq(prevExistingMark))) {
+          if (
+            !$pos.nodeAfter ||
+            !$pos.nodeAfter.marks.some((m: Mark) => m.eq(prevExistingMark))
+          ) {
             break;
           }
           markFrom--;
         }
 
-        console.log('removing prevExistingMark range:', markFrom, 'to', markTo);
+        console.log("removing prevExistingMark range:", markFrom, "to", markTo);
         // remove the prevExistingMark
         tr.removeMark(markFrom, markTo, view.state.schema.marks.suggestion_add);
 
         // extend the suggestion_add range to include the existing mark
         newFrom = Math.min(markFrom, from);
         newTo = Math.max(markTo, from + text.length);
-        console.log('extended suggestion_add range to:', newFrom, 'to', newTo);
+        console.log("extended suggestion_add range to:", newFrom, "to", newTo);
       }
 
-      console.log('inserting text', text, 'at', from, 'to', to);
+      console.log("inserting text", text, "at", from, "to", to);
       tr.insertText(text, from, to);
 
-      console.log('creating new suggestion_add mark at', newFrom, 'to', newTo);
+      console.log("creating new suggestion_add mark at", newFrom, "to", newTo);
       // Create new mark with current timestamp and username
       const addMark = view.state.schema.marks.suggestion_add.create({
         createdAt: Date.now(),
         username: state.username,
-        data: state.data
+        data: state.data,
       });
       tr.addMark(newFrom, newTo, addMark);
-      console.log('replaced text?', replacedText);
+      console.log("replaced text?", replacedText);
 
       if (replacedText.length > 0) {
         // Apply mark to the newly inserted text
         const replaceFrom = from + text.length;
-        console.log('inserting back in replaced text', replacedText, 'at', replaceFrom, 'to', replaceFrom);
+        console.log(
+          "inserting back in replaced text",
+          replacedText,
+          "at",
+          replaceFrom,
+          "to",
+          replaceFrom
+        );
         tr.insertText(replacedText, replaceFrom, replaceFrom);
 
         const deletedMark = view.state.schema.marks.suggestion_delete.create({
           createdAt: Date.now(),
           username: state.username,
-          data: state.data
+          data: state.data,
         });
-        console.log('adding deleted mark at', replaceFrom, 'to', replaceFrom + replacedText.length);
+        console.log(
+          "adding deleted mark at",
+          replaceFrom,
+          "to",
+          replaceFrom + replacedText.length
+        );
         tr.addMark(replaceFrom, replaceFrom + replacedText.length, deletedMark);
 
         // set the selection to the end of the new text
@@ -413,28 +532,30 @@ export const suggestionsPlugin = new Plugin({
 
     handleDOMEvents: {
       beforeinput: (view: EditorView, event: InputEvent) => {
-        console.log('beforeinput event:', {
+        console.log("beforeinput event:", {
           inputType: event.inputType,
           data: event.data,
           targetRange: event.getTargetRanges?.(),
-          selection: view.state.selection
+          selection: view.state.selection,
         });
-        
-        if (event.inputType === "deleteContentForward" || 
-            event.inputType === "deleteContentBackward") {
+
+        if (
+          event.inputType === "deleteContentForward" ||
+          event.inputType === "deleteContentBackward"
+        ) {
           // Intercept the delete of a selected range here
-          console.log('beforeinput event:', {
+          console.log("beforeinput event:", {
             inputType: event.inputType,
             data: event.data,
             targetRange: event.getTargetRanges?.(),
-            selection: view.state.selection
+            selection: view.state.selection,
           });
           // If you handle it, prevent ProseMirror's default by returning true
           return true;
         }
 
         return false; // Let ProseMirror handle other beforeinput events
-      }
-    }
-  }
+      },
+    },
+  },
 });

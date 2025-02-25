@@ -1,7 +1,7 @@
 import { Plugin, PluginKey, Transaction, EditorState } from "prosemirror-state";
-import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 import { ReplaceStep } from "prosemirror-transform";
 import { Mark, Node } from "prosemirror-model";
+import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 
 // Define interfaces for plugin state
 interface SuggestionsPluginState {
@@ -40,7 +40,7 @@ const defaultTooltipRenderer = (mark: Mark, type: 'add' | 'delete'): string => {
 };
 
 // Create the suggestions plugin
-export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
+export const suggestionsPlugin = new Plugin({
   key: suggestionsPluginKey,
 
   appendTransaction(transactions: readonly Transaction[], oldState: EditorState, newState: EditorState) {
@@ -53,7 +53,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
     
     transactions.forEach(transaction => {
       // Skip if this is a suggestion transaction
-      if (transaction.getMeta(this)) {
+      if (transaction.getMeta(suggestionsPluginKey)) {
         console.log('skipping suggestion transaction', transaction);
         return;
       }
@@ -72,7 +72,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
             return false;
           }
           // Re-insert the old text and add a suggestion_delete
-          tr.setMeta(this, true);
+          tr.setMeta(suggestionsPluginKey, true);
           tr.insertText(text, from, from);
           const markTo = from + text.length;
           console.log('inserting mark on', text, 'at', from, 'to', markTo);
@@ -91,7 +91,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
               data: pluginState.data,
             }));
           }
-          tr.setSelection(newState.selection.constructor.near(tr.doc.resolve(from+newText.length)));
+          tr.setSelection(newState.selection.constructor.create(tr.doc, from+newText.length));
 
           console.log('added suggestion_delete mark at', from, 'to', from + text.length);
           changed = true;
@@ -136,7 +136,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
       
       state.doc.descendants((node: Node, pos: number) => {
         // Handle suggestion_add marks
-        const addMark = node.marks.find(m => m.type.name === 'suggestion_add');
+        const addMark = node.marks.find((m: Mark) => m.type.name === 'suggestion_add');
         if (addMark) {
           decos.push(
             Decoration.widget(pos, () => {
@@ -153,7 +153,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
         }
         
         // Handle suggestion_delete marks
-        const delMark = node.marks.find(m => m.type.name === 'suggestion_delete');
+        const delMark = node.marks.find((m: Mark) => m.type.name === 'suggestion_delete');
         if (delMark) {
           if (!pluginState.showDeletedText) {
             // When not showing deleted text, create a deletion marker with hover tooltip
@@ -217,7 +217,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
         let isInsideAddMark = false;
         view.state.doc.nodesBetween(delFrom, delTo, (node, pos) => {
           const marks = node.marks || [];
-          if (marks.some(m => m.type === view.state.schema.marks.suggestion_add)) {
+          if (marks.some((m: Mark) => m.type === view.state.schema.marks.suggestion_add)) {
             isInsideAddMark = true;
             return false; // let it continue and perform the delete
           }
@@ -233,7 +233,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
         const $delPos = view.state.doc.resolve(delTo);
         const node = $delPos.nodeAfter;
         const marks = node ? node.marks : [];
-        const existingMark = marks.find(m => m.type === view.state.schema.marks.suggestion_delete);
+        const existingMark = marks.find((m: Mark) => m.type === view.state.schema.marks.suggestion_delete);
         
         // Additional debugging output
         console.log('Marks at position', $delPos.pos, ':', marks);
@@ -247,7 +247,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
           // Find the start of the mark
           while (markFrom > 0) {
             const $pos = view.state.doc.resolve(markFrom - 1);
-            if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some(m => m.eq(existingMark))) {
+            if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some((m: Mark) => m.eq(existingMark))) {
               break;
             }
             markFrom--;
@@ -256,7 +256,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
           // Find the end of the mark
           while (markTo < view.state.doc.content.size) {
             const $pos = view.state.doc.resolve(markTo);
-            if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some(m => m.eq(existingMark))) {
+            if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some((m: Mark) => m.eq(existingMark))) {
               break;
             }
             markTo++;
@@ -290,9 +290,9 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
 
         // Move cursor appropriately
         if (event.key === "Backspace") {
-          tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(delFrom)));
+          tr.setSelection(view.state.selection.constructor.create(tr.doc, delFrom));
         } else {
-          tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(delTo)));
+          tr.setSelection(view.state.selection.constructor.create(tr.doc, delTo));
         }
 
         view.dispatch(tr);
@@ -329,7 +329,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
       const $pos = view.state.doc.resolve(from);
       const node = $pos.nodeAfter;
       const marks = node ? node.marks : [];
-      const existingMark = marks.find(m => 
+      const existingMark = marks.find((m: Mark) => 
         m.type === view.state.schema.marks.suggestion_add || 
         m.type === view.state.schema.marks.suggestion_delete
       );
@@ -343,7 +343,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
       const $prevPos = view.state.doc.resolve(from);
       const prevNode = $prevPos.nodeBefore;
       const prevMarks = prevNode ? prevNode.marks : [];
-      const prevExistingMark = prevMarks.find(m => m.type === view.state.schema.marks.suggestion_add);
+      const prevExistingMark = prevMarks.find((m: Mark) => m.type === view.state.schema.marks.suggestion_add);
 
       // Insert the text
       let newTo = from + text.length;
@@ -356,7 +356,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
         let markFrom = markTo;
         while (markFrom > 0) {
           const $pos = view.state.doc.resolve(markFrom - 1);
-          if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some(m => m.eq(prevExistingMark))) {
+          if (!$pos.nodeAfter || !$pos.nodeAfter.marks.some((m: Mark) => m.eq(prevExistingMark))) {
             break;
           }
           markFrom--;
@@ -400,7 +400,7 @@ export const suggestionsPlugin = new Plugin<SuggestionsPluginState>({
         tr.addMark(replaceFrom, replaceFrom + replacedText.length, deletedMark);
 
         // set the selection to the end of the new text
-        tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(replaceFrom)));
+        tr.setSelection(view.state.selection.constructor.create(tr.doc, replaceFrom));
       }
 
       view.dispatch(tr);

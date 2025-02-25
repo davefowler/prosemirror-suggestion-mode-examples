@@ -1,6 +1,6 @@
 import { EditorState } from "prosemirror-state";
+import { Schema } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
-import { Schema, DOMParser } from "prosemirror-model";
 import { schema } from "prosemirror-schema-basic";
 import { addListNodes } from "prosemirror-schema-list";
 import { baseKeymap } from "prosemirror-commands";
@@ -35,7 +35,7 @@ const suggestionMarks = {
     },
     inclusive: true,
     parseDOM: [{ tag: "span[data-suggestion-delete]" }],
-    toDOM(node) {
+    toDOM() {
       return ["span", {
         "data-suggestion-delete": "true",
         class: "suggestion-delete",
@@ -51,7 +51,8 @@ const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, 'paragraph block*', 'block'),
   marks: {
     ...schema.spec.marks,
-    ...suggestionMarks
+    suggestion_add: suggestionMarks.suggestion_add,
+    suggestion_delete: suggestionMarks.suggestion_delete
   }
 });
 

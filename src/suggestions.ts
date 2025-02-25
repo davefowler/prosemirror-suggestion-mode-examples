@@ -91,7 +91,8 @@ export const suggestionsPlugin = new Plugin({
               data: pluginState.data,
             }));
           }
-          tr.setSelection(newState.selection.constructor.create(tr.doc, from+newText.length));
+          const Selection = newState.selection.constructor as any;
+          tr.setSelection(Selection.create(tr.doc, from+newText.length));
 
           console.log('added suggestion_delete mark at', from, 'to', from + text.length);
           changed = true;
@@ -290,9 +291,11 @@ export const suggestionsPlugin = new Plugin({
 
         // Move cursor appropriately
         if (event.key === "Backspace") {
-          tr.setSelection(view.state.selection.constructor.create(tr.doc, delFrom));
+          const Selection = view.state.selection.constructor as any;
+          tr.setSelection(Selection.create(tr.doc, delFrom));
         } else {
-          tr.setSelection(view.state.selection.constructor.create(tr.doc, delTo));
+          const Selection = view.state.selection.constructor as any;
+          tr.setSelection(Selection.create(tr.doc, delTo));
         }
 
         view.dispatch(tr);
@@ -400,7 +403,8 @@ export const suggestionsPlugin = new Plugin({
         tr.addMark(replaceFrom, replaceFrom + replacedText.length, deletedMark);
 
         // set the selection to the end of the new text
-        tr.setSelection(view.state.selection.constructor.create(tr.doc, replaceFrom));
+        const Selection = view.state.selection.constructor as any;
+        tr.setSelection(Selection.create(tr.doc, replaceFrom));
       }
 
       view.dispatch(tr);

@@ -1,6 +1,6 @@
 // Type definitions for ProseMirror extensions
 import { EditorView } from "prosemirror-view";
-import { Mark, Node } from "prosemirror-model";
+import { Mark, Node, MarkSpec } from "prosemirror-model";
 
 declare module "prosemirror-view" {
   interface EditorProps {
@@ -22,4 +22,13 @@ interface InputEvent extends UIEvent {
   readonly data: string | null;
   readonly isComposing: boolean;
   getTargetRanges?(): Range[];
+}
+
+// Extend Selection constructor
+declare module "prosemirror-state" {
+  interface Selection {
+    constructor: {
+      create(doc: Node, pos: number): Selection;
+    };
+  }
 }

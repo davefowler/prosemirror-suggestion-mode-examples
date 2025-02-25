@@ -35,7 +35,7 @@ const suggestionMarks = {
     },
     inclusive: true,
     parseDOM: [{ tag: "span[data-suggestion-delete]" }],
-    toDOM() {
+    toDOM(node) {
       return ["span", {
         "data-suggestion-delete": "true",
         class: "suggestion-delete",

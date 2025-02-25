@@ -23,7 +23,7 @@ const suggestionMarks = {
         "data-suggestion-add": "true", 
         class: "suggestion-add",
         style: "background-color: #e6ffe6;" 
-      }, 0];
+      }, 0] as any;
     }
   },
   suggestion_delete: {
@@ -40,7 +40,7 @@ const suggestionMarks = {
         "data-suggestion-delete": "true",
         class: "suggestion-delete",
         "data-hidden-text": node.attrs.hiddenText
-      }, 0];
+      }, 0] as any;
     }
   }
 };

@@ -32,3 +32,10 @@ declare module "prosemirror-state" {
     };
   }
 }
+
+// Extend MarkSpec to allow any return type from toDOM
+declare module "prosemirror-model" {
+  interface MarkSpec {
+    toDOM?: (node?: any) => any;
+  }
+}

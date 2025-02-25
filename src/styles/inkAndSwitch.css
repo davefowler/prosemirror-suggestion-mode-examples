@@ -1,0 +1,37 @@
+.suggestion-add {
+    color: green;
+    border-radius: 2px;
+    background-color: rgba(55, 255, 55, 0.2);
+    border-bottom: 2px solid green;
+}
+/* .suggestion-delete {} */
+
+.suggestion-delete .suggestion-delete-wrapper {
+    display: none
+}
+
+.suggestion-delete::after {
+    content: "x";
+    display: inline-block;
+    width: 1ch;
+    background-color: rgba(255, 0, 0, 0.2);
+    color: red;
+}
+
+.suggestion-tooltip {
+    background-color: #f0f0f0;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: none; /* Hide by default */
+    position: absolute;
+    z-index: 10;
+    pointer-events: none; /* Prevents the tooltip from intercepting mouse events */
+}
+
+/* Show tooltip when hovering over suggestion marks */
+.suggestion-delete:hover .suggestion-tooltip,
+.suggestion-add:hover .suggestion-tooltip,
+.suggestion-tooltip:hover {
+    display: block;
+}

@@ -5,19 +5,19 @@
     <title>ProseMirror Suggestions Demo</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             line-height: 1.5;
             margin: 0;
             padding: 20px;
         }
         .ProseMirror {
-           white-space: pre-wrap;
+            white-space: pre-wrap;
             background: white;
             border: 1px solid #ccc;
             border-radius: 4px;
             margin: 20px auto;
             max-width: 800px;
             min-height: 200px;
+            padding: 10px;
         }
         .controls {
             max-width: 800px;
@@ -25,15 +25,6 @@
             display: flex;
             gap: 10px;
             align-items: center;
-        }
-        .suggestion-add {
-            color: #e6ffe6;
-            text-decoration: underline;
-            border-radius: 2px;
-        }
-        .suggestion-delete {
-            text-decoration: line-through;
-            color: #cc0000;
         }
     </style>
 </head>
@@ -44,8 +35,9 @@
             <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
         </label>
         <label style="margin-left: 20px;">
-            <input type="checkbox" id="showDeletedText" checked> Show suggested deletes
-        </label>
+            Theme:
+            <select id="themeSelector"></select>
+        </label>        
         <span id="modeIndicator"></span>
     </div>
     <div id="editor" class="editor"></div>

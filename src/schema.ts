@@ -18,7 +18,6 @@ export const suggestionMarks = {
         {
           "data-suggestion-add": "true",
           class: "suggestion-add",
-          style: "background-color: #e6ffe6;",
         },
         0,
       ] as any;
@@ -27,7 +26,6 @@ export const suggestionMarks = {
   suggestion_delete: {
     attrs: {
       createdAt: { default: null },
-      hiddenText: { default: "" },
       username: { default: "Anonymous" },
       data: { default: null },
     },
@@ -39,7 +37,6 @@ export const suggestionMarks = {
         {
           "data-suggestion-delete": "true",
           class: "suggestion-delete",
-          "data-hidden-text": node.attrs.hiddenText,
         },
         0,
       ] as any;

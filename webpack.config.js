@@ -9,6 +9,13 @@ module.exports = {
     resolve: {
         extensions: ['.ts', '.js'],
     },
+    plugins: [
+        new CopyWebpackPlugin({
+          patterns: [
+            { from: 'src/styles', to: 'styles' }
+          ]
+        })
+    ],
     devServer: {
         static: {
             directory: path.join(__dirname, 'src'),
@@ -22,7 +29,7 @@ module.exports = {
                 test: /\.ts$/,
                 exclude: /node_modules/,
                 use: 'ts-loader'
-            }
+            },
         ]
     }
 };

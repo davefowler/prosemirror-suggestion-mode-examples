@@ -1,0 +1,26 @@
+.suggestion-add {
+    color: green;
+    text-decoration: underline;
+    border-radius: 2px;
+}
+.suggestion-delete {
+    text-decoration: line-through;
+    color: red;
+}
+.suggestion-tooltip {
+    background-color: #f0f0f0;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: none; /* Hide by default */
+    position: absolute;
+    z-index: 10;
+    pointer-events: none; /* Prevents the tooltip from intercepting mouse events */
+}
+
+/* Show tooltip when hovering over suggestion marks */
+.suggestion-delete:hover .suggestion-tooltip,
+.suggestion-add:hover .suggestion-tooltip,
+.suggestion-tooltip:hover {
+    display: block;
+}

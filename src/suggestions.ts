@@ -8,7 +8,6 @@ interface SuggestionsPluginState {
   inSuggestionMode: boolean;
   username: string;
   activeMarkRange: { from: number; to: number; createdAt: number } | null;
-  showDeletedText: boolean;
   data?: Record<string, any>;
   skipHandleTextInput?: boolean;
 }
@@ -19,7 +18,10 @@ export const suggestionsPluginKey = new PluginKey<SuggestionsPluginState>(
 );
 
 // Default tooltip renderer that can be overridden
-const defaultTooltipRenderer = (mark: Mark, type: "add" | "delete"): string => {
+const defaultTooltipRenderer = (
+  mark: Mark,
+  type: "insert" | "delete"
+): string => {
   const date = new Date(mark.attrs.createdAt).toLocaleDateString();
   let text =
     type === "delete"
@@ -109,12 +111,7 @@ export const suggestionsPlugin = new Plugin({
             newState.schema.marks.suggestion_delete.create({
               createdAt: Date.now(),
               username: pluginState.username,
-              data: {
-                ...pluginState.data,
-                uniqueId:
-                  Math.random().toString(36).substring(2, 15) +
-                  Math.random().toString(36).substring(2, 15),
-              },
+              data: pluginState.data,
             })
           );
 
@@ -155,7 +152,6 @@ export const suggestionsPlugin = new Plugin({
         inSuggestionMode: true,
         username: "Anonymous",
         activeMarkRange: null,
-        showDeletedText: true,
       };
     },
 
@@ -189,18 +185,26 @@ export const suggestionsPlugin = new Plugin({
           (m: Mark) => m.type.name === "suggestion_add"
         );
         if (addMark) {
+          // Add inline decoration for the actual text
+          decos.push(
+            Decoration.inline(pos, pos + node.nodeSize, {
+              class: "suggestion-add",
+            })
+          );
+
+          // Add the tooltip within the wrapper
           decos.push(
             Decoration.widget(
               pos,
               () => {
                 const tooltip = document.createElement("div");
                 tooltip.className = "suggestion-tooltip";
-                tooltip.textContent = defaultTooltipRenderer(addMark, "add");
+                tooltip.textContent = defaultTooltipRenderer(addMark, "insert");
                 return tooltip;
               },
               {
                 side: -1,
-                key: `suggestion-add-${pos}`,
+                key: `suggestion-add-tooltip-${pos}`,
                 class: "suggestion-tooltip-wrapper",
               }
             )
@@ -212,28 +216,21 @@ export const suggestionsPlugin = new Plugin({
           (m: Mark) => m.type.name === "suggestion_delete"
         );
         if (delMark) {
-          if (!pluginState.showDeletedText) {
-            // When not showing deleted text, create a deletion marker with hover tooltip
-            decos.push(
-              Decoration.widget(
-                pos,
-                () => {
-                  // Create the hover tooltip
-                  const tooltip = document.createElement("span");
-                  tooltip.className = "deletion-tooltip";
-                  tooltip.textContent = node.text || "";
+          // Create a wrapper for both the suggestion and its tooltip
+          decos.push(
+            Decoration.inline(pos, pos + node.nodeSize, {
+              class: "suggestion-wrapper suggestion-delete-wrapper",
+            })
+          );
 
-                  return tooltip;
-                },
-                {
-                  side: 1,
-                  key: `deletion-marker-${pos}`,
-                }
-              )
-            );
-          }
+          // Add class to the node with the deletion mark
+          decos.push(
+            Decoration.inline(pos, pos + node.nodeSize, {
+              class: "suggestion-delete",
+            })
+          );
 
-          // Add metadata tooltip (author, date, etc.)
+          // Add tooltip for deleted text
           decos.push(
             Decoration.widget(
               pos,
@@ -244,8 +241,8 @@ export const suggestionsPlugin = new Plugin({
                 return tooltip;
               },
               {
-                side: -1,
-                key: `suggestion-delete-${pos}`,
+                side: 1,
+                key: `suggestion-delete-tooltip-${pos}`,
                 class: "suggestion-tooltip-wrapper",
               }
             )

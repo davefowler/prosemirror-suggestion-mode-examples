@@ -155,3 +155,14 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
+
+
+TODO:
+- Add a way to accept/reject each and all suggestions
+- all inserts and deletes working
+- remove showDeletedText and make decorators extendable
+- insert diff docs
+- extend styles - google, word, ink and switch
+- tests
+- AI suggestions 
+- polish instructions

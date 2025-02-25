@@ -15,7 +15,31 @@
     display: none; /* Hide by default */
     position: absolute;
     z-index: 10;
-    pointer-events: none; /* Prevents the tooltip from intercepting mouse events */
+    bottom: 100%; /* Position above the text */
+    left: 0;
+    margin-bottom: 5px; /* Add space between tooltip and text */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    min-width: 150px;
+    white-space: nowrap;
+    transition-delay: 0.1s;
+    transition-property: display;
+}
+
+/* Create a relative positioning context for the tooltip */
+.suggestion-add, .suggestion-delete {
+    position: relative;
+}
+
+/* Add a pseudo-element to bridge the gap between suggestion and tooltip */
+.suggestion-add::before, 
+.suggestion-delete::before {
+    content: '';
+    position: absolute;
+    height: 10px; /* Height of the invisible bridge */
+    width: 100%;
+    bottom: 100%;
+    left: 0;
+    z-index: 9; /* Below the tooltip but still part of the hover path */
 }
 
 /* Show tooltip when hovering over suggestion marks */
@@ -23,4 +47,41 @@
 .suggestion-add:hover .suggestion-tooltip,
 .suggestion-tooltip:hover {
     display: block;
+}
+
+/* Style for suggestion buttons */
+.suggestion-buttons {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.suggestion-accept, .suggestion-reject {
+    padding: 2px 8px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.suggestion-accept {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.suggestion-reject {
+    background-color: #f44336;
+    color: white;
+}
+
+.suggestion-accept:hover {
+    background-color: #45a049;
+}
+
+.suggestion-reject:hover {
+    background-color: #d32f2f;
+}
+
+.suggestion-info {
+    margin-bottom: 5px;
 }

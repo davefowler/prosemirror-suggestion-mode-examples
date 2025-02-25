@@ -159,6 +159,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 TODO:
 - Add a way to accept/reject each and all suggestions
+- create way of including adjacent delets and additions in the general way
 - all inserts and deletes working
 - remove showDeletedText and make decorators extendable
 - insert diff docs

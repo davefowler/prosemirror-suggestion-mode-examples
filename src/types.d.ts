@@ -4,7 +4,12 @@ import { Mark, Node, MarkSpec } from "prosemirror-model";
 
 declare module "prosemirror-view" {
   interface EditorProps {
-    handleTextInput?: (view: EditorView, from: number, to: number, text: string) => boolean;
+    handleTextInput?: (
+      view: EditorView,
+      from: number,
+      to: number,
+      text: string
+    ) => boolean;
     handleDOMEvents?: {
       [key: string]: (view: EditorView, event: Event) => boolean;
     };

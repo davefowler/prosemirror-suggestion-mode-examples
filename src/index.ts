@@ -22,40 +22,38 @@ window.addEventListener("load", () => {
   const state = EditorState.create({
     schema: mySchema,
     doc,
-    plugins: [
-      history(),
-      keymap(baseKeymap),
-      suggestionsPlugin
-    ]
+    plugins: [history(), keymap(baseKeymap), suggestionsPlugin],
   });
 
   // Create the editor view
-  const view = new EditorView(document.querySelector("#editor"), {state});
+  const view = new EditorView(document.querySelector("#editor"), { state });
 
   // Make view available globally for debugging
   (window as any).view = view;
 
-
   const setState = (view: EditorView, key: string, value: any) => {
     const state = suggestionsPluginKey.getState(view.state);
     if (!state) return;
-    view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
-      ...state,
-      [key]: value
-    }));
-  }
+    view.dispatch(
+      view.state.tr.setMeta(suggestionsPlugin, {
+        ...state,
+        [key]: value,
+      })
+    );
+  };
 
   // Add event listeners for the controls
-  const toggleModeCheckbox = document.querySelector("#toggleSuggestionMode") as HTMLInputElement;
+  const toggleModeCheckbox = document.querySelector(
+    "#toggleSuggestionMode"
+  ) as HTMLInputElement;
   toggleModeCheckbox.addEventListener("change", (e) => {
     setState(view, "isSuggestionMode", (e.target as HTMLInputElement).checked);
   });
-    
-  
 
-  const showDeletedTextCheckbox = document.querySelector("#showDeletedText") as HTMLInputElement;
+  const showDeletedTextCheckbox = document.querySelector(
+    "#showDeletedText"
+  ) as HTMLInputElement;
   showDeletedTextCheckbox.addEventListener("change", (e) => {
     setState(view, "showDeletedText", (e.target as HTMLInputElement).checked);
   });
-  
 });

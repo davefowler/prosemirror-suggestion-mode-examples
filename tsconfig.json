@@ -10,7 +10,8 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
     "sourceMap": true,
-    "lib": ["dom", "dom.iterable", "esnext"]
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["jest", "node"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]

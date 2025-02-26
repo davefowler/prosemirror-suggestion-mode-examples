@@ -4,7 +4,8 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 module.exports = {
     entry: {
         'index': './src/index.ts',
-        'examples/simple/simple': './src/examples/simple/simple.ts'
+        'examples/simple/simple': './src/examples/simple/simple.ts',
+        'examples/replace/replace': './src/examples/replace/replace.ts'
     },
     output: {
         filename: '[name].js',

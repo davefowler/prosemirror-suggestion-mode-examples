@@ -169,6 +169,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 
 TODO:
+- ink and switch styles - and extra decorator
 - insert diff docs
 - extend styles - google, word, ink and switch
 - tests

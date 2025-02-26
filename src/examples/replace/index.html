@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ProseMirror Suggestions Demo</title>
+    <style>
+        body {
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .ProseMirror {
+            white-space: pre-wrap;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 20px auto;
+            max-width: 800px;
+            min-height: 200px;
+            padding: 10px;
+        }
+        .controls {
+            max-width: 800px;
+            margin: 20px auto;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Prosemirror Suggestions Example</h1>
+    <div class="controls">
+        <label>
+            <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
+        </label>
+        
+        <!-- Buttons to accept/reject all suggestions -->
+        <button id="acceptAllSuggestions" class="suggestion-accept">Accept All</button>
+        <button id="rejectAllSuggestions" class="suggestion-reject">Reject All</button>
+        <span id="modeIndicator"></span>
+    </div>
+    <div id="editor" class="editor"></div>
+    <script src="simple.js"></script>
+</body>
+</html>

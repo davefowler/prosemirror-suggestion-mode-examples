@@ -103,7 +103,7 @@ suggestionsPlugin.reject(view)
 
 You can customize the content and appearance of suggestion tooltips in two ways:
 
-1. **Custom Tooltip Renderer**
+#### 1. Custom Tooltip Renderer
 
 Provide a custom tooltip renderer function when creating the plugin.  If you added extra data to the suggestion mark you can access it in the tooltip renderer.  Below we've added a profile image url.
 
@@ -118,7 +118,7 @@ new Plugin({
 })
 ```
 
-2. **CSS Styling**
+#### 2. CSS Styling
 
 Override the default tooltip styles in your CSS:
 
@@ -148,6 +148,15 @@ Override the default tooltip styles in your CSS:
 
 The tooltipRenderer function gives you full control over the tooltip content, while CSS customization lets you style the tooltip appearance.
 
+### Accepting/Rejecting All Suggestions
+
+The plugin exposes two utility functions for bulk processing of suggestions:
+
+- `acceptAllSuggestions(view)`: Accepts all suggestions in the document
+- `rejectAllSuggestions(view)`: Rejects all suggestions in the document
+
+These functions take the EditorView as their only parameter.  See the example for more details.
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
@@ -155,6 +164,8 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
+
+
 
 
 TODO:

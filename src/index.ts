@@ -3,7 +3,12 @@ import { EditorView } from "prosemirror-view";
 import { baseKeymap } from "prosemirror-commands";
 import { keymap } from "prosemirror-keymap";
 import { history } from "prosemirror-history";
-import { suggestionsPlugin, suggestionsPluginKey } from "./suggestions";
+import {
+  suggestionsPlugin,
+  suggestionsPluginKey,
+  acceptAllSuggestions,
+  rejectAllSuggestions,
+} from "./suggestions";
 import { mySchema } from "./schema";
 import { DOMParser } from "prosemirror-model";
 
@@ -54,6 +59,19 @@ window.addEventListener("load", () => {
     setState(view, "isSuggestionMode", (e.target as HTMLInputElement).checked);
   });
 
+  const acceptAllButton = document.querySelector(
+    "#acceptAllSuggestions"
+  ) as HTMLButtonElement;
+  acceptAllButton.addEventListener("click", () => {
+    acceptAllSuggestions(view);
+  });
+
+  const rejectAllButton = document.querySelector(
+    "#rejectAllSuggestions"
+  ) as HTMLButtonElement;
+  rejectAllButton.addEventListener("click", () => {
+    rejectAllSuggestions(view);
+  });
   // Setup and handle theme selector
   const themeSelector = document.querySelector(
     "#themeSelector"

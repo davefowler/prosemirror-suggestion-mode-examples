@@ -17,10 +17,36 @@ export const suggestionsPluginKey = new PluginKey<SuggestionsPluginState>(
   "suggestions"
 );
 
+const handleAllSuggestions = (
+  view: EditorView,
+  acceptOrReject: "accept" | "reject"
+) => {
+  view.state.doc.descendants((node, pos) => {
+    const suggestionMark = node.marks.find(
+      (m) =>
+        m.type.name === "suggestion_add" || m.type.name === "suggestion_delete"
+    );
+    if (!suggestionMark) return;
+
+    if (acceptOrReject === "accept") {
+      acceptSuggestion(view, suggestionMark, pos);
+    } else {
+      rejectSuggestion(view, suggestionMark, pos);
+    }
+  });
+};
+
+export const acceptAllSuggestions = (view: EditorView) => {
+  handleAllSuggestions(view, "accept");
+};
+
+export const rejectAllSuggestions = (view: EditorView) => {
+  handleAllSuggestions(view, "reject");
+};
+
 // Default tooltip renderer that can be overridden
 const renderTooltip = (
   mark: Mark,
-  type: "insert" | "delete",
   view: EditorView,
   pos: number
 ): HTMLElement => {
@@ -31,7 +57,7 @@ const renderTooltip = (
   const infoText = document.createElement("div");
   infoText.className = "suggestion-info";
   infoText.textContent =
-    type === "delete"
+    mark.type.name === "suggestion_delete"
       ? `Deleted by ${mark.attrs.username} on ${date}`
       : `Added by ${mark.attrs.username} on ${date}`;
   tooltip.appendChild(infoText);
@@ -63,7 +89,7 @@ const renderTooltip = (
   acceptButton.textContent = "Accept";
   acceptButton.addEventListener("click", (e) => {
     e.stopPropagation();
-    acceptSuggestion(view, mark, type, pos);
+    acceptSuggestion(view, mark, pos);
   });
 
   const rejectButton = document.createElement("button");
@@ -71,7 +97,7 @@ const renderTooltip = (
   rejectButton.textContent = "Reject";
   rejectButton.addEventListener("click", (e) => {
     e.stopPropagation();
-    rejectSuggestion(view, mark, type, pos);
+    rejectSuggestion(view, mark, pos);
   });
 
   buttonsDiv.appendChild(acceptButton);
@@ -81,20 +107,15 @@ const renderTooltip = (
   return tooltip;
 };
 
-// Function to accept a suggestion
-const acceptSuggestion = (
-  view: EditorView,
-  mark: Mark,
-  type: "insert" | "delete",
-  pos: number
-) => {
+// Updated function to accept a suggestion without requiring type parameter
+const acceptSuggestion = (view: EditorView, mark: Mark, pos: number) => {
   const tr = view.state.tr;
-  console.log("acceptSuggestion", mark, type, pos);
+  console.log("acceptSuggestion", mark, pos);
 
   // Mark this transaction as a suggestion operation so it won't be intercepted
   tr.setMeta(suggestionsPluginKey, { suggestionOperation: true });
 
-  if (type === "insert") {
+  if (mark.type.name === "suggestion_add") {
     // For added text, we keep the text but remove the mark
     // Find the full range of this mark
     let from = pos;
@@ -114,7 +135,7 @@ const acceptSuggestion = (
 
     // Remove just the mark, keeping the text
     tr.removeMark(from, to, mark.type);
-  } else if (type === "delete") {
+  } else if (mark.type.name === "suggestion_delete") {
     // For deleted text, we remove both the text and the mark
     let from = pos;
     let to = pos;
@@ -140,19 +161,14 @@ const acceptSuggestion = (
 };
 
 // Function to reject a suggestion
-const rejectSuggestion = (
-  view: EditorView,
-  mark: Mark,
-  type: "insert" | "delete",
-  pos: number
-) => {
+const rejectSuggestion = (view: EditorView, mark: Mark, pos: number) => {
   const tr = view.state.tr;
-  console.log("rejectSuggestion", mark, type, pos);
+  console.log("rejectSuggestion", mark, pos);
 
   // Mark this transaction as a suggestion operation so it won't be intercepted
   tr.setMeta(suggestionsPluginKey, { suggestionOperation: true });
 
-  if (type === "insert") {
+  if (mark.type.name === "suggestion_add") {
     // For added text, we remove both the text and the mark
     let from = pos;
     let to = pos;
@@ -171,7 +187,7 @@ const rejectSuggestion = (
 
     // Delete the text that has the insertion mark
     tr.delete(from, to);
-  } else if (type === "delete") {
+  } else if (mark.type.name === "suggestion_delete") {
     // For deleted text, we keep the text but remove the mark
     let from = pos;
     let to = pos;
@@ -447,7 +463,7 @@ export const suggestionsPlugin = new Plugin({
             Decoration.widget(
               pos,
               (view) => {
-                return renderTooltip(addMark, "insert", view, pos);
+                return renderTooltip(addMark, view, pos);
               },
               {
                 side: 1,
@@ -482,7 +498,7 @@ export const suggestionsPlugin = new Plugin({
             Decoration.widget(
               pos,
               (view) => {
-                return renderTooltip(delMark, "delete", view, pos);
+                return renderTooltip(delMark, view, pos);
               },
               {
                 side: 1,

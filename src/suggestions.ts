@@ -17,6 +17,20 @@ export const suggestionsPluginKey = new PluginKey<SuggestionsPluginState>(
   "suggestions"
 );
 
+export const setSuggestionMode = (
+  view: EditorView,
+  isSuggestionMode: boolean
+) => {
+  const state = suggestionsPluginKey.getState(view.state);
+  if (!state) return;
+  view.dispatch(
+    view.state.tr.setMeta(suggestionsPlugin, {
+      ...state,
+      inSuggestionMode: isSuggestionMode,
+    })
+  );
+};
+
 const handleAllSuggestions = (
   view: EditorView,
   acceptOrReject: "accept" | "reject"

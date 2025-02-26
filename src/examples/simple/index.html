@@ -8,6 +8,7 @@
             line-height: 1.5;
             margin: 0;
             padding: 20px;
+            text-align: center;
         }
         .ProseMirror {
             white-space: pre-wrap;
@@ -29,14 +30,10 @@
     </style>
 </head>
 <body>
-    <title><a href="https://github.com/davefowler/prosemirror-suggestions">ProseMirror Suggestions</a> Demo</title>
+    <h1>Simple Prosemirror Suggestions Example</h1>
     <div class="controls">
         <label>
             <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
-        </label>
-        <label style="margin-left: 20px;">
-            Theme:
-            <select id="themeSelector"></select>
         </label>
         
         <!-- Buttons to accept/reject all suggestions -->
@@ -45,6 +42,6 @@
         <span id="modeIndicator"></span>
     </div>
     <div id="editor" class="editor"></div>
-    <script src="index.js"></script>
+    <script src="simple.js"></script>
 </body>
 </html>

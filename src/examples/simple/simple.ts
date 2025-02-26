@@ -5,17 +5,15 @@ import { keymap } from "prosemirror-keymap";
 import { history } from "prosemirror-history";
 import {
   suggestionsPlugin,
-  suggestionsPluginKey,
   acceptAllSuggestions,
   rejectAllSuggestions,
   setSuggestionMode,
-} from "./suggestions";
-import { mySchema } from "./schema";
+} from "../../suggestions";
+import { mySchema } from "../../schema";
 import { DOMParser } from "prosemirror-model";
 
-const themes = ["default.css", "inkAndSwitch.css"];
 // Normally you can just direct import a theme
-// import "./styles/default.css";
+import "../../styles/default.css";
 
 // Initialize the editor with the suggestions plugin
 window.addEventListener("load", () => {
@@ -38,9 +36,6 @@ window.addEventListener("load", () => {
   // Create the editor view
   const view = new EditorView(document.querySelector("#editor"), { state });
 
-  // Make view available globally for debugging
-  (window as any).view = view;
-
   // Add event listeners for the controls
   document
     .querySelector("#toggleSuggestionMode")
@@ -59,42 +54,4 @@ window.addEventListener("load", () => {
     ?.addEventListener("click", () => {
       rejectAllSuggestions(view);
     });
-
-  // Setup and handle theme selector
-  const themeSelector = document.querySelector(
-    "#themeSelector"
-  ) as HTMLInputElement;
-
-  // set the options
-  themes.forEach((theme, index) => {
-    const option = document.createElement("option");
-    option.value = theme;
-    option.textContent = theme;
-    themeSelector.appendChild(option);
-  });
-
-  function setTheme(theme: string) {
-    if (!themes.includes(theme)) throw new Error(`Theme ${theme} not found`);
-
-    const themeLinkId = "theme-stylesheet";
-    // Remove existing editor stylesheet
-    const existingStylesheet = document.getElementById(themeLinkId);
-    if (existingStylesheet) existingStylesheet.remove();
-
-    // Add the appropriate stylesheet based on toggle state
-    const link = document.createElement("link");
-    link.id = themeLinkId;
-    link.rel = "stylesheet";
-    link.href = `./styles/${theme}`;
-    document.head.appendChild(link);
-    console.log(`Added theme ${theme}`, link);
-  }
-
-  themeSelector.addEventListener("change", (e) => {
-    const theme = (e.target as HTMLInputElement).value;
-    setTheme(theme);
-  });
-
-  // set the first theme
-  setTheme("default.css");
 });

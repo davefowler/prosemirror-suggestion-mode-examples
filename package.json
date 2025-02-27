@@ -10,6 +10,10 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:memory": "node --expose-gc --max-old-space-size=4096 node_modules/.bin/jest",
+    "test:debug": "jest --runInBand --no-cache --detectOpenHandles --testTimeout=10000",
+    "test:unit": "jest test/unit --runInBand",
+    "test:tools-minimal": "jest test/unit/tools.test.ts --no-coverage --runInBand",
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
     "build:lib": "tsc -p tsconfig.lib.json",

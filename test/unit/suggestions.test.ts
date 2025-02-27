@@ -170,7 +170,7 @@ describe("suggestionsPlugin", () => {
       
       // Simulate what appendTransaction would do
       const oldState = { ...mockState };
-      const newState = { ...mockState };
+      const newState = { ...mockState, tr: mockState.tr };
       
       // Create a transaction that would add a suggestion_add mark
       const tr = newState.tr;
@@ -233,7 +233,7 @@ describe("suggestionsPlugin", () => {
 
       // Simulate what appendTransaction would do
       const oldState = { ...mockState };
-      const newState = { ...mockState };
+      const newState = { ...mockState, tr: mockState.tr };
       
       // Create a transaction that would add a suggestion_delete mark
       const tr = newState.tr;
@@ -277,7 +277,7 @@ describe("suggestionsPlugin", () => {
 
       // Mock the descendants method to yield our node
       mockDoc.descendants = jest.fn((callback) => {
-        callback(mockNode, 10);
+        callback(mockNode, 10, null, 0);
       });
 
       // Create a mock Decoration class
@@ -321,7 +321,7 @@ describe("suggestionsPlugin", () => {
 
       // Mock the descendants method to yield our node
       mockDoc.descendants = jest.fn((callback) => {
-        callback(mockNode, 10);
+        callback(mockNode, 10, null, 0);
       });
 
       // Call the decorations prop function

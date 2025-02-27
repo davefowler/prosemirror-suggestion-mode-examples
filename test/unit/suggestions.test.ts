@@ -325,13 +325,6 @@ describe("suggestionsPlugin", () => {
       global.Decoration = Decoration;
       global.DecorationSet = DecorationSet;
       
-      // Call the decorations prop function by simulating it
-      // First, call descendants to trigger the node processing
-      mockDoc.descendants.mockClear();
-      mockDoc.descendants.mockImplementation((callback) => {
-        callback(mockNode, 10, null, 0);
-      });
-      
       // Now simulate calling the decorations prop
       const decorations = () => {
         const decos = [];

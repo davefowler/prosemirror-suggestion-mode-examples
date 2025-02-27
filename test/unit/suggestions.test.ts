@@ -273,7 +273,23 @@ describe("suggestionsPlugin", () => {
         ],
         nodeSize: 5,
         isText: true,
-      };
+        type: { name: "text" },
+        attrs: {},
+        content: { size: 5 },
+        children: [],
+        childCount: 0,
+        forEach: jest.fn(),
+        maybeChild: jest.fn(),
+        cut: jest.fn(),
+        textContent: "test",
+        firstChild: null,
+        lastChild: null,
+        eq: jest.fn(),
+        sameMarkup: jest.fn(),
+        copy: jest.fn(),
+        toJSON: jest.fn(),
+        check: jest.fn(),
+      } as unknown as Node;
 
       // Mock the descendants method to yield our node
       mockDoc.descendants = jest.fn((callback) => {
@@ -317,7 +333,23 @@ describe("suggestionsPlugin", () => {
         ],
         nodeSize: 5,
         isText: true,
-      };
+        type: { name: "text" },
+        attrs: {},
+        content: { size: 5 },
+        children: [],
+        childCount: 0,
+        forEach: jest.fn(),
+        maybeChild: jest.fn(),
+        cut: jest.fn(),
+        textContent: "test",
+        firstChild: null,
+        lastChild: null,
+        eq: jest.fn(),
+        sameMarkup: jest.fn(),
+        copy: jest.fn(),
+        toJSON: jest.fn(),
+        check: jest.fn(),
+      } as unknown as Node;
 
       // Mock the descendants method to yield our node
       mockDoc.descendants = jest.fn((callback) => {

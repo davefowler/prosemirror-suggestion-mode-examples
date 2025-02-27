@@ -208,14 +208,16 @@ describe("accept-reject functions", () => {
         throw new Error("Test error");
       });
 
-      // Wrap in try/catch to prevent test from failing
-      try {
-        acceptSuggestion(mockView, mockAddMark, 10);
-      } catch (e) {
-        // This should not happen if error handling is working
-        console.error("Unexpected error:", e);
-        // Don't fail the test - we're testing error handling works
-      }
+      // Mock console.error to prevent test output pollution
+      const originalConsoleError = console.error;
+      console.error = jest.fn();
+
+      // Create a transaction that will be used in error handling
+      mockTr.setMeta.mockClear();
+      mockView.dispatch.mockClear();
+
+      // Call the function that should handle the error
+      acceptSuggestion(mockView, mockAddMark, 10);
 
       // Should still dispatch the transaction
       expect(mockView.dispatch).toHaveBeenCalled();
@@ -237,14 +239,16 @@ describe("accept-reject functions", () => {
         throw new Error("Test error");
       });
 
-      // Wrap in try/catch to prevent test from failing
-      try {
-        rejectSuggestion(mockView, mockDeleteMark, 20);
-      } catch (e) {
-        // This should not happen if error handling is working
-        console.error("Unexpected error:", e);
-        // Don't fail the test - we're testing error handling works
-      }
+      // Mock console.error to prevent test output pollution
+      const originalConsoleError = console.error;
+      console.error = jest.fn();
+
+      // Create a transaction that will be used in error handling
+      mockTr.setMeta.mockClear();
+      mockView.dispatch.mockClear();
+
+      // Call the function that should handle the error
+      rejectSuggestion(mockView, mockDeleteMark, 20);
 
       // Should still dispatch the transaction
       expect(mockView.dispatch).toHaveBeenCalled();

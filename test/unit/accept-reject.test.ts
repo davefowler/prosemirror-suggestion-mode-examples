@@ -208,13 +208,19 @@ describe("accept-reject functions", () => {
         throw new Error("Test error");
       });
 
-      // Should not throw
-      expect(() => {
+      // Wrap in try/catch to prevent test from failing
+      try {
         acceptSuggestion(mockView, mockAddMark, 10);
-      }).not.toThrow();
+      } catch (e) {
+        // This should not happen if error handling is working
+        fail("acceptSuggestion should not throw");
+      }
 
       // Should still dispatch the transaction
       expect(mockView.dispatch).toHaveBeenCalled();
+      
+      // Should have logged the error
+      expect(console.error).toHaveBeenCalled();
 
       // Restore console.error
       console.error = originalConsoleError;
@@ -230,13 +236,19 @@ describe("accept-reject functions", () => {
         throw new Error("Test error");
       });
 
-      // Should not throw
-      expect(() => {
+      // Wrap in try/catch to prevent test from failing
+      try {
         rejectSuggestion(mockView, mockDeleteMark, 20);
-      }).not.toThrow();
+      } catch (e) {
+        // This should not happen if error handling is working
+        fail("rejectSuggestion should not throw");
+      }
 
       // Should still dispatch the transaction
       expect(mockView.dispatch).toHaveBeenCalled();
+      
+      // Should have logged the error
+      expect(console.error).toHaveBeenCalled();
 
       // Restore console.error
       console.error = originalConsoleError;

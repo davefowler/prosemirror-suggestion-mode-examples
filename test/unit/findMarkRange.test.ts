@@ -45,6 +45,7 @@ describe("findMarkRange", () => {
         return {
           nodeAfter: {
             marks: [mockMark],
+            nodeSize: 5
           },
           nodeBefore: null,
         };
@@ -52,9 +53,11 @@ describe("findMarkRange", () => {
         return {
           nodeAfter: {
             marks: [mockMark],
+            nodeSize: 5
           },
           nodeBefore: {
             marks: [mockMark],
+            nodeSize: 5
           },
         };
       } else {
@@ -62,6 +65,7 @@ describe("findMarkRange", () => {
           nodeAfter: null,
           nodeBefore: {
             marks: pos === 15 ? [mockMark] : [],
+            nodeSize: 5
           },
         };
       }
@@ -112,6 +116,7 @@ describe("findMarkRange", () => {
         return {
           nodeAfter: {
             marks: [mockMark],
+            nodeSize: 5
           },
           nodeBefore: null,
         };
@@ -119,9 +124,11 @@ describe("findMarkRange", () => {
         return {
           nodeAfter: {
             marks: [mockMark],
+            nodeSize: 5
           },
           nodeBefore: {
             marks: [mockMark],
+            nodeSize: 5
           },
         };
       } else {
@@ -129,6 +136,7 @@ describe("findMarkRange", () => {
           nodeAfter: null,
           nodeBefore: {
             marks: pos === 5 ? [mockMark] : [],
+            nodeSize: 5
           },
         };
       }
@@ -153,18 +161,22 @@ describe("findMarkRange", () => {
         return {
           nodeAfter: pos < docSize - 1 ? {
             marks: [mockMark],
+            nodeSize: 5
           } : null,
           nodeBefore: {
             marks: [mockMark],
+            nodeSize: 5
           },
         };
       } else {
         return {
           nodeAfter: {
             marks: [],
+            nodeSize: 5
           },
           nodeBefore: {
             marks: [],
+            nodeSize: 5
           },
         };
       }

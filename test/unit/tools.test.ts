@@ -1,10 +1,10 @@
-import { suggestEdit, TextSuggestion } from "../tools";
+import { suggestEdit, TextSuggestion } from "../../src/tools";
 import { EditorView } from "prosemirror-view";
-import { suggestionsPluginKey } from "../key";
+import { suggestionsPluginKey } from "../../src/key";
 
 // Mock dependencies
 jest.mock("prosemirror-view");
-jest.mock("../suggestions", () => ({
+jest.mock("../../src/key", () => ({
   suggestionsPluginKey: {
     getState: jest.fn(),
   },

@@ -1,15 +1,15 @@
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Schema, Node, Mark } from "prosemirror-model";
-import { suggestionsPlugin } from "../suggestions";
-import { suggestionsPluginKey } from "../key";
+import { suggestionsPlugin } from "../../src/suggestions";
+import { suggestionsPluginKey } from "../../src/key";
 // Mock dependencies
 jest.mock("prosemirror-view");
 jest.mock("prosemirror-state");
 jest.mock("prosemirror-model");
 
 // Create a mock for the suggestionsPlugin
-jest.mock("../suggestions", () => {
+jest.mock("../../src/suggestions", () => {
   // Create a properly typed mock plugin key
   const mockPluginKey = { getState: jest.fn() };
 
@@ -44,6 +44,13 @@ jest.mock("../suggestions", () => {
     suggestionsPluginKey: mockPluginKey,
   };
 });
+
+// Mock the key module
+jest.mock("../../src/key", () => ({
+  suggestionsPluginKey: {
+    getState: jest.fn(),
+  },
+}));
 
 describe("suggestionsPlugin", () => {
   let mockSchema: Schema;

@@ -19,7 +19,8 @@ module.exports = {
     '!src/**/*.d.ts',
   ],
   moduleNameMapper: {
-    '^prosemirror-changeset$': '<rootDir>/src/__mocks__/prosemirror-changeset.ts'
+    '^prosemirror-changeset$': '<rootDir>/test/mocks/prosemirror-changeset.ts',
+    '^../../src/(.*)$': '<rootDir>/src/$1'
   },
   // Ignore the dist/test directory since we're testing the TypeScript files directly
   testPathIgnorePatterns: ['/node_modules/', '/dist/']

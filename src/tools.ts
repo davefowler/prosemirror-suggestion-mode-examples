@@ -1,22 +1,26 @@
 import { EditorView } from "prosemirror-view";
 import { suggestionsPluginKey } from "./suggestions";
 
+export type TextSuggestion = {
+  textToReplace: string;
+  textReplacement: string;
+  reason?: string;
+  prefix?: string;
+  suffix?: string;
+};
+
 /**
- * Apply AI suggestions with context awareness for small edits
+ * Apply text based search replace helpful for AI suggestions
  * @param view The editor view
  * @param suggestions Array of suggested edits with context
  * @param username Name to attribute suggestions to
  * @returns Number of applied suggestions
+ *
+ * See examples/suggestEdit/ for an example
  */
 export const suggestEdit = (
   view: EditorView,
-  suggestions: Array<{
-    textToReplace: string;
-    textReplacement: string;
-    reason?: string;
-    prefix?: string;
-    suffix?: string;
-  }>,
+  suggestions: Array<TextSuggestion>,
   username: string
 ) => {
   // Store current state
@@ -48,11 +52,29 @@ export const suggestEdit = (
         escapeRegExp(suffix);
       const regex = new RegExp(pattern, "g");
 
+      // Add debugging
+      console.log("Search pattern:", pattern);
+      console.log("Document text:", docText);
+
       let match;
       while ((match = regex.exec(docText)) !== null) {
+        // Add more debugging
+        console.log("Match found at position:", match.index);
+        console.log("Matched text:", match[0]);
+
         // Calculate the position of just the 'textToReplace' part
         const matchStart = match.index + prefix.length;
         const matchEnd = matchStart + suggestion.textToReplace.length;
+
+        console.log("Calculated replacement position:", {
+          from: matchStart,
+          to: matchEnd,
+        });
+        console.log(
+          "Text at calculated position:",
+          docText.substring(matchStart, matchEnd)
+        );
+
         targetPositions.push({ from: matchStart, to: matchEnd });
       }
 

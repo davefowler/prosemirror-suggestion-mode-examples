@@ -386,12 +386,17 @@ describe("suggestionsPlugin", () => {
       } as unknown as Node;
 
       // Mock the descendants method to yield our node
-      mockDoc.descendants = jest.fn((callback) => {
+      mockDoc.descendants = jest.fn().mockImplementation((callback) => {
         callback(mockNode, 10, null, 0);
       });
 
-      // Create mock Decoration and DecorationSet classes if not already defined
-      if (!global.Decoration) {
+      // Reset mocks if they exist
+      if (global.Decoration) {
+        global.Decoration.inline.mockClear();
+        global.Decoration.widget.mockClear();
+        global.DecorationSet.create.mockClear();
+      } else {
+        // Create mock Decoration and DecorationSet classes if not already defined
         const mockInlineDecoration = { type: "inline" };
         const mockWidgetDecoration = { type: "widget" };
         
@@ -405,18 +410,6 @@ describe("suggestionsPlugin", () => {
           empty: "empty-decoration-set",
         };
       }
-      
-      // Reset mocks
-      global.Decoration.inline.mockClear();
-      global.Decoration.widget.mockClear();
-      global.DecorationSet.create.mockClear();
-      
-      // Call the decorations prop function by simulating it
-      // First, call descendants to trigger the node processing
-      mockDoc.descendants.mockClear();
-      mockDoc.descendants.mockImplementation((callback) => {
-        callback(mockNode, 10, null, 0);
-      });
       
       // Now simulate calling the decorations prop
       const decorations = () => {

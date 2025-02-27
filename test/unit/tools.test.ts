@@ -58,6 +58,43 @@ describe("suggestEdit", () => {
     );
   });
 
+  test("should handle empty suggestions array", () => {
+    const result = suggestEdit(mockView, [], "testUser");
+    
+    expect(result).toBe(0);
+    // Should still set suggestion mode and restore it
+    expect(mockView.dispatch).toHaveBeenCalledTimes(2);
+  });
+
+  test("should handle suggestions with empty textToReplace", () => {
+    const suggestions: TextSuggestion[] = [
+      {
+        textToReplace: "",
+        textReplacement: "inserted",
+      },
+    ];
+
+    const result = suggestEdit(mockView, suggestions, "testUser");
+    
+    // Should not find any matches for empty string
+    expect(result).toBe(0);
+  });
+
+  test("should handle suggestions with empty textReplacement", () => {
+    const suggestions: TextSuggestion[] = [
+      {
+        textToReplace: "test",
+        textReplacement: "",
+      },
+    ];
+
+    const result = suggestEdit(mockView, suggestions, "testUser");
+    
+    // Should replace with empty string
+    expect(result).toBe(1);
+    expect(mockTr.replaceWith).toHaveBeenCalled();
+  });
+
   test("should return 0 if no plugin state exists", () => {
     (suggestionsPluginKey.getState as jest.Mock).mockReturnValueOnce(null);
 
@@ -163,6 +200,75 @@ describe("suggestEdit", () => {
     // Should have 3 replacements + 2 state changes = 5 dispatches
     expect(mockView.dispatch).toHaveBeenCalledTimes(5);
     expect(result).toBe(3);
+  });
+
+  test("should handle overlapping suggestions correctly", () => {
+    // Setup document with text that could have overlapping suggestions
+    mockDoc.textContent = "This is a test case for overlapping matches";
+
+    const suggestions: TextSuggestion[] = [
+      {
+        textToReplace: "a test",
+        textReplacement: "an example",
+      },
+      {
+        textToReplace: "test case",
+        textReplacement: "example scenario",
+      },
+    ];
+
+    const result = suggestEdit(mockView, suggestions, "testUser");
+
+    // Should apply both suggestions
+    expect(result).toBe(2);
+    // First replacement + second replacement + 2 state changes = 4 dispatches
+    expect(mockView.dispatch).toHaveBeenCalledTimes(4);
+  });
+
+  test("should handle suggestions at document boundaries", () => {
+    // Setup document with text at boundaries
+    mockDoc.textContent = "Start text and end text";
+
+    const suggestions: TextSuggestion[] = [
+      {
+        textToReplace: "Start",
+        textReplacement: "Beginning",
+      },
+      {
+        textToReplace: "end",
+        textReplacement: "finish",
+      },
+    ];
+
+    const result = suggestEdit(mockView, suggestions, "testUser");
+
+    // Should apply both suggestions
+    expect(result).toBe(2);
+    // First replacement + second replacement + 2 state changes = 4 dispatches
+    expect(mockView.dispatch).toHaveBeenCalledTimes(4);
+  });
+
+  test("should handle suggestions with special regex characters", () => {
+    // Setup document with special regex characters
+    mockDoc.textContent = "Text with (parentheses) and [brackets] needs escaping";
+
+    const suggestions: TextSuggestion[] = [
+      {
+        textToReplace: "(parentheses)",
+        textReplacement: "escaped chars",
+      },
+      {
+        textToReplace: "[brackets]",
+        textReplacement: "more escaped chars",
+      },
+    ];
+
+    const result = suggestEdit(mockView, suggestions, "testUser");
+
+    // Should apply both suggestions
+    expect(result).toBe(2);
+    // First replacement + second replacement + 2 state changes = 4 dispatches
+    expect(mockView.dispatch).toHaveBeenCalledTimes(4);
   });
 });
 

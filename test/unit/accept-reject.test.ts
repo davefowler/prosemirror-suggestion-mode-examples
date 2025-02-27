@@ -213,7 +213,7 @@ describe("accept-reject functions", () => {
         acceptSuggestion(mockView, mockAddMark, 10);
       } catch (e) {
         // This should not happen if error handling is working
-        fail("acceptSuggestion should not throw");
+        expect(true).toBe(false); // Alternative to fail()
       }
 
       // Should still dispatch the transaction
@@ -241,7 +241,7 @@ describe("accept-reject functions", () => {
         rejectSuggestion(mockView, mockDeleteMark, 20);
       } catch (e) {
         // This should not happen if error handling is working
-        fail("rejectSuggestion should not throw");
+        expect(true).toBe(false); // Alternative to fail()
       }
 
       // Should still dispatch the transaction

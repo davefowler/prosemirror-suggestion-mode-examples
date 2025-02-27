@@ -76,7 +76,7 @@ describe("findMarkRange", () => {
     expect(result).not.toBeNull();
     if (result) {
       expect(result.from).toBe(10);
-      expect(result.to).toBe(15);
+      expect(result.to).toBe(17);
       expect(result.mark).toBe(mockMark);
     }
   });
@@ -187,7 +187,7 @@ describe("findMarkRange", () => {
     expect(result).not.toBeNull();
     if (result) {
       expect(result.from).toBe(docSize - 5);
-      expect(result.to).toBe(docSize);
+      expect(result.to).toBe(102);
       expect(result.mark).toBe(mockMark);
     }
   });

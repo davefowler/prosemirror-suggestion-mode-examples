@@ -169,7 +169,31 @@ describe('escapeRegExp', () => {
     // We can't directly test the private function, so we'll test it indirectly
     // by using suggestEdit with strings containing special characters
     
-    mockDoc.textContent = 'This has (special) characters like [brackets] and {braces}';
+    // Setup mock document with special characters
+    const specialMockDoc = {
+      textContent: 'This has (special) characters like [brackets] and {braces}',
+    };
+    
+    // Create a new mock view with the special document
+    const specialMockState = {
+      tr: mockTr,
+      doc: specialMockDoc,
+      schema: {
+        text: jest.fn((text) => text),
+      },
+    };
+    
+    const specialMockView = {
+      state: specialMockState,
+      dispatch: jest.fn(),
+    } as unknown as jest.Mocked<EditorView>;
+    
+    // Setup mock plugin state
+    (suggestionsPluginKey.getState as jest.Mock).mockReturnValue({
+      username: 'originalUser',
+      inSuggestionMode: false,
+      data: {},
+    });
     
     const suggestions: TextSuggestion[] = [
       {
@@ -182,7 +206,7 @@ describe('escapeRegExp', () => {
       },
     ];
     
-    const result = suggestEdit(mockView, suggestions, 'testUser');
+    const result = suggestEdit(specialMockView, suggestions, 'testUser');
     
     // Should successfully find and replace both special character strings
     expect(result).toBe(2);

@@ -174,9 +174,15 @@ describe('escapeRegExp', () => {
       textContent: 'This has (special) characters like [brackets] and {braces}',
     };
     
+    // Create a new mock transaction for this test
+    const specialMockTr = {
+      setMeta: jest.fn().mockReturnThis(),
+      replaceWith: jest.fn().mockReturnThis(),
+    };
+    
     // Create a new mock view with the special document
     const specialMockState = {
-      tr: mockTr,
+      tr: specialMockTr,
       doc: specialMockDoc,
       schema: {
         text: jest.fn((text) => text),

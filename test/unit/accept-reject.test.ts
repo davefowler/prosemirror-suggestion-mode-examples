@@ -208,10 +208,6 @@ describe("accept-reject functions", () => {
         throw new Error("Test error");
       });
 
-      // Mock console.error to prevent test output pollution
-      const originalConsoleError = console.error;
-      console.error = jest.fn();
-
       // Create a transaction that will be used in error handling
       mockTr.setMeta.mockClear();
       mockView.dispatch.mockClear();
@@ -238,10 +234,6 @@ describe("accept-reject functions", () => {
       mockDoc.nodesBetween.mockImplementationOnce(() => {
         throw new Error("Test error");
       });
-
-      // Mock console.error to prevent test output pollution
-      const originalConsoleError = console.error;
-      console.error = jest.fn();
 
       // Create a transaction that will be used in error handling
       mockTr.setMeta.mockClear();

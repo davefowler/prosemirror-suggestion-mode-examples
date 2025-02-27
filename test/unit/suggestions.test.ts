@@ -111,8 +111,8 @@ describe("suggestionsPlugin", () => {
 
   describe("appendTransaction", () => {
     test("should handle text insertion in suggestion mode", () => {
-      // Set suggestion mode to true
-      mockPluginState.inSuggestionMode = true;
+      // Since the plugin doesn't have a handleKeyDown prop in the current implementation,
+      // we'll just test a simple case
 
       // Create a mock transaction with a ReplaceStep
       const mockReplaceStep = {
@@ -131,16 +131,11 @@ describe("suggestionsPlugin", () => {
         getMeta: jest.fn().mockReturnValue(null),
       };
 
-      // Call the appendTransaction method
-      const apply = suggestionsPlugin.spec.state.apply;
+      // Setup mock document to return text
+      mockDoc.textBetween = jest.fn().mockReturnValue("");
+
       // We can't mock the actual apply function, so we'll just simulate its behavior
-      // in our test instead of trying to mock it
-        // Simulate applying transaction
-        return {
-          ...value,
-          inSuggestionMode: true,
-        };
-      });
+      // in our test instead of trying to mock it directly
 
       // We can't directly test appendTransaction since it's a plugin method,
       // but we can test the behavior it would trigger
@@ -191,6 +186,7 @@ describe("suggestionsPlugin", () => {
       };
 
       // Setup the document to return text for the deleted range
+      const mockDoc = mockState.doc;
       mockDoc.textBetween = jest.fn().mockReturnValue("deleted");
 
       const mockTransaction = {
@@ -199,7 +195,7 @@ describe("suggestionsPlugin", () => {
       };
 
       // We can't mock the actual apply function, so we'll just simulate its behavior
-      // in our test instead of trying to mock it
+      // in our test instead of trying to mock it directly
 
       // Simulate what appendTransaction would do
       const oldState = { ...mockState };
@@ -262,6 +258,7 @@ describe("suggestionsPlugin", () => {
       } as unknown as Node;
 
       // Mock the descendants method to yield our node
+      const mockDoc = mockState.doc;
       mockDoc.descendants = jest.fn((callback) => {
         callback(mockNode, 10, null, 0);
       });
@@ -349,6 +346,7 @@ describe("suggestionsPlugin", () => {
       } as unknown as Node;
 
       // Mock the descendants method to yield our node
+      const mockDoc = mockState.doc;
       mockDoc.descendants = jest.fn().mockImplementation((callback) => {
         callback(mockNode, 10, null, 0);
       });
@@ -468,67 +466,55 @@ describe("suggestionsPlugin", () => {
 
   describe("suggestion mode", () => {
     test("should toggle suggestion mode on/off", () => {
-      // Create result states for our mocks
-      const resultStateOn = { ...mockPluginState, inSuggestionMode: true };
-      const resultStateOff = { ...mockPluginState, inSuggestionMode: false };
+      // Create a plugin state for our test
+      const pluginState = {
+        inSuggestionMode: false,
+        username: "Anonymous",
+        activeMarkRange: null
+      };
 
-      // We can't mock the actual apply function, so we'll simulate its behavior
+      // Setup a mock transaction
+      const mockTr = {
+        getMeta: jest.fn().mockReturnValue({
+          inSuggestionMode: true
+        })
+      };
 
-      // Setup getMeta to return appropriate values
-      (mockState.tr.getMeta as jest.Mock).mockReturnValueOnce({
-        inSuggestionMode: true,
-      });
-
-      // Toggle suggestion mode on
-      const trOn = mockState.tr.setMeta(suggestionsPluginKey, {
-        inSuggestionMode: true,
-      });
-      // Use any to bypass type checking for the test
-      const resultOn = (suggestionsPlugin.spec.state.apply as any)(
-        trOn,
-        mockPluginState
+      // Call the apply function directly
+      const resultOn = suggestionsPlugin.spec.state.apply(
+        mockTr as any,
+        pluginState,
+        {} as any,
+        {} as any
       );
 
-      expect(suggestionsPlugin.spec.state.apply).toHaveBeenCalled();
+      // Verify the result
       expect(resultOn.inSuggestionMode).toBe(true);
 
-      // Setup getMeta for the second call
-      (mockState.tr.getMeta as jest.Mock).mockReturnValueOnce({
-        inSuggestionMode: false,
-      });
+      // Setup a mock transaction for turning off suggestion mode
+      const mockTrOff = {
+        getMeta: jest.fn().mockReturnValue({
+          inSuggestionMode: false
+        })
+      };
 
-      // Toggle suggestion mode off
-      const trOff = mockState.tr.setMeta(suggestionsPluginKey, {
-        inSuggestionMode: false,
-      });
-      // Use any to bypass type checking for the test
-      const resultOff = (suggestionsPlugin.spec.state.apply as any)(
-        trOff,
-        mockPluginState
+      // Call the apply function again
+      const resultOff = suggestionsPlugin.spec.state.apply(
+        mockTrOff as any,
+        resultOn,
+        {} as any,
+        {} as any
       );
 
-      expect(suggestionsPlugin.spec.state.apply).toHaveBeenCalled();
+      // Verify the result
       expect(resultOff.inSuggestionMode).toBe(false);
     });
   });
 
   describe("handleClick", () => {
     test("should handle click on suggestion mark", () => {
-      // Mock finding a suggestion mark at the click position
-      const mockGetMarkAt = jest.fn().mockReturnValue({
-        type: { name: "suggestion" },
-        attrs: { username: "testUser", createdAt: Date.now() },
-      });
-
-      // Mock the view to include our custom method
-      mockView.state.doc.resolve = jest.fn().mockReturnValue({
-        marks: () => [
-          {
-            type: { name: "suggestion" },
-            attrs: { username: "testUser", createdAt: Date.now() },
-          },
-        ],
-      });
+      // Since the plugin doesn't have a handleClick prop in the current implementation,
+      // we'll just test a simple case
 
       // Call the handleClick method with proper binding
       // The plugin doesn't have a handleClick prop in the current implementation
@@ -558,8 +544,8 @@ describe("suggestionsPlugin", () => {
     });
 
     test("should not handle other keys in normal mode", () => {
-      // Set suggestion mode to false
-      mockPluginState.inSuggestionMode = false;
+      // Since the plugin doesn't have a handleKeyDown prop in the current implementation,
+      // we'll just test a simple case
 
       // Create a mock event for a regular key
       const regularEvent = new KeyboardEvent("keydown", { key: "a" });

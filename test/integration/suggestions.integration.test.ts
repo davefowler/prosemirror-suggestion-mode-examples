@@ -74,7 +74,8 @@ describe("Suggestions Plugin Integration", () => {
     
     // The appendTransaction should have added a suggestion_add mark
     // We can verify this by checking if there are decorations
-    const decos = suggestionsPlugin.props.decorations?.(view.state);
+    // We need to bind the decorations function to the plugin to provide the correct 'this' context
+    const decos = suggestionsPlugin.props.decorations?.bind(suggestionsPlugin)(view.state);
     expect(decos).toBeDefined();
     
     // We can also check the document for marks
@@ -101,7 +102,8 @@ describe("Suggestions Plugin Integration", () => {
     
     // The appendTransaction should have added a suggestion_delete mark
     // We can verify this by checking if there are decorations
-    const decos = suggestionsPlugin.props.decorations?.(view.state);
+    // We need to bind the decorations function to the plugin to provide the correct 'this' context
+    const decos = suggestionsPlugin.props.decorations?.bind(suggestionsPlugin)(view.state);
     expect(decos).toBeDefined();
     
     // We can also check the document for marks

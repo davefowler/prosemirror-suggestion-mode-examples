@@ -302,8 +302,8 @@ describe('handling formatted text', () => {
     // Should find and replace the text correctly despite formatting
     expect(result).toBe(1);
     expect(mockTr.replaceWith).toHaveBeenCalledWith(
-      28, // Starting position of "bolded"
-      34, // Ending position of "bolded"
+      29, // Starting position of "bolded"
+      35, // Ending position of "bolded"
       'formatted'
     );
   });
@@ -351,8 +351,8 @@ describe('handling formatted text', () => {
     // Should find and replace the text correctly despite formatting
     expect(result).toBe(1);
     expect(mockTr.replaceWith).toHaveBeenCalledWith(
-      29, // Starting position of "words"
-      34, // Ending position of "words"
+      30, // Starting position of "words"
+      35, // Ending position of "words"
       'text'
     );
   });

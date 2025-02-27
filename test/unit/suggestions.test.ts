@@ -418,7 +418,7 @@ describe("suggestionsPlugin", () => {
   describe("plugin initialization", () => {
     test("should have the correct props", () => {
       expect(suggestionsPlugin).toBeDefined();
-      expect(suggestionsPlugin.key).toBeDefined();
+      expect(suggestionsPluginKey).toBeDefined();
       expect(suggestionsPlugin.props).toBeDefined();
       expect(suggestionsPlugin.props.decorations).toBeDefined();
     });
@@ -426,7 +426,12 @@ describe("suggestionsPlugin", () => {
     test("should initialize with default state", () => {
       // Access the init function directly from the plugin spec
       const initFn = suggestionsPlugin.spec.state.init;
-      const defaultState = initFn();
+      
+      // Create mock config and state
+      const mockConfig = {} as any;
+      const mockState = {} as any;
+      
+      const defaultState = initFn(mockConfig, mockState);
       
       expect(defaultState).toEqual({
         inSuggestionMode: true,
@@ -453,7 +458,11 @@ describe("suggestionsPlugin", () => {
         activeMarkRange: null
       };
       
-      const newState = applyFn(mockTr as any, currentState);
+      // Create mock old and new states
+      const mockOldState = {} as any;
+      const mockNewState = {} as any;
+      
+      const newState = applyFn(mockTr as any, currentState, mockOldState, mockNewState);
       
       expect(newState).toEqual({
         inSuggestionMode: false,

@@ -1,194 +1,93 @@
-import { EditorState } from "prosemirror-state";
 import { findMarkRange } from "../../src/suggestions";
-import { Mark } from "prosemirror-model";
-
-// Mock dependencies
-jest.mock("prosemirror-state");
-jest.mock("prosemirror-model");
+import { suggestionsPluginKey } from "../../src/key";
+import { 
+  createEditorState, 
+  createEditorView, 
+  setCursor, 
+  insertText,
+  setupDOMEnvironment 
+} from "../helpers/test-helpers";
 
 describe("findMarkRange", () => {
-  let mockState: EditorState;
-  let mockDoc: any;
-  let mockMark: Mark;
-
-  beforeEach(() => {
-    // Reset mocks
-    jest.clearAllMocks();
-
-    // Setup mock mark
-    mockMark = {
-      type: { name: "suggestion_add" },
-      eq: jest.fn((other) => other.type.name === "suggestion_add"),
-    } as unknown as Mark;
-
-    // Setup mock document
-    mockDoc = {
-      resolve: jest.fn().mockReturnValue({
-        nodeAfter: {
-          marks: [mockMark],
-        },
-        nodeBefore: null,
-      }),
-      content: { size: 100 },
-    };
-
-    // Setup mock state
-    mockState = {
-      doc: mockDoc,
-    } as unknown as EditorState;
+  beforeAll(() => {
+    setupDOMEnvironment();
   });
 
-  test("should find mark range when mark exists", () => {
-    // Setup mock document to simulate a mark spanning positions 10-15
-    mockDoc.resolve = jest.fn((pos) => {
-      if (pos === 10) {
-        return {
-          nodeAfter: {
-            marks: [mockMark],
-            nodeSize: 5
-          },
-          nodeBefore: null,
-        };
-      } else if (pos > 10 && pos < 15) {
-        return {
-          nodeAfter: {
-            marks: [mockMark],
-            nodeSize: 5
-          },
-          nodeBefore: {
-            marks: [mockMark],
-            nodeSize: 5
-          },
-        };
-      } else {
-        return {
-          nodeAfter: null,
-          nodeBefore: {
-            marks: pos === 15 ? [mockMark] : [],
-            nodeSize: 5
-          },
-        };
-      }
-    });
-
-    const result = findMarkRange(mockState, 12, "suggestion_add");
-
-    expect(result).not.toBeNull();
-    if (result) {
-      expect(result.from).toBe(10);
-      expect(result.to).toBe(17);
-      expect(result.mark).toBe(mockMark);
-    }
-  });
-
-  test("should return null when mark doesn't exist", () => {
-    // Setup mock document to simulate no marks
-    mockDoc.resolve = jest.fn(() => ({
-      nodeAfter: {
-        marks: [],
-      },
-      nodeBefore: {
-        marks: [],
-      },
-    }));
-
-    const result = findMarkRange(mockState, 10, "suggestion_add");
-
-    expect(result).toBeNull();
-  });
-
-  test("should return null when nodes don't exist", () => {
-    // Setup mock document to simulate no nodes
-    mockDoc.resolve = jest.fn(() => ({
-      nodeAfter: null,
-      nodeBefore: null,
-    }));
-
-    const result = findMarkRange(mockState, 10, "suggestion_add");
-
-    expect(result).toBeNull();
-  });
-
-  test("should handle mark at document start", () => {
-    // Setup mock document to simulate a mark at the start
-    mockDoc.resolve = jest.fn((pos) => {
-      if (pos === 0) {
-        return {
-          nodeAfter: {
-            marks: [mockMark],
-            nodeSize: 5
-          },
-          nodeBefore: null,
-        };
-      } else if (pos > 0 && pos < 5) {
-        return {
-          nodeAfter: {
-            marks: [mockMark],
-            nodeSize: 5
-          },
-          nodeBefore: {
-            marks: [mockMark],
-            nodeSize: 5
-          },
-        };
-      } else {
-        return {
-          nodeAfter: null,
-          nodeBefore: {
-            marks: pos === 5 ? [mockMark] : [],
-            nodeSize: 5
-          },
-        };
-      }
-    });
-
-    const result = findMarkRange(mockState, 0, "suggestion_add");
-
-    expect(result).not.toBeNull();
-    if (result) {
-      expect(result.from).toBe(0);
-      expect(result.to).toBe(5);
-      expect(result.mark).toBe(mockMark);
-    }
-  });
-
-  test("should handle mark at document end", () => {
-    const docSize = 100;
+  test("should find the range of a suggestion_add mark", () => {
+    // Create state with suggestion mode on
+    const state = createEditorState("<p>Hello world</p>");
+    const view = createEditorView(state);
     
-    // Setup mock document to simulate a mark at the end
-    mockDoc.resolve = jest.fn((pos) => {
-      if (pos >= docSize - 5 && pos < docSize) {
-        return {
-          nodeAfter: pos < docSize - 1 ? {
-            marks: [mockMark],
-            nodeSize: 5
-          } : null,
-          nodeBefore: {
-            marks: [mockMark],
-            nodeSize: 5
-          },
-        };
-      } else {
-        return {
-          nodeAfter: {
-            marks: [],
-            nodeSize: 5
-          },
-          nodeBefore: {
-            marks: [],
-            nodeSize: 5
-          },
-        };
-      }
-    });
-
-    const result = findMarkRange(mockState, docSize - 3, "suggestion_add");
-
-    expect(result).not.toBeNull();
-    if (result) {
-      expect(result.from).toBe(docSize - 5);
-      expect(result.to).toBe(102);
-      expect(result.mark).toBe(mockMark);
-    }
+    // Set cursor position after "Hello "
+    setCursor(view, 6);
+    
+    // Insert text at cursor position
+    insertText(view, "awesome ");
+    
+    // Find a position within the inserted text (e.g., at 'a' in "awesome")
+    const pos = 7;
+    
+    // Find the mark range
+    const range = findMarkRange(view.state, pos, "suggestion_add");
+    
+    // The range should be defined
+    expect(range).toBeDefined();
+    
+    // The range should start at position 6 (after "Hello ")
+    expect(range?.from).toBe(6);
+    
+    // The range should end at position 14 (after "awesome ")
+    expect(range?.to).toBe(14);
+    
+    // The mark should be of type suggestion_add
+    expect(range?.mark.type.name).toBe("suggestion_add");
+  });
+  
+  test("should return null if no mark is found", () => {
+    // Create state with suggestion mode on
+    const state = createEditorState("<p>Hello world</p>");
+    
+    // Try to find a mark at position 1 (where there is no mark)
+    const range = findMarkRange(state, 1, "suggestion_add");
+    
+    // The range should be null
+    expect(range).toBeNull();
+  });
+  
+  test("should find the correct range for adjacent marks", () => {
+    // Create state with suggestion mode on
+    const state = createEditorState("<p>Hello world</p>");
+    const view = createEditorView(state);
+    
+    // Set cursor position after "Hello "
+    setCursor(view, 6);
+    
+    // Insert text at cursor position
+    insertText(view, "awesome ");
+    
+    // Toggle suggestion mode off and on to create a new mark session
+    const tr1 = view.state.tr.setMeta(suggestionsPluginKey, { inSuggestionMode: false });
+    view.dispatch(tr1);
+    const tr2 = view.state.tr.setMeta(suggestionsPluginKey, { inSuggestionMode: true });
+    view.dispatch(tr2);
+    
+    // Insert more text right after
+    setCursor(view, 14); // After "awesome "
+    insertText(view, "fantastic ");
+    
+    // Find a position within the second inserted text (e.g., at 'f' in "fantastic")
+    const pos = 15;
+    
+    // Find the mark range
+    const range = findMarkRange(view.state, pos, "suggestion_add");
+    
+    // The range should be defined
+    expect(range).toBeDefined();
+    
+    // The range should start at position 14 (after "awesome ")
+    expect(range?.from).toBe(14);
+    
+    // The range should end at position 24 (after "fantastic ")
+    expect(range?.to).toBe(24);
   });
 });

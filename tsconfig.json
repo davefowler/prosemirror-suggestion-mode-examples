@@ -11,8 +11,13 @@
     "outDir": "./dist",
     "sourceMap": true,
     "lib": ["dom", "dom.iterable", "esnext"],
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "prosemirror-suggest-mode/*": ["src/*"],
+      "prosemirror-suggest-mode": ["src"]
+    }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "examples/**/*"],
   "exclude": ["node_modules"]
 }

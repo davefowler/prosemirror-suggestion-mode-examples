@@ -1,6 +1,4 @@
 import { Schema } from "prosemirror-model";
-import { schema } from "prosemirror-schema-basic";
-import { addListNodes } from "prosemirror-schema-list";
 
 // Define suggestion marks
 export const suggestionMarks = {
@@ -44,12 +42,19 @@ export const suggestionMarks = {
   },
 };
 
-// Mix the nodes from prosemirror-schema-list into the basic schema to
-// support lists and paragraphs
-export const mySchema = new Schema({
-  nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
-  marks: Object.assign({}, schema.spec.marks, {
+// Helper function to add suggestion marks to an existing schema
+export function addSuggestionMarks(marks: Schema["spec"]["marks"]) {
+  return Object.assign({}, marks, {
     suggestion_add: suggestionMarks.suggestion_add,
     suggestion_delete: suggestionMarks.suggestion_delete,
-  }),
+  });
+}
+
+// Only for demonstration purposes - users should create their own schema
+import { schema } from "prosemirror-schema-basic";
+import { addListNodes } from "prosemirror-schema-list";
+
+export const exampleSchema = new Schema({
+  nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
+  marks: addSuggestionMarks(schema.spec.marks),
 });

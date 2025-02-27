@@ -1,5 +1,5 @@
 import { EditorView } from "prosemirror-view";
-import { suggestionsPluginKey } from "./suggestions";
+import { suggestionsPluginKey } from "../key";
 import { Node } from "prosemirror-model";
 
 export type TextSuggestion = {

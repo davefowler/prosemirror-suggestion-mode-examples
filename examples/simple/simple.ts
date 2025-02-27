@@ -2,18 +2,28 @@ import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { baseKeymap } from "prosemirror-commands";
 import { keymap } from "prosemirror-keymap";
-import { history } from "prosemirror-history";
 import {
   suggestionsPlugin,
   acceptAllSuggestions,
   rejectAllSuggestions,
   setSuggestionMode,
-} from "../../suggestions";
-import { mySchema } from "../../schema";
+} from "prosemirror-suggest-mode";
+import { addSuggestionMarks } from "prosemirror-suggest-mode/schema";
 import { DOMParser } from "prosemirror-model";
+import { schema } from "prosemirror-schema-basic";
+import { addListNodes } from "prosemirror-schema-list";
+import { Schema } from "prosemirror-model";
 
-// Normally you can just direct import a theme
-import "../../styles/default.css";
+// Import a theme for the suggestions or create your own
+import "prosemirror-suggest-mode/styles/default.css";
+
+const exampleSchema = new Schema({
+  nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
+
+  // When creating your schema, wrap the marks in the addSuggestionMarks function
+  // this will add the needed suggestion_add and suggestion_delete marks to the schema
+  marks: addSuggestionMarks(schema.spec.marks),
+});
 
 // Initialize the editor with the suggestions plugin
 window.addEventListener("load", () => {
@@ -23,14 +33,14 @@ window.addEventListener("load", () => {
     <p>Whether it will become a <b>force</b> for good or ill depends on man, and only if the United States occupies a position of pre-eminence can we help decide whether this new ocean will be a sea of peace or a new terrifying theater of war.</p>
   `;
 
-  const parser = DOMParser.fromSchema(mySchema);
+  const parser = DOMParser.fromSchema(exampleSchema);
   const htmlDoc = new window.DOMParser().parseFromString(content, "text/html");
   const doc = parser.parse(htmlDoc.body);
 
   const state = EditorState.create({
-    schema: mySchema,
+    schema: exampleSchema,
     doc,
-    plugins: [history(), keymap(baseKeymap), suggestionsPlugin],
+    plugins: [keymap(baseKeymap), suggestionsPlugin],
   });
 
   // Create the editor view

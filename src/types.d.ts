@@ -44,3 +44,26 @@ declare module "prosemirror-model" {
     toDOM?: (node?: any) => any;
   }
 }
+
+// Module declarations for webpack alias
+declare module "prosemirror-suggest-mode" {
+  export * from "./index";
+}
+
+declare module "prosemirror-suggest-mode/suggestions" {
+  export * from "./suggestions";
+}
+
+declare module "prosemirror-suggest-mode/schema" {
+  export * from "./schema";
+}
+
+declare module "prosemirror-suggest-mode/styles/default.css" {
+  const content: any;
+  export default content;
+}
+
+declare module "prosemirror-suggest-mode/styles/inkAndSwitch.css" {
+  const content: any;
+  export default content;
+}

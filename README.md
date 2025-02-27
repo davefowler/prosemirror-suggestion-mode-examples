@@ -1,4 +1,4 @@
-# ProseMirrorSuggestions -- WORK IN PROGRESS
+# ProseMirrorSuggestions 
 
 A ProseMirror extension that implements a "suggestion mode" method to track and show changes similar to Google Docs', but inspired more by [Ink and Switch's Diffs](https://www.inkandswitch.com/patchwork/notebook/04/). This extension allows users to make suggested edits that can be reviewed, accepted, or rejected later.
 
@@ -43,7 +43,7 @@ http://localhost:8080
 ### Basic Setup
 
 ```javascript
-import { suggestionsPlugin } from 'prosemirror-suggestions'
+import { suggestionsPlugin } from 'prosemirror-suggestion-mode'
 
 // Add to your ProseMirror plugins
 const plugins = [
@@ -174,3 +174,6 @@ TODO:
 - extend and polish styles - google, word, ink and switch
 - tests
 - polish instructions
+- take screenshots for readme
+- deploy examples
+- launch as annote?

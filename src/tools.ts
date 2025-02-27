@@ -1,5 +1,6 @@
 import { EditorView } from "prosemirror-view";
 import { suggestionsPluginKey } from "./suggestions";
+import { Node } from "prosemirror-model";
 
 export type TextSuggestion = {
   textToReplace: string;
@@ -41,8 +42,6 @@ export const suggestEdit = (
   // Apply each suggestion with context matching
   suggestions.forEach((suggestion) => {
     try {
-      let targetPositions: { from: number; to: number }[] = [];
-
       // Find matches with or without context
       const prefix = suggestion.prefix || "";
       const suffix = suggestion.suffix || "";
@@ -52,35 +51,51 @@ export const suggestEdit = (
         escapeRegExp(suffix);
       const regex = new RegExp(pattern, "g");
 
-      // Find matches
+      // Find matches in the text content
       let match;
+      let matches: { index: number; length: number }[] = [];
+      
       while ((match = regex.exec(docText)) !== null) {
-        // Calculate the position of just the 'textToReplace' part
-        const matchStart = match.index + prefix.length;
-        const matchEnd = matchStart + suggestion.textToReplace.length;
-
-        targetPositions.push({ from: matchStart, to: matchEnd });
+        // Store the match position and length
+        matches.push({
+          index: match.index,
+          length: match[0].length
+        });
       }
 
-      // Apply replacements in reverse order to avoid position shifts
-      targetPositions.reverse().forEach(({ from, to }) => {
-        const tr = view.state.tr;
-
-        // Store reason in metadata if available
-        if (suggestion.reason) {
-          tr.setMeta(suggestionsPluginKey, {
-            data: { reason: suggestion.reason },
-          });
-        }
-
-        // Replace the text
-        tr.replaceWith(
-          from,
-          to,
-          view.state.schema.text(suggestion.textReplacement)
+      // For each match, find the actual document positions
+      matches.forEach(({ index, length }) => {
+        // Calculate the position of just the 'textToReplace' part in the text content
+        const textMatchStart = index + prefix.length;
+        const textMatchEnd = textMatchStart + suggestion.textToReplace.length;
+        
+        // Find the actual document positions that correspond to these text positions
+        const docPositions = findDocumentPositions(
+          view.state.doc,
+          textMatchStart,
+          textMatchEnd
         );
-        view.dispatch(tr);
-        replacementCount++;
+        
+        if (docPositions) {
+          const { from, to } = docPositions;
+          const tr = view.state.tr;
+
+          // Store reason in metadata if available
+          if (suggestion.reason) {
+            tr.setMeta(suggestionsPluginKey, {
+              data: { reason: suggestion.reason },
+            });
+          }
+
+          // Replace the text
+          tr.replaceWith(
+            from,
+            to,
+            view.state.schema.text(suggestion.textReplacement)
+          );
+          view.dispatch(tr);
+          replacementCount++;
+        }
       });
     } catch (error) {
       console.error("Error applying edit suggestion:", error);
@@ -99,6 +114,55 @@ export const suggestEdit = (
 
   return replacementCount;
 };
+
+/**
+ * Find the actual document positions that correspond to positions in the text content
+ * This handles formatted text correctly by mapping text content positions to document positions
+ */
+function findDocumentPositions(
+  doc: Node,
+  textStart: number,
+  textEnd: number
+): { from: number; to: number } | null {
+  let currentTextPos = 0;
+  let startPos: number | null = null;
+  let endPos: number | null = null;
+  
+  // Walk through all text nodes in the document
+  doc.nodesBetween(0, doc.nodeSize - 2, (node, pos) => {
+    if (startPos !== null && endPos !== null) return false; // Stop if we've found both positions
+    
+    if (node.isText) {
+      const nodeTextLength = node.text!.length;
+      const nodeTextStart = currentTextPos;
+      const nodeTextEnd = nodeTextStart + nodeTextLength;
+      
+      // Check if this node contains the start position
+      if (startPos === null && textStart >= nodeTextStart && textStart < nodeTextEnd) {
+        startPos = pos + (textStart - nodeTextStart);
+      }
+      
+      // Check if this node contains the end position
+      if (endPos === null && textEnd > nodeTextStart && textEnd <= nodeTextEnd) {
+        endPos = pos + (textEnd - nodeTextStart);
+      }
+      
+      // Move the text position counter forward
+      currentTextPos += nodeTextLength;
+    }
+    
+    return true; // Continue traversal
+  });
+  
+  // If we found both positions, return them
+  if (startPos !== null && endPos !== null) {
+    return { from: startPos, to: endPos };
+  }
+  
+  // If we couldn't find the positions using node traversal, fall back to simple positions
+  // This is less accurate but provides a fallback
+  return { from: textStart, to: textEnd };
+}
 
 /**
  * Helper to escape special characters in a string for use in a regex

@@ -63,11 +63,11 @@ describe("Suggestions Plugin Integration", () => {
     const state = createEditorState("<p>Hello world</p>");
     const view = createEditorView(state);
     
-    // Set cursor position after "Hello "
-    setCursor(view, 6);
+    // Set cursor position after "Hello"
+    setCursor(view, 5);
     
     // Insert text at cursor position
-    await insertText(view, "awesome ");
+    await insertText(view, " awesome");
     
     // Check that the document now contains the inserted text
     expect(view.state.doc.textContent).toBe("Hello awesome world");
@@ -94,8 +94,8 @@ describe("Suggestions Plugin Integration", () => {
     const state = createEditorState("<p>Hello awesome world</p>");
     const view = createEditorView(state);
     
-    // Delete "awesome " (from position 6 to 14)
-    await deleteText(view, 6, 14);
+    // Delete "awesome" (from position 6 to 13)
+    await deleteText(view, 6, 13);
     
     // Check that the document now visually contains just "Hello world"
     expect(view.state.doc.textContent).toBe("Hello world");
@@ -122,14 +122,17 @@ describe("Suggestions Plugin Integration", () => {
     const state = createEditorState("<p>Hello world</p>");
     const view = createEditorView(state);
     
-    // Set cursor position after "Hello "
-    setCursor(view, 6);
+    // Set cursor position after "Hello"
+    setCursor(view, 5);
     
     // Insert text at cursor position
-    await insertText(view, "awesome ");
+    await insertText(view, " awesome");
+    
+    // Set cursor position after "awesome"
+    setCursor(view, 13);
     
     // Insert more text right after
-    await insertText(view, "fantastic ");
+    await insertText(view, " fantastic");
     
     // Check that the document now contains the inserted text
     expect(view.state.doc.textContent).toBe("Hello awesome fantastic world");

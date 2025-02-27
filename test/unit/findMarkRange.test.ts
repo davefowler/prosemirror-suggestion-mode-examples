@@ -18,11 +18,11 @@ describe("findMarkRange", () => {
     const state = createEditorState("<p>Hello world</p>");
     const view = createEditorView(state);
     
-    // Set cursor position after "Hello "
-    setCursor(view, 6);
+    // Set cursor position after "Hello"
+    setCursor(view, 5);
     
     // Insert text at cursor position
-    await insertText(view, "awesome ");
+    await insertText(view, " awesome");
     
     // Find a position within the inserted text (e.g., at 'a' in "awesome")
     const pos = 7;
@@ -59,11 +59,11 @@ describe("findMarkRange", () => {
     const state = createEditorState("<p>Hello world</p>");
     const view = createEditorView(state);
     
-    // Set cursor position after "Hello "
-    setCursor(view, 6);
+    // Set cursor position after "Hello"
+    setCursor(view, 5);
     
     // Insert text at cursor position
-    await insertText(view, "awesome ");
+    await insertText(view, " awesome");
     
     // Toggle suggestion mode off and on to create a new mark session
     const tr1 = view.state.tr.setMeta(suggestionsPluginKey, { inSuggestionMode: false });
@@ -72,8 +72,8 @@ describe("findMarkRange", () => {
     view.dispatch(tr2);
     
     // Insert more text right after
-    setCursor(view, 14); // After "awesome "
-    await insertText(view, "fantastic ");
+    setCursor(view, 13); // After "awesome"
+    await insertText(view, " fantastic");
     
     // Find a position within the second inserted text (e.g., at 'f' in "fantastic")
     const pos = 15;

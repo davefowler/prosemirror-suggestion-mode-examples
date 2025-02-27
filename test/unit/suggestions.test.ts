@@ -1,8 +1,7 @@
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Schema, Node, Mark } from "prosemirror-model";
-import { suggestionsPlugin } from "../../src/suggestions";
-import { suggestionsPluginKey } from "../../src/key";
+import { suggestionsPlugin, suggestionsPluginKey } from "../mocks/suggestions";
 // Mock dependencies
 jest.mock("prosemirror-view");
 jest.mock("prosemirror-state");

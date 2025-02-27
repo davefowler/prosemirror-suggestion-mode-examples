@@ -1,55 +1,31 @@
-import { EditorState } from "prosemirror-state";
+import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Schema, Node, Mark } from "prosemirror-model";
-import { suggestionsPlugin, suggestionsPluginKey } from "../mocks/suggestions";
+import { suggestionsPlugin, findMarkRange } from "../../src/suggestions";
+import { suggestionsPluginKey } from "../../src/key";
+
 // Mock dependencies
 jest.mock("prosemirror-view");
-jest.mock("prosemirror-state");
-jest.mock("prosemirror-model");
-
-// Create a mock for the suggestionsPlugin
-jest.mock("../../src/suggestions", () => {
-  // Create a properly typed mock plugin key
-  const mockPluginKey = { getState: jest.fn() };
-
-  // Create a mock plugin with proper types
-  const mockPlugin = {
-    props: {
-      handleClick: jest.fn().mockReturnValue(false),
-      handleKeyDown: jest.fn().mockReturnValue(false),
-    },
-    getState: jest.fn(),
-    spec: {
-      state: {
-        init: jest.fn(),
-        apply: jest.fn(),
-      },
-    },
-  };
-
-  // Add the key property to the mock plugin
-  Object.defineProperty(mockPlugin, "key", {
-    value: mockPluginKey,
-    enumerable: true,
-  });
-
-  // Explicitly type the mock functions
-  (mockPlugin.getState as jest.Mock) = jest.fn();
-  (mockPlugin.spec.state.apply as jest.Mock) = jest.fn();
-
-  // Add proper type assertion
+jest.mock("prosemirror-state", () => {
+  const actual = jest.requireActual("prosemirror-state");
   return {
-    suggestionsPlugin: mockPlugin as any,
-    suggestionsPluginKey: mockPluginKey,
+    ...actual,
+    // We need to keep the actual Plugin class
+    Plugin: actual.Plugin,
+    // Mock other parts as needed
+    EditorState: jest.fn(),
   };
 });
+jest.mock("prosemirror-model");
 
-// Mock the key module
-jest.mock("../../src/key", () => ({
-  suggestionsPluginKey: {
-    getState: jest.fn(),
-  },
-}));
+// Mock the key module but keep the actual key
+jest.mock("../../src/key", () => {
+  return {
+    suggestionsPluginKey: {
+      getState: jest.fn(),
+    },
+  };
+});
 
 describe("suggestionsPlugin", () => {
   let mockSchema: Schema;
@@ -442,47 +418,48 @@ describe("suggestionsPlugin", () => {
   describe("plugin initialization", () => {
     test("should have the correct props", () => {
       expect(suggestionsPlugin).toBeDefined();
-      // Access key through the getter
-      expect((suggestionsPlugin as any).key).toBeDefined();
+      expect(suggestionsPlugin.key).toBeDefined();
       expect(suggestionsPlugin.props).toBeDefined();
-      expect(suggestionsPlugin.props.handleClick).toBeDefined();
-      expect(suggestionsPlugin.props.handleKeyDown).toBeDefined();
+      expect(suggestionsPlugin.props.decorations).toBeDefined();
     });
 
     test("should initialize with default state", () => {
-      // Mock the getState method to return a default state
-      const defaultState = {
-        username: "anonymous",
-        inSuggestionMode: false,
+      // Access the init function directly from the plugin spec
+      const initFn = suggestionsPlugin.spec.state.init;
+      const defaultState = initFn();
+      
+      expect(defaultState).toEqual({
+        inSuggestionMode: true,
+        username: "Anonymous",
         activeMarkRange: null,
-        data: {},
-      };
-
-      (suggestionsPlugin.getState as jest.Mock).mockReturnValueOnce(
-        defaultState
-      );
-
-      const state = suggestionsPlugin.getState(mockState);
-
-      expect(state).toEqual(defaultState);
+      });
     });
 
-    test("should handle custom state", () => {
-      // Mock the getState method to return a state with custom username
-      const customState = {
-        username: "customUser",
-        inSuggestionMode: false,
-        activeMarkRange: null,
-        data: {},
+    test("should handle state updates", () => {
+      // Access the apply function directly from the plugin spec
+      const applyFn = suggestionsPlugin.spec.state.apply;
+      
+      // Create a mock transaction with metadata
+      const mockTr = {
+        getMeta: jest.fn().mockReturnValue({
+          inSuggestionMode: false,
+          username: "testUser"
+        })
       };
-
-      (suggestionsPlugin.getState as jest.Mock).mockReturnValueOnce(
-        customState
-      );
-
-      const state = suggestionsPlugin.getState(mockState);
-
-      expect(state).toEqual(customState);
+      
+      const currentState = {
+        inSuggestionMode: true,
+        username: "Anonymous",
+        activeMarkRange: null
+      };
+      
+      const newState = applyFn(mockTr as any, currentState);
+      
+      expect(newState).toEqual({
+        inSuggestionMode: false,
+        username: "testUser",
+        activeMarkRange: null
+      });
     });
   });
 

@@ -198,58 +198,34 @@ describe("accept-reject functions", () => {
   });
 
   describe("error handling", () => {
-    test("should handle errors gracefully in acceptSuggestion", () => {
-      // Mock console.error to prevent test output pollution
-      const originalConsoleError = console.error;
-      console.error = jest.fn();
-
+    test("should throw errors in acceptSuggestion", () => {
       // Force an error by making nodesBetween throw
       mockDoc.nodesBetween.mockImplementationOnce(() => {
         throw new Error("Test error");
       });
 
-      // Create a transaction that will be used in error handling
-      mockTr.setMeta.mockClear();
-      mockView.dispatch.mockClear();
+      // Call the function and expect it to throw
+      expect(() => {
+        acceptSuggestion(mockView, mockAddMark, 10);
+      }).toThrow("Test error");
 
-      // Call the function that should handle the error
-      acceptSuggestion(mockView, mockAddMark, 10);
-
-      // Should still dispatch the transaction
-      expect(mockView.dispatch).toHaveBeenCalled();
-      
-      // Should have logged the error
-      expect(console.error).toHaveBeenCalled();
-
-      // Restore console.error
-      console.error = originalConsoleError;
+      // Should not dispatch the transaction when an error occurs
+      expect(mockView.dispatch).not.toHaveBeenCalled();
     });
 
-    test("should handle errors gracefully in rejectSuggestion", () => {
-      // Mock console.error to prevent test output pollution
-      const originalConsoleError = console.error;
-      console.error = jest.fn();
-
+    test("should throw errors in rejectSuggestion", () => {
       // Force an error by making nodesBetween throw
       mockDoc.nodesBetween.mockImplementationOnce(() => {
         throw new Error("Test error");
       });
 
-      // Create a transaction that will be used in error handling
-      mockTr.setMeta.mockClear();
-      mockView.dispatch.mockClear();
+      // Call the function and expect it to throw
+      expect(() => {
+        rejectSuggestion(mockView, mockDeleteMark, 20);
+      }).toThrow("Test error");
 
-      // Call the function that should handle the error
-      rejectSuggestion(mockView, mockDeleteMark, 20);
-
-      // Should still dispatch the transaction
-      expect(mockView.dispatch).toHaveBeenCalled();
-      
-      // Should have logged the error
-      expect(console.error).toHaveBeenCalled();
-
-      // Restore console.error
-      console.error = originalConsoleError;
+      // Should not dispatch the transaction when an error occurs
+      expect(mockView.dispatch).not.toHaveBeenCalled();
     });
   });
 });

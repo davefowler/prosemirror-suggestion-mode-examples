@@ -11,7 +11,6 @@ import {
 } from "../../suggestions";
 import { mySchema } from "../../schema";
 import { DOMParser } from "prosemirror-model";
-import { suggestEdit } from "../../tools";
 
 // Normally you can just direct import a theme
 import "../../styles/default.css";
@@ -55,44 +54,4 @@ window.addEventListener("load", () => {
     ?.addEventListener("click", () => {
       rejectAllSuggestions(view);
     });
-
-  const exampleSuggestions = [
-    {
-      textToReplace: "Moon",
-      textReplacement: "moon",
-      comment: "Consistent lowercase for celestial bodies",
-      prefix: "We choose to go to the ",
-      suffix: " in this decade and do",
-    },
-    {
-      textToReplace: "We set sail",
-      textReplacement:
-        "\n\nWe want to see if the moon is made of cheese.\n\n We set sail",
-      comment: "Added new paragraph about cheese moon theory",
-    },
-    {
-      textToReplace: "hard",
-      textReplacement: "challenging",
-      comment: "Word choice improvement",
-      prefix: "not because they are easy, but because they are ",
-      suffix: ", because that goal",
-    },
-    {
-      textToReplace: "pre-eminence",
-      textReplacement: "leadership position",
-      comment: "Using more common terminology",
-      prefix: "only if the United States occupies a position of ",
-      suffix: " can we help decide",
-    },
-    {
-      textToReplace: "new terrifying theater",
-      textReplacement: "terrifying new theater",
-      comment: "Improved word order",
-      suffix: " of war.",
-    },
-  ];
-
-  exampleSuggestions.forEach((suggestion) => {
-    suggestEdit(view, [suggestion], "somebody");
-  });
 });

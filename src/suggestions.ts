@@ -284,10 +284,9 @@ export const suggestionsPlugin = new Plugin({
     let changed = false;
 
     transactions.forEach((transaction) => {
-      // Skip if this is a suggestion operation
+      // Skip if this is an internal operation
       const meta = transaction.getMeta(suggestionsPluginKey);
       if (meta && meta.suggestionOperation) {
-        console.log("skipping suggestion transaction", transaction);
         return;
       }
 
@@ -390,16 +389,15 @@ export const suggestionsPlugin = new Plugin({
                 "to",
                 markTo
               );
-            } else {
-              console.log(
-                "inserting new text",
-                newText,
-                "at",
-                markFrom,
-                "to",
-                markTo
-              );
             }
+            console.log(
+              "inserting new text",
+              newText,
+              "at",
+              markFrom,
+              "to",
+              markTo
+            );
 
             // somewhere else the insert already happens don't re-insert
             tr.addMark(

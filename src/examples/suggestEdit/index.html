@@ -10,6 +10,11 @@
             padding: 20px;
             text-align: center;
         }
+        #suggestions {
+            text-align: left;
+            max-width: 800px;
+            margin: 20px auto;
+        }
         .ProseMirror {
             white-space: pre-wrap;
             background: white;
@@ -19,6 +24,7 @@
             max-width: 800px;
             min-height: 200px;
             padding: 10px;
+            text-align: left;
         }
         .controls {
             max-width: 800px;
@@ -30,7 +36,11 @@
     </style>
 </head>
 <body>
-    <h1>Simple Prosemirror Suggestions Example</h1>
+    <h1>Prosemirror-suggestions suggestEdit Example</h1>
+
+    <p>Will apply these suggestions to the editor:</p>
+    <div id="suggestions"></div>
+
     <div class="controls">
         <label>
             <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
@@ -41,7 +51,9 @@
         <button id="rejectAllSuggestions" class="suggestion-reject">Reject All</button>
         <span id="modeIndicator"></span>
     </div>
+
     <div id="editor" class="editor"></div>
-    <script src="simple.js"></script>
+
+    <script src="/examples/suggestEdit/suggestEdit.js"></script>
 </body>
 </html>

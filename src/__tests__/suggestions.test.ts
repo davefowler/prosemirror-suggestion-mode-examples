@@ -26,8 +26,11 @@ jest.mock('../suggestions', () => {
     }
   };
 
+  // Create a properly typed mock function
+  const mockSuggestionsPlugin = jest.fn(() => mockPlugin);
+
   return {
-    suggestionsPlugin: jest.fn().mockReturnValue(mockPlugin),
+    suggestionsPlugin: mockSuggestionsPlugin,
     suggestionsPluginKey: {
       getState: jest.fn(),
     },
@@ -77,7 +80,7 @@ describe('suggestionsPlugin', () => {
         addMark: jest.fn().mockReturnThis(),
         removeMark: jest.fn().mockReturnThis(),
         setSelection: jest.fn().mockReturnThis(),
-        getMeta: jest.fn(),
+        getMeta: jest.fn().mockImplementation(() => null),
       },
       selection: {
         from: 0,
@@ -172,7 +175,7 @@ describe('suggestionsPlugin', () => {
       });
       
       // Setup getMeta to return appropriate values
-      mockState.tr.getMeta.mockReturnValueOnce({ inSuggestionMode: true });
+      (mockState.tr.getMeta as jest.Mock).mockReturnValueOnce({ inSuggestionMode: true });
       
       // Toggle suggestion mode on
       const trOn = mockState.tr.setMeta(suggestionsPluginKey, { inSuggestionMode: true });
@@ -182,7 +185,7 @@ describe('suggestionsPlugin', () => {
       expect(resultOn.inSuggestionMode).toBe(true);
       
       // Setup getMeta for the second call
-      mockState.tr.getMeta.mockReturnValueOnce({ inSuggestionMode: false });
+      (mockState.tr.getMeta as jest.Mock).mockReturnValueOnce({ inSuggestionMode: false });
       
       // Toggle suggestion mode off
       const trOff = mockState.tr.setMeta(suggestionsPluginKey, { inSuggestionMode: false });

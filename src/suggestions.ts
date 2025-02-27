@@ -213,7 +213,6 @@ export const suggestionsPlugin = new Plugin({
               "suggestion_add"
             );
 
-            console.log("addMarkRange is", addMarkRange);
             if (addMarkRange) {
               // Remove existing mark
               tr.removeMark(
@@ -225,22 +224,7 @@ export const suggestionsPlugin = new Plugin({
               // Expand range to include existing mark
               markFrom = Math.min(markFrom, addMarkRange.from);
               markTo = Math.max(markTo, addMarkRange.to);
-
-              console.log(
-                "merging with existing add mark, new range:",
-                markFrom,
-                "to",
-                markTo
-              );
             }
-            console.log(
-              "inserting new text",
-              newText,
-              "at",
-              markFrom,
-              "to",
-              markTo
-            );
 
             // somewhere else the insert already happens don't re-insert
             tr.addMark(

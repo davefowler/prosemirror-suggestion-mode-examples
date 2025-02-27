@@ -4,7 +4,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 module.exports = {
     entry: {
         'examples/simple/simple': './examples/simple/simple.ts',
-        'examples/suggestEdit/suggestEdit': './examples/suggestEdit/suggestEdit.ts',
+        'examples/suggestEdit/suggestEditDemo': './examples/suggestEdit/suggestEditDemo.ts',
         'examples/inkAndSwitch/inkAndSwitch': './examples/inkAndSwitch/inkAndSwitch.ts'
     },
     output: {

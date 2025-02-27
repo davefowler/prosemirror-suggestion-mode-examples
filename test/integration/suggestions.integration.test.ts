@@ -58,7 +58,7 @@ describe("Suggestions Plugin Integration", () => {
     expect(pluginState?.username).toBe("TestUser");
   });
 
-  test("should mark text insertions in suggestion mode", () => {
+  test("should mark text insertions in suggestion mode", async () => {
     // Create state with suggestion mode on
     const state = createEditorState("<p>Hello world</p>");
     const view = createEditorView(state);
@@ -67,7 +67,7 @@ describe("Suggestions Plugin Integration", () => {
     setCursor(view, 6);
     
     // Insert text at cursor position
-    insertText(view, "awesome ");
+    await insertText(view, "awesome ");
     
     // Check that the document now contains the inserted text
     expect(view.state.doc.textContent).toBe("Hello awesome world");
@@ -89,13 +89,13 @@ describe("Suggestions Plugin Integration", () => {
     expect(hasAddMark).toBe(true);
   });
   
-  test("should mark text deletions in suggestion mode", () => {
+  test("should mark text deletions in suggestion mode", async () => {
     // Create state with suggestion mode on
     const state = createEditorState("<p>Hello awesome world</p>");
     const view = createEditorView(state);
     
     // Delete "awesome " (from position 6 to 14)
-    deleteText(view, 6, 14);
+    await deleteText(view, 6, 14);
     
     // Check that the document now visually contains just "Hello world"
     expect(view.state.doc.textContent).toBe("Hello world");
@@ -117,7 +117,7 @@ describe("Suggestions Plugin Integration", () => {
     expect(hasDeleteMark).toBe(true);
   });
   
-  test("should handle adjacent suggestion marks", () => {
+  test("should handle adjacent suggestion marks", async () => {
     // Create state with suggestion mode on
     const state = createEditorState("<p>Hello world</p>");
     const view = createEditorView(state);
@@ -126,10 +126,10 @@ describe("Suggestions Plugin Integration", () => {
     setCursor(view, 6);
     
     // Insert text at cursor position
-    insertText(view, "awesome ");
+    await insertText(view, "awesome ");
     
     // Insert more text right after
-    insertText(view, "fantastic ");
+    await insertText(view, "fantastic ");
     
     // Check that the document now contains the inserted text
     expect(view.state.doc.textContent).toBe("Hello awesome fantastic world");

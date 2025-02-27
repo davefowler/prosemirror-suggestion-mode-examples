@@ -13,7 +13,7 @@ describe("findMarkRange", () => {
     setupDOMEnvironment();
   });
 
-  test("should find the range of a suggestion_add mark", () => {
+  test("should find the range of a suggestion_add mark", async () => {
     // Create state with suggestion mode on
     const state = createEditorState("<p>Hello world</p>");
     const view = createEditorView(state);
@@ -22,7 +22,7 @@ describe("findMarkRange", () => {
     setCursor(view, 6);
     
     // Insert text at cursor position
-    insertText(view, "awesome ");
+    await insertText(view, "awesome ");
     
     // Find a position within the inserted text (e.g., at 'a' in "awesome")
     const pos = 7;
@@ -54,7 +54,7 @@ describe("findMarkRange", () => {
     expect(range).toBeNull();
   });
   
-  test("should find the correct range for adjacent marks", () => {
+  test("should find the correct range for adjacent marks", async () => {
     // Create state with suggestion mode on
     const state = createEditorState("<p>Hello world</p>");
     const view = createEditorView(state);
@@ -63,7 +63,7 @@ describe("findMarkRange", () => {
     setCursor(view, 6);
     
     // Insert text at cursor position
-    insertText(view, "awesome ");
+    await insertText(view, "awesome ");
     
     // Toggle suggestion mode off and on to create a new mark session
     const tr1 = view.state.tr.setMeta(suggestionsPluginKey, { inSuggestionMode: false });
@@ -73,7 +73,7 @@ describe("findMarkRange", () => {
     
     // Insert more text right after
     setCursor(view, 14); // After "awesome "
-    insertText(view, "fantastic ");
+    await insertText(view, "fantastic ");
     
     // Find a position within the second inserted text (e.g., at 'f' in "fantastic")
     const pos = 15;

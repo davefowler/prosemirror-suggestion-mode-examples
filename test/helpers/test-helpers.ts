@@ -63,14 +63,22 @@ export function setCursor(view: EditorView, pos: number) {
 export function insertText(view: EditorView, text: string) {
   const tr = view.state.tr.insertText(text);
   view.dispatch(tr);
-  return view;
+  
+  // Give time for the appendTransaction to run
+  return new Promise<EditorView>(resolve => {
+    setTimeout(() => resolve(view), 0);
+  });
 }
 
 // Helper to delete text between positions
 export function deleteText(view: EditorView, from: number, to: number) {
   const tr = view.state.tr.delete(from, to);
   view.dispatch(tr);
-  return view;
+  
+  // Give time for the appendTransaction to run
+  return new Promise<EditorView>(resolve => {
+    setTimeout(() => resolve(view), 0);
+  });
 }
 
 // Setup DOM environment for tests

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prosemirror Suggestion Mode Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .code-link {
+            font-size: 0.9em;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Prosemirror Suggestion Mode Examples</h1>
+
+        <p>See the examples:</p>
+
+        <ul>
+            <li>
+                <a href="/examples/simple/">Simple</a>
+                <span class="code-link">
+                    [<a href="https://github.com/davefowler/prosemirror-suggestion-mode/tree/main/examples/simple">code</a>]
+                </span>
+                - The most basic example of how to use the library.
+            </li>
+            <li>
+                <a href="/examples/inkAndSwitch/">Ink and Switch</a>
+                <span class="code-link">
+                    [<a href="https://github.com/davefowler/prosemirror-suggestion-mode/tree/main/examples/inkAndSwitch">code</a>]
+                </span>
+                - A version of suggestion diffs proposed by <a href="https://www.inkandswitch.com/patchwork/notebook/04/">Ink & Switch Diff Visualizations</a> which hides the deletes behind a hover. This example shows how to add additional decorations should you need them.
+            </li>
+            <li>
+                <a href="/examples/suggestEdit/">Suggest Edit</a>
+                <span class="code-link">
+                    [<a href="https://github.com/davefowler/prosemirror-suggestion-mode/tree/main/examples/suggestEdit">code</a>]
+                </span>
+                - Shows how to use the <code>suggestEdit</code> tool, which is a text based (find/replace) way of making suggestions, ideal for AI's
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

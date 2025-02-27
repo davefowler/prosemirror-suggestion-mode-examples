@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "declaration": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "lib": ["dom", "dom.iterable", "esnext"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/__tests__/*", "**/__mocks__/*", "examples"]
+}

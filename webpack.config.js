@@ -3,9 +3,9 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     entry: {
-        'examples/simple/simple': './src/examples/simple/simple.ts',
-        'examples/suggestEdit/suggestEdit': './src/examples/suggestEdit/suggestEdit.ts',
-        'examples/inkAndSwitch/inkAndSwitch': './src/examples/inkAndSwitch/inkAndSwitch.ts'
+        'examples/simple/simple': './examples/simple/simple.ts',
+        'examples/suggestEdit/suggestEdit': './examples/suggestEdit/suggestEdit.ts',
+        'examples/inkAndSwitch/inkAndSwitch': './examples/inkAndSwitch/inkAndSwitch.ts'
     },
     output: {
         filename: '[name].js',
@@ -18,10 +18,10 @@ module.exports = {
         new CopyWebpackPlugin({
           patterns: [
             { from: 'src/styles', to: 'styles' },
-            { from: 'src/examples', to: 'examples', globOptions: {
+            { from: 'examples', to: 'examples', globOptions: {
               ignore: ['**/*.ts']
             }},
-            { from: 'src/index.html', to: 'index.html' },
+            { from: 'examples/index.html', to: 'index.html' },
           ]
         })
     ],

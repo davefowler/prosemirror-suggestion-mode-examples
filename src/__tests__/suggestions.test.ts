@@ -26,11 +26,9 @@ jest.mock('../suggestions', () => {
     }
   };
 
-  // Create a properly typed mock function
-  const mockSuggestionsPlugin = jest.fn(() => mockPlugin);
-
   return {
-    suggestionsPlugin: mockSuggestionsPlugin,
+    // Export the plugin directly instead of as a function
+    suggestionsPlugin: mockPlugin,
     suggestionsPluginKey: {
       getState: jest.fn(),
     },
@@ -108,28 +106,24 @@ describe('suggestionsPlugin', () => {
   });
   
   describe('plugin initialization', () => {
-    test('should create a plugin with the correct props', () => {
-      const plugin = suggestionsPlugin();
-      
-      expect(plugin).toBeDefined();
-      expect(plugin.key).toBeDefined();
-      expect(plugin.props).toBeDefined();
-      expect(plugin.props.handleClick).toBeDefined();
-      expect(plugin.props.handleKeyDown).toBeDefined();
+    test('should have the correct props', () => {
+      expect(suggestionsPlugin).toBeDefined();
+      expect(suggestionsPlugin.key).toBeDefined();
+      expect(suggestionsPlugin.props).toBeDefined();
+      expect(suggestionsPlugin.props.handleClick).toBeDefined();
+      expect(suggestionsPlugin.props.handleKeyDown).toBeDefined();
     });
     
     test('should initialize with default state', () => {
-      const plugin = suggestionsPlugin();
-      
       // Mock the getState method to return a default state
-      plugin.getState.mockReturnValueOnce({
+      suggestionsPlugin.getState.mockReturnValueOnce({
         username: 'anonymous',
         inSuggestionMode: false,
         activeMarkRange: null,
         data: {},
       });
       
-      const state = plugin.getState(mockState);
+      const state = suggestionsPlugin.getState(mockState);
       
       expect(state).toEqual({
         username: 'anonymous',
@@ -139,18 +133,16 @@ describe('suggestionsPlugin', () => {
       });
     });
     
-    test('should initialize with custom username', () => {
-      const plugin = suggestionsPlugin({ username: 'customUser' });
-      
+    test('should handle custom state', () => {
       // Mock the getState method to return a state with custom username
-      plugin.getState.mockReturnValueOnce({
+      suggestionsPlugin.getState.mockReturnValueOnce({
         username: 'customUser',
         inSuggestionMode: false,
         activeMarkRange: null,
         data: {},
       });
       
-      const state = plugin.getState(mockState);
+      const state = suggestionsPlugin.getState(mockState);
       
       expect(state).toEqual({
         username: 'customUser',
@@ -163,10 +155,8 @@ describe('suggestionsPlugin', () => {
   
   describe('suggestion mode', () => {
     test('should toggle suggestion mode on/off', () => {
-      const plugin = suggestionsPlugin();
-      
       // Mock the apply method to simulate state changes
-      plugin.spec.state.apply.mockImplementation((state, tr) => {
+      suggestionsPlugin.spec.state.apply.mockImplementation((state, tr) => {
         const meta = tr.getMeta(suggestionsPluginKey);
         if (meta) {
           return { ...mockPluginState, ...meta };
@@ -179,9 +169,9 @@ describe('suggestionsPlugin', () => {
       
       // Toggle suggestion mode on
       const trOn = mockState.tr.setMeta(suggestionsPluginKey, { inSuggestionMode: true });
-      const resultOn = plugin.spec.state.apply(mockState, trOn);
+      const resultOn = suggestionsPlugin.spec.state.apply(mockState, trOn);
       
-      expect(plugin.spec.state.apply).toHaveBeenCalledWith(mockState, trOn);
+      expect(suggestionsPlugin.spec.state.apply).toHaveBeenCalledWith(mockState, trOn);
       expect(resultOn.inSuggestionMode).toBe(true);
       
       // Setup getMeta for the second call
@@ -189,17 +179,15 @@ describe('suggestionsPlugin', () => {
       
       // Toggle suggestion mode off
       const trOff = mockState.tr.setMeta(suggestionsPluginKey, { inSuggestionMode: false });
-      const resultOff = plugin.spec.state.apply(mockState, trOff);
+      const resultOff = suggestionsPlugin.spec.state.apply(mockState, trOff);
       
-      expect(plugin.spec.state.apply).toHaveBeenCalledWith(mockState, trOff);
+      expect(suggestionsPlugin.spec.state.apply).toHaveBeenCalledWith(mockState, trOff);
       expect(resultOff.inSuggestionMode).toBe(false);
     });
   });
   
   describe('handleClick', () => {
     test('should handle click on suggestion mark', () => {
-      const plugin = suggestionsPlugin();
-      
       // Mock finding a suggestion mark at the click position
       const mockGetMarkAt = jest.fn().mockReturnValue({
         type: { name: 'suggestion' },
@@ -215,7 +203,7 @@ describe('suggestionsPlugin', () => {
       });
       
       // Call the handleClick method
-      const result = plugin.props.handleClick(mockView, 5, 5);
+      const result = suggestionsPlugin.props.handleClick(mockView, 5, 5);
       
       // Since we're not fully implementing the click behavior, we just check it doesn't crash
       expect(result).toBeFalsy(); // Default behavior is to return false
@@ -224,8 +212,6 @@ describe('suggestionsPlugin', () => {
   
   describe('handleKeyDown', () => {
     test('should handle Escape key to exit suggestion mode', () => {
-      const plugin = suggestionsPlugin();
-      
       // Set suggestion mode to true
       mockPluginState.inSuggestionMode = true;
       
@@ -233,15 +219,13 @@ describe('suggestionsPlugin', () => {
       const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' });
       
       // Call the handleKeyDown method
-      const result = plugin.props.handleKeyDown(mockView, escapeEvent);
+      const result = suggestionsPlugin.props.handleKeyDown(mockView, escapeEvent);
       
       // Since we're mocking, we just verify it doesn't crash
       expect(result).toBeFalsy();
     });
     
     test('should not handle other keys in normal mode', () => {
-      const plugin = suggestionsPlugin();
-      
       // Set suggestion mode to false
       mockPluginState.inSuggestionMode = false;
       
@@ -249,7 +233,7 @@ describe('suggestionsPlugin', () => {
       const regularEvent = new KeyboardEvent('keydown', { key: 'a' });
       
       // Call the handleKeyDown method
-      const result = plugin.props.handleKeyDown(mockView, regularEvent);
+      const result = suggestionsPlugin.props.handleKeyDown(mockView, regularEvent);
       
       // Should return false for unhandled keys
       expect(result).toBeFalsy();

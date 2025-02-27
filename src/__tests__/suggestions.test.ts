@@ -15,7 +15,6 @@ jest.mock('../suggestions', () => {
   
   // Create a mock plugin with proper types
   const mockPlugin = {
-    key: mockPluginKey,
     props: {
       handleClick: jest.fn().mockReturnValue(false),
       handleKeyDown: jest.fn().mockReturnValue(false),
@@ -28,6 +27,12 @@ jest.mock('../suggestions', () => {
       }
     }
   };
+
+  // Add the key property to the mock plugin
+  Object.defineProperty(mockPlugin, 'key', {
+    value: mockPluginKey,
+    enumerable: true
+  });
 
   // Explicitly type the mock functions
   (mockPlugin.getState as jest.Mock) = jest.fn();
@@ -113,7 +118,8 @@ describe('suggestionsPlugin', () => {
   describe('plugin initialization', () => {
     test('should have the correct props', () => {
       expect(suggestionsPlugin).toBeDefined();
-      expect(suggestionsPlugin.key).toBeDefined();
+      // Access key through the getter
+      expect((suggestionsPlugin as any).key).toBeDefined();
       expect(suggestionsPlugin.props).toBeDefined();
       expect(suggestionsPlugin.props.handleClick).toBeDefined();
       expect(suggestionsPlugin.props.handleKeyDown).toBeDefined();

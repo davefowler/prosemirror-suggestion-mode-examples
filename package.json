@@ -14,7 +14,8 @@
     "build": "webpack --mode production",
     "build:lib": "tsc -p tsconfig.lib.json",
     "prepare": "npm run build:lib",
-    "prepublishOnly": "npm test"
+    "prepublishOnly": "npm test",
+    "update-imports": "node update-imports.js"
   },
   "dependencies": {
     "prosemirror-commands": "^1.5.2",

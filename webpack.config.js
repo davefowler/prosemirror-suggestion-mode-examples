@@ -13,6 +13,10 @@ module.exports = {
     },
     resolve: {
         extensions: ['.ts', '.js'],
+        alias: {
+            // Create aliases so examples can find the source files
+            '@src': path.resolve(__dirname, 'src')
+        }
     },
     plugins: [
         new CopyWebpackPlugin({

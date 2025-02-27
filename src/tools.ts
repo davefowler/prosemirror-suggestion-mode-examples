@@ -6,8 +6,8 @@ export type TextSuggestion = {
   textToReplace: string;
   textReplacement: string;
   reason?: string;
-  prefix?: string;
-  suffix?: string;
+  textBefore?: string;
+  textAfter?: string;
 };
 
 /**
@@ -43,23 +43,23 @@ export const suggestEdit = (
   suggestions.forEach((suggestion) => {
     try {
       // Find matches with or without context
-      const prefix = suggestion.prefix || "";
-      const suffix = suggestion.suffix || "";
+      const textBefore = suggestion.textBefore || "";
+      const textAfter = suggestion.textAfter || "";
       const pattern =
-        escapeRegExp(prefix) +
+        escapeRegExp(textBefore) +
         escapeRegExp(suggestion.textToReplace) +
-        escapeRegExp(suffix);
+        escapeRegExp(textAfter);
       const regex = new RegExp(pattern, "g");
 
       // Find matches in the text content
       let match;
       let matches: { index: number; length: number }[] = [];
-      
+
       while ((match = regex.exec(docText)) !== null) {
         // Store the match position and length
         matches.push({
           index: match.index,
-          length: match[0].length
+          length: match[0].length,
         });
       }
 
@@ -67,16 +67,16 @@ export const suggestEdit = (
       matches.forEach(({ index, length }) => {
         try {
           // Calculate the position of just the 'textToReplace' part in the text content
-          const textMatchStart = index + prefix.length;
+          const textMatchStart = index + textBefore.length;
           const textMatchEnd = textMatchStart + suggestion.textToReplace.length;
-          
+
           // Find the actual document positions that correspond to these text positions
           const docPositions = findDocumentPositions(
             view.state.doc,
             textMatchStart,
             textMatchEnd
           );
-          
+
           const { from, to } = docPositions;
           const tr = view.state.tr;
 
@@ -127,53 +127,69 @@ function findDocumentPositions(
   textEnd: number
 ): { from: number; to: number } {
   // Check if this is a real ProseMirror document with nodesBetween method
-  if (doc.nodesBetween && typeof doc.nodesBetween === 'function') {
+  if (doc.nodesBetween && typeof doc.nodesBetween === "function") {
     try {
       let currentTextPos = 0;
       let startPos: number | null = null;
       let endPos: number | null = null;
-      
+
       // Walk through all text nodes in the document
       doc.nodesBetween(0, doc.nodeSize - 2, (node, pos) => {
         if (startPos !== null && endPos !== null) return false; // Stop if we've found both positions
-        
+
         if (node.isText) {
           const nodeTextLength = node.text!.length;
           const nodeTextStart = currentTextPos;
           const nodeTextEnd = nodeTextStart + nodeTextLength;
-          
+
           // Check if this node contains the start position
-          if (startPos === null && textStart >= nodeTextStart && textStart < nodeTextEnd) {
+          if (
+            startPos === null &&
+            textStart >= nodeTextStart &&
+            textStart < nodeTextEnd
+          ) {
             startPos = pos + (textStart - nodeTextStart);
           }
-          
+
           // Check if this node contains the end position
-          if (endPos === null && textEnd > nodeTextStart && textEnd <= nodeTextEnd) {
+          if (
+            endPos === null &&
+            textEnd > nodeTextStart &&
+            textEnd <= nodeTextEnd
+          ) {
             endPos = pos + (textEnd - nodeTextStart);
           }
-          
+
           // Move the text position counter forward
           currentTextPos += nodeTextLength;
         }
-        
+
         return true; // Continue traversal
       });
-      
+
       // If we found both positions, return them
       if (startPos !== null && endPos !== null) {
         // For formatted text tests, we need to adjust positions
-        if (doc.content && doc.content.content && 
-            doc.content.content.some(node => node.marks && node.marks.length > 0)) {
+        if (
+          doc.content &&
+          doc.content.content &&
+          doc.content.content.some(
+            (node) => node.marks && node.marks.length > 0
+          )
+        ) {
           return { from: startPos - 1, to: endPos - 1 };
         }
         return { from: startPos, to: endPos };
       }
     } catch (e) {
       // If there's an error in the nodesBetween approach, fall back to simple positions
-      console.log("Error in nodesBetween, falling back to simple positions:", e);
+      console.log(
+        "Error in nodesBetween, falling back to simple positions:",
+        e
+      );
     }
   }
-  
+
   // Fall back to simple positions for tests or if the traversal failed
   return { from: textStart, to: textEnd };
 }

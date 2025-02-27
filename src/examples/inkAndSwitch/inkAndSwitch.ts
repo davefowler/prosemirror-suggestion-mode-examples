@@ -13,7 +13,7 @@ import { mySchema } from "../../schema";
 import { DOMParser } from "prosemirror-model";
 
 // Normally you can just direct import a theme
-import "../../styles/default.css";
+import "../../styles/inkAndSwitch.css";
 
 // Initialize the editor with the suggestions plugin
 window.addEventListener("load", () => {

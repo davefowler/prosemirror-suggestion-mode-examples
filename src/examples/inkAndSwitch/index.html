@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ProseMirror Suggestions Demo</title>
+    <title>ProseMirror Suggestions Ink & Switch hidden diffs example</title>
     <style>
         body {
             line-height: 1.5;
@@ -31,7 +31,9 @@
     </style>
 </head>
 <body>
-    <h1>Simple Prosemirror Suggestions Example</h1>
+    <h1>Prosemirror Suggestions Ink & Switch hidden diffs example</h1>
+
+    <p>Ink & Switch propose a way of <a href="https://www.inkandswitch.com/patchwork/notebook/04/">visualising suggestion diffs</a> by hiding the deletes behind a hover. This example shows how to add additional decorations should you need them.</p>
     <div class="controls">
         <label>
             <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
@@ -43,6 +45,6 @@
         <span id="modeIndicator"></span>
     </div>
     <div id="editor" class="editor"></div>
-    <script src="simple.js"></script>
+    <script src="inkAndSwitch.js"></script>
 </body>
 </html>

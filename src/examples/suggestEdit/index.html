@@ -10,7 +10,7 @@
             padding: 20px;
             text-align: center;
         }
-        #suggestions {
+        .suggestions-container {
             text-align: left;
             max-width: 800px;
             margin: 20px auto;
@@ -39,8 +39,24 @@
     <h1>Prosemirror-suggestions suggestEdit Example</h1>
 
     <p>Will apply these suggestions to the editor:</p>
-    <div id="suggestions"></div>
 
+    <div class="suggestions-container">
+        <div id="suggestions"></div>
+    
+
+    You can apply the suggestions with this tool 
+    <pre>
+        suggestEdit(view, [
+            {
+                textToReplace: "pre-eminence",
+                textReplacement: "pre-eminence",
+                reason: "Corrected spelling",
+                textBefore: "Whether it will become a ",
+                textAfter: " can we help decide",
+            },   
+        ], "username");
+    </pre>
+</div>
     <div class="controls">
         <label>
             <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode

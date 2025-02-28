@@ -14,6 +14,7 @@
     "test:debug": "jest --runInBand --no-cache --detectOpenHandles --testTimeout=10000",
     "test:unit": "jest test/unit --runInBand",
     "test:tools-minimal": "jest test/unit/tools.test.ts --no-coverage --runInBand",
+    "test:tools-simple": "jest test/unit/tools-simple.test.ts --no-coverage --runInBand",
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
     "build:lib": "tsc -p tsconfig.lib.json",

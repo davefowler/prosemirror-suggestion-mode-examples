@@ -162,11 +162,6 @@ These functions take the EditorView as their only parameter.  See the example fo
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
-
-
 ## TODO
 
 - combine accepting and rejecting two an add and delete together when next to each other (mark as a replacement?)
@@ -177,3 +172,8 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 For simplicity this is not really a diffing capability where you can input two different versions and see the changes.  Instead if a user makes changes with a suggestion mode enabled, the changes are stored as extra markup on the document.  It's not really version control, it's just a way to make suggestions.
 
 I had gone down the route of using prosemirror-changeset as some had suggested for this, but accepting or rejecting individual suggestions out of order was quite complex in changeset, so I went back to this method of keeping the suggestions in the document.  If you'd like to see where I went with that work you can see the [changeset branch here](https://github.com/davefowler/prosemirror-suggestion-mode/tree/changeset).
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
+

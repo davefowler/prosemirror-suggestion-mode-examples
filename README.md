@@ -167,7 +167,8 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 [MIT](https://choosealicense.com/licenses/mit/)
 
 
-TODO:
+## TODO
+
 - combine accepting and rejecting two an add and delete together when next to each other (mark as a replacement?)
 - add reasons to suggestions display
 

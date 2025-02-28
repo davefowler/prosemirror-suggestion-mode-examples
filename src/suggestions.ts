@@ -136,17 +136,19 @@ export const suggestionsPlugin = new Plugin({
         if (step instanceof ReplaceStep) {
           const from = step.from;
           const to = step.to;
-          const text = oldState.doc.textBetween(from, to, " ");
+          const oldText = oldState.doc.textBetween(from, to, " ");
           const newText = step.slice.content.textBetween(
             0,
             step.slice.content.size,
             " "
           );
-          const newFrom = from + text.length;
+          const newFrom = from + oldText.length;
           const newTo = newFrom + newText.length;
-
+          const isDelete = oldText.length > 0 && newText.length === 0;
+          const isAdd = oldText.length === 0 && newText.length > 0;
+          const isReplace = oldText.length > 0 && newText.length > 0;
           // if from is inside a suggestion mark don't do anything
-          const from$ = newState.doc.resolve(from);
+          const from$ = newState.doc.resolve(from + (isDelete ? +1 : 0));
           const marksAtFrom = from$.marks();
           const fromMark = marksAtFrom.find(
             (m) =>
@@ -154,6 +156,10 @@ export const suggestionsPlugin = new Plugin({
               m.type.name === "suggestion_delete"
           );
           if (fromMark) {
+            console.log(
+              "already inside a suggestion mark, let normal editing happen",
+              from
+            );
             // We are already inside a suggestion mark, let normal editing happen
             return;
           }
@@ -163,10 +169,10 @@ export const suggestionsPlugin = new Plugin({
             handled: true, // Add this flag to indicate this input has been handled
           });
 
-          if (text.length > 0) {
+          if (oldText.length > 0) {
             // DELETE - reinsert removed text with a suggestion_delete mark
             let markFrom = from;
-            let markTo = from + text.length;
+            let markTo = from + oldText.length;
 
             // Check for adjacent suggestion_delete mark (on old version of doc)
             const deleteMarkRange = findMarkRange(
@@ -175,7 +181,7 @@ export const suggestionsPlugin = new Plugin({
               "suggestion_delete"
             );
 
-            tr.insertText(text, from, from);
+            tr.insertText(oldText, from, from);
             if (deleteMarkRange) {
               // Remove existing mark and expand mark range to include it
               tr.removeMark(
@@ -184,8 +190,11 @@ export const suggestionsPlugin = new Plugin({
                 newState.schema.marks.suggestion_delete
               );
               // Expand range to include existing mark
-              markFrom = Math.min(markFrom, deleteMarkRange.from + text.length);
-              markTo = Math.max(markTo, deleteMarkRange.to + text.length);
+              markFrom = Math.min(
+                markFrom,
+                deleteMarkRange.from + oldText.length
+              );
+              markTo = Math.max(markTo, deleteMarkRange.to + oldText.length);
             }
 
             tr.addMark(

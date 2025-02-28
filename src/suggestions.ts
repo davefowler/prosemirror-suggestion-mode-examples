@@ -23,19 +23,18 @@ const renderTooltip = (
       : `Added by ${mark.attrs.username} on ${date}`;
   tooltip.appendChild(infoText);
 
-  // Add custom data if present
+  // Add custom data as attributes to the tooltip element if present
   if (mark.attrs.data) {
     try {
       const customData =
         typeof mark.attrs.data === "string"
           ? JSON.parse(mark.attrs.data)
           : mark.attrs.data;
-      const dataStr = Object.entries(customData)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(", ");
-      const dataElement = document.createElement("div");
-      dataElement.textContent = `Custom data: ${dataStr}`;
-      tooltip.appendChild(dataElement);
+      
+      // Add data attributes to the tooltip element
+      Object.entries(customData).forEach(([key, value]) => {
+        tooltip.dataset[key] = String(value);
+      });
     } catch (e) {
       console.warn("Failed to parse custom data in suggestion mark:", e);
     }

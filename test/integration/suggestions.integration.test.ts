@@ -255,4 +255,120 @@ describe("suggestionsPlugin integration", () => {
       expect(tooltips.length).toBeGreaterThan(0);
     });
   });
+
+  describe("edge cases", () => {
+    test("should handle deleting adjacent to suggestion marks", () => {
+      createEditor("<p>Hello world</p>");
+
+      // First, add text to create a suggestion_add mark
+      const position = 6;
+      view.dispatch(
+        view.state.tr.setSelection(
+          Selection.near(view.state.doc.resolve(position))
+        )
+      );
+      view.dispatch(view.state.tr.insertText("awesome "));
+
+      // The document now has "Hello awesome world" with "awesome " as a suggestion_add
+
+      // Position cursor one character to the right of the suggestion mark (after "awesome ")
+      const positionAfterMark = position + "awesome ".length;
+      view.dispatch(
+        view.state.tr.setSelection(
+          Selection.near(view.state.doc.resolve(positionAfterMark))
+        )
+      );
+
+      // Delete the character at cursor (should be 'w' from "world")
+      view.dispatch(
+        view.state.tr.delete(positionAfterMark, positionAfterMark + 1)
+      );
+
+      // Document should now have "Hello awesome orld" with the deleted 'w' marked as suggestion_delete
+      expect(view.state.doc.textContent).toBe("Hello awesome world");
+
+      // Check that the deleted 'w' has a suggestion_delete mark
+      let hasDeleteMark = false;
+      view.state.doc.nodesBetween(
+        positionAfterMark,
+        positionAfterMark + 1,
+        (node) => {
+          if (
+            node.marks.some((mark) => mark.type.name === "suggestion_delete")
+          ) {
+            hasDeleteMark = true;
+          }
+        }
+      );
+
+      expect(hasDeleteMark).toBe(true);
+
+      // Ensure we have two separate suggestion marks (one for add, one for delete)
+      const allMarks = [];
+      view.state.doc.nodesBetween(0, view.state.doc.content.size, (node) => {
+        node.marks.forEach((mark) => {
+          if (
+            mark.type.name === "suggestion_add" ||
+            mark.type.name === "suggestion_delete"
+          ) {
+            allMarks.push(mark);
+          }
+        });
+      });
+
+      const uniqueMarks = new Set(allMarks.map((m) => m.type.name));
+      expect(uniqueMarks.size).toBe(2); // Should have both add and delete marks
+    });
+
+    test("should handle deleting character right after adding text", () => {
+      createEditor("<p>Hello world</p>");
+
+      // Add text to create a suggestion mark
+      const position = 6;
+      view.dispatch(
+        view.state.tr.setSelection(
+          Selection.near(view.state.doc.resolve(position))
+        )
+      );
+      view.dispatch(view.state.tr.insertText("new "));
+
+      // Move cursor one character to the left (inside the suggestion mark)
+      const positionInsideMark = position + "new".length;
+      view.dispatch(
+        view.state.tr.setSelection(
+          Selection.near(view.state.doc.resolve(positionInsideMark))
+        )
+      );
+
+      // Delete the space character inside the suggestion mark
+      view.dispatch(
+        view.state.tr.delete(positionInsideMark, positionInsideMark + 1)
+      );
+
+      // For characters inside a suggestion mark, normal editing should occur
+      // So this should just modify the existing suggestion rather than create a new one
+
+      // Document should now have "Hello newworld" with "new" as a suggestion_add
+      expect(view.state.doc.textContent).toBe("Hello newworld");
+
+      // Check that we only have one suggestion mark (the original add)
+      const suggestionMarks = [];
+      view.state.doc.nodesBetween(0, view.state.doc.content.size, (node) => {
+        node.marks.forEach((mark) => {
+          if (
+            mark.type.name === "suggestion_add" ||
+            mark.type.name === "suggestion_delete"
+          ) {
+            suggestionMarks.push(mark.type.name);
+          }
+        });
+      });
+
+      // We should only have suggestion_add marks, no suggestion_delete marks
+      const hasOnlyAddMarks = suggestionMarks.every(
+        (name) => name === "suggestion_add"
+      );
+      expect(hasOnlyAddMarks).toBe(true);
+    });
+  });
 });

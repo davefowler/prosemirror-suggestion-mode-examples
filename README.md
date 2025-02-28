@@ -2,9 +2,12 @@
 
 A ProseMirror plugin that implements a "suggestion mode" method to track and show changes similar to Google Docs and Word. This plugin allows users to make suggested edits that can be reviewed, accepted, or rejected later.
 
+
+## Demo
+
+Check out the live demo: 
+
 ![ProseMirror Suggestion Mode Demo](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/assets/prosemirror-suggestion-mode-demo.png?raw=true)
-
-
 
 ## Features
 
@@ -19,25 +22,13 @@ A ProseMirror plugin that implements a "suggestion mode" method to track and sho
 ## Installation
 
 ```bash
-npm install 
+# Using npm
+npm install prosemirror-suggestion-mode
+
+# Using yarn
+yarn add prosemirror-suggestion-mode
 ```
 
-## Development
-
-To start the development server:
-
-```bash
-npm start
-```
-
-This will:
-1. Build the project
-2. Start a local development server on http://localhost:8080
-3. Open the example page in your browser
-4. Watch for changes and reload automatically
-
-The development server will be available at:
-http://localhost:8080
 
 ## Usage
 
@@ -161,6 +152,22 @@ These functions take the EditorView as their only parameter.  See the example fo
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+To start the development server:
+
+```bash
+npm start
+```
+
+This will:
+1. Build the project
+2. Start a local development server on http://localhost:8080
+3. Open the example page in your browser
+4. Watch for changes and reload automatically
+
+The development server will be available at:
+http://localhost:8080
+
 
 ## TODO
 

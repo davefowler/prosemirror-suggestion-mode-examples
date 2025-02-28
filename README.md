@@ -5,9 +5,13 @@ A ProseMirror plugin that implements a "suggestion mode" method to track and sho
 
 ## Demo
 
-Check out the live demo: 
+Check out the [live demos](https://prosemirror-suggestion-mode.netlify.app) 
 
-![ProseMirror Suggestion Mode Demo](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/assets/prosemirror-suggestion-mode-demo.png?raw=true)
+ - [Simple](https://prosemirror-suggestion-mode.netlify.app/examples/simple/)
+ - [Text based suggestions (for AI)](https://prosemirror-suggestion-mode.netlify.app/examples/suggestedit/)
+ - [Style/decorator options](https://prosemirror-suggestion-mode.netlify.app/examples/inkandswitch/)
+
+[![ProseMirror Suggestion Mode Demo](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/assets/prosemirror-suggestion-mode-demo.png?raw=true)](https://prosemirror-suggestion-mode.netlify.app/examples/simple/)
 
 ## Features
 

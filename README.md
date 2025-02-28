@@ -1,21 +1,20 @@
 # ProseMirrorSuggestions 
 
-A ProseMirror extension that implements a "suggestion mode" method to track and show changes similar to Google Docs', but inspired more by [Ink and Switch's Diffs](https://www.inkandswitch.com/patchwork/notebook/04/). This extension allows users to make suggested edits that can be reviewed, accepted, or rejected later.
+A ProseMirror extension that implements a "suggestion mode" method to track and show changes similar to Google Docs and Word. This extension allows users to make suggested edits that can be reviewed, accepted, or rejected later.
 
 ![ProseMirror Suggestion Mode Demo](https://private-user-images.githubusercontent.com/127400/417845051-4fca828a-3ff3-4099-ac49-4d9e0074205d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDA3MDc3NDIsIm5iZiI6MTc0MDcwNzQ0MiwicGF0aCI6Ii8xMjc0MDAvNDE3ODQ1MDUxLTRmY2E4MjhhLTNmZjMtNDA5OS1hYzQ5LTRkOWUwMDc0MjA1ZC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUwMjI4JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MDIyOFQwMTUwNDJaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT01MTJiMTgyODhmOTlhM2IwZjZkNzdkNWQzYWNhMGY3NzkxZDFhYzgxMWZiZjI1YTU2M2VkMWMzZWJlNTA5NjYxJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.rIRbzrrZCUI6ke-DAwNWhgHd6Y3OcgwEJJxgXWEyzvo)
 
-## Design choices
 
-For simplicity this is not really a diffing capability where you can input two different versions and see the changes.  Instead if a user makes changes with a suggestion mode enabled, the changes are stored as extra markup on the document.  It's not really version control, it's just a way to make suggestions.
 
 ## Features
 
 - Toggle suggestion mode on/off
-- Highlight suggested text additions in green
+- Highlight suggested text additions in green, deletions in red
 - Show suggested deletions as compact red squares that reveal text on hover
 - Accept/reject individual suggestions
-- Full undo/redo support
+- Does not conflict with formatting or undo/redo
 - Clean, minimal UI
+- text search/replace helpers for AI generated suggestions
 
 ## Installation
 
@@ -171,3 +170,9 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 TODO:
 - combine accepting and rejecting two an add and delete together when next to each other (mark as a replacement?)
 - add reasons to suggestions display
+
+## Design choices
+
+For simplicity this is not really a diffing capability where you can input two different versions and see the changes.  Instead if a user makes changes with a suggestion mode enabled, the changes are stored as extra markup on the document.  It's not really version control, it's just a way to make suggestions.
+
+I had gone down the route of using prosemirror-changeset as some had suggested for this, but accepting or rejecting individual suggestions out of order was quite complex in changeset, so I went back to this method of keeping the suggestions in the document.  If you'd like to see where I went with that work you can see the [changeset branch here](https://github.com/davefowler/prosemirror-suggestion-mode/tree/changeset).

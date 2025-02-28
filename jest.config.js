@@ -5,6 +5,7 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: 'tsconfig.json',
+      isolatedModules: true // This helps with memory usage
     }],
     '^.+\\.jsx?$': 'babel-jest',
   },
@@ -12,7 +13,7 @@ module.exports = {
     '/node_modules/(?!prosemirror-.*)'
   ],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
-  collectCoverage: true,
+  collectCoverage: false, // Disable coverage to reduce memory usage
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
@@ -26,9 +27,15 @@ module.exports = {
   // Prevent tests from running in parallel which can cause memory issues
   maxWorkers: 1,
   // Add a timeout to prevent infinite loops
-  testTimeout: 10000,
+  testTimeout: 5000,
   // Force exit if tests are hanging
   forceExit: true,
   // Detect open handles (like unresolved promises)
-  detectOpenHandles: true
+  detectOpenHandles: true,
+  // Limit memory usage
+  globals: {
+    'ts-jest': {
+      isolatedModules: true
+    }
+  }
 };

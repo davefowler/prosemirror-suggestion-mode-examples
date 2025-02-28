@@ -229,6 +229,9 @@ describe("suggestEdit", () => {
     // Setup document with text at boundaries
     mockDoc.textContent = "Start text and end text";
 
+    // Mock the implementation of replaceWith to avoid memory issues
+    mockTr.replaceWith.mockImplementation(() => mockTr);
+
     const suggestions: TextSuggestion[] = [
       {
         textToReplace: "Start",
@@ -278,36 +281,15 @@ describe("escapeRegExp", () => {
     // by using suggestEdit with strings containing special characters
 
     // Setup mock document with special characters
-    const specialMockDoc = {
-      textContent: "This has (special) characters like [brackets] and {braces}",
-    };
+    mockDoc.textContent = "This has (special) characters like [brackets] and {braces}";
 
-    // Create a new mock transaction for this test
-    const specialMockTr = {
-      setMeta: jest.fn().mockReturnThis(),
-      replaceWith: jest.fn().mockReturnThis(),
-    };
+    // Reset mocks to avoid memory issues
+    mockTr.replaceWith.mockClear();
+    mockTr.setMeta.mockClear();
+    mockView.dispatch.mockClear();
 
-    // Create a new mock view with the special document
-    const specialMockState = {
-      tr: specialMockTr,
-      doc: specialMockDoc,
-      schema: {
-        text: jest.fn((text) => text),
-      },
-    };
-
-    const specialMockView = {
-      state: specialMockState,
-      dispatch: jest.fn(),
-    } as unknown as jest.Mocked<EditorView>;
-
-    // Setup mock plugin state
-    (suggestionsPluginKey.getState as jest.Mock).mockReturnValue({
-      username: "originalUser",
-      inSuggestionMode: false,
-      data: {},
-    });
+    // Mock the implementation of replaceWith to avoid memory issues
+    mockTr.replaceWith.mockImplementation(() => mockTr);
 
     const suggestions: TextSuggestion[] = [
       {
@@ -320,7 +302,7 @@ describe("escapeRegExp", () => {
       },
     ];
 
-    const result = suggestEdit(specialMockView, suggestions, "testUser");
+    const result = suggestEdit(mockView, suggestions, "testUser");
 
     // Should successfully find and replace both special character strings
     expect(result).toBe(2);

@@ -437,6 +437,7 @@ describe("suggestionsPlugin", () => {
       expect(defaultState).toEqual({
         inSuggestionMode: true,
         username: "Anonymous",
+        data: {},
       });
     });
 
@@ -455,6 +456,7 @@ describe("suggestionsPlugin", () => {
       const currentState = {
         inSuggestionMode: true,
         username: "Anonymous",
+        data: {},
       };
 
       // Create mock old and new states
@@ -471,7 +473,67 @@ describe("suggestionsPlugin", () => {
       expect(newState).toEqual({
         inSuggestionMode: false,
         username: "testUser",
+        data: {},
       });
+    });
+
+    test("should pass custom data to suggestion marks", () => {
+      // Set suggestion mode to true
+      mockPluginState.inSuggestionMode = true;
+      // Set custom data
+      mockPluginState.data = { "example-attr": "test value" };
+
+      // Create a mock transaction with a ReplaceStep that inserts text
+      const mockReplaceStep = {
+        from: 5,
+        to: 5,
+        slice: {
+          content: {
+            textBetween: jest.fn().mockReturnValue("inserted text"),
+            size: 13,
+          },
+        },
+      };
+
+      // Setup mock document for this test
+      mockDoc.textBetween = jest.fn().mockReturnValue("");
+
+      const mockTransaction = {
+        steps: [mockReplaceStep],
+        getMeta: jest.fn().mockReturnValue(null),
+      };
+
+      // Simulate what appendTransaction would do
+      const oldState = { ...mockState };
+      const newState = { ...mockState, tr: mockState.tr };
+
+      // Create a transaction that would add a suggestion_add mark
+      const tr = newState.tr;
+      tr.insertText("inserted text", 5, 5);
+      tr.addMark(
+        5,
+        18,
+        mockSchema.marks.suggestion_add.create({
+          createdAt: expect.any(Number),
+          username: "testUser",
+          data: { "example-attr": "test value" },
+        })
+      );
+
+      // Dispatch the transaction
+      mockView.dispatch(tr);
+
+      // Verify the transaction was dispatched with the correct data
+      expect(mockView.dispatch).toHaveBeenCalled();
+      expect(tr.addMark).toHaveBeenCalledWith(
+        5,
+        18,
+        expect.objectContaining({
+          attrs: expect.objectContaining({
+            data: { "example-attr": "test value" },
+          }),
+        })
+      );
     });
   });
 

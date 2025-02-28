@@ -2,7 +2,7 @@
 
 A ProseMirror extension that implements a "suggestion mode" method to track and show changes similar to Google Docs', but inspired more by [Ink and Switch's Diffs](https://www.inkandswitch.com/patchwork/notebook/04/). This extension allows users to make suggested edits that can be reviewed, accepted, or rejected later.
 
-![ProseMirror Suggestion Mode Demo](./prosemirror-suggestions-demo.png)
+![ProseMirror Suggestion Mode Demo](https://private-user-images.githubusercontent.com/127400/417845051-4fca828a-3ff3-4099-ac49-4d9e0074205d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDA3MDc3NDIsIm5iZiI6MTc0MDcwNzQ0MiwicGF0aCI6Ii8xMjc0MDAvNDE3ODQ1MDUxLTRmY2E4MjhhLTNmZjMtNDA5OS1hYzQ5LTRkOWUwMDc0MjA1ZC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUwMjI4JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MDIyOFQwMTUwNDJaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT01MTJiMTgyODhmOTlhM2IwZjZkNzdkNWQzYWNhMGY3NzkxZDFhYzgxMWZiZjI1YTU2M2VkMWMzZWJlNTA5NjYxJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.rIRbzrrZCUI6ke-DAwNWhgHd6Y3OcgwEJJxgXWEyzvo)
 
 ## Design choices
 

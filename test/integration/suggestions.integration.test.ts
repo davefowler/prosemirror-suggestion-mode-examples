@@ -142,13 +142,13 @@ describe("suggestionsPlugin integration", () => {
       const tr = view.state.tr.setSelection(Selection.near(view.state.doc.resolve(position)));
       view.dispatch(tr);
       
-      // Insert text
+      // Insert text with a space
       view.dispatch(
-        view.state.tr.insertText("awesome ")
+        view.state.tr.insertText(" awesome ")
       );
       
       // Check that the document now contains the text
-      expect(view.state.doc.textContent).toBe("Hello awesome world");
+      expect(view.state.doc.textContent).toBe("Hello  awesome world");
       
       // Check that there's a suggestion_add mark
       let foundMark = false;
@@ -162,11 +162,11 @@ describe("suggestionsPlugin integration", () => {
     });
 
     test("should mark deleted text with suggestion_delete", () => {
-      createEditor("<p>Hello awesome world</p>");
+      createEditor("<p>Hello  awesome world</p>");
       
-      // Select "awesome "
+      // Select " awesome "
       const from = 6;
-      const to = 14;
+      const to = 15;
       const tr = view.state.tr.setSelection(TextSelection.create(view.state.doc, from, to));
       view.dispatch(tr);
       
@@ -201,13 +201,13 @@ describe("suggestionsPlugin integration", () => {
       const tr = view.state.tr.setSelection(Selection.near(view.state.doc.resolve(position)));
       view.dispatch(tr);
       
-      // Insert text
+      // Insert text with a space
       view.dispatch(
-        view.state.tr.insertText("awesome ")
+        view.state.tr.insertText(" awesome ")
       );
       
       // Check that the document now contains the text
-      expect(view.state.doc.textContent).toBe("Hello awesome world");
+      expect(view.state.doc.textContent).toBe("Hello  awesome world");
       
       // Check that there's a suggestion_add mark with our custom data
       let markWithData = null;

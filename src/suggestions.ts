@@ -40,7 +40,8 @@ const renderTooltip = (
         // Add data attributes to the tooltip element
         Object.entries(customData).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
-            tooltip.dataset[key] = String(value);
+            // Use setAttribute instead of dataset to avoid DOMException in test environment
+            tooltip.setAttribute(`data-${key}`, String(value));
           }
         });
       }

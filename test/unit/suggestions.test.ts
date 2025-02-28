@@ -42,16 +42,16 @@ describe("suggestionsPlugin", () => {
     mockSchema = {
       marks: {
         suggestion_add: {
-          create: jest.fn().mockReturnValue({
+          create: jest.fn().mockImplementation((attrs) => ({
             type: { name: "suggestion_add" },
-            attrs: { username: "testUser", createdAt: expect.any(Number) },
-          }),
+            attrs: attrs,
+          })),
         },
         suggestion_delete: {
-          create: jest.fn().mockReturnValue({
+          create: jest.fn().mockImplementation((attrs) => ({
             type: { name: "suggestion_delete" },
-            attrs: { username: "testUser", createdAt: expect.any(Number) },
-          }),
+            attrs: attrs,
+          })),
         },
       },
       nodes: {

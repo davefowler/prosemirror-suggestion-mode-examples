@@ -17,7 +17,7 @@ where the deletions are hidden but shown on hover
 }
 
 .suggestion-delete::after {
-    content: "x";
+    content: "-";
     display: inline-block;
     width: 1ch;
     background-color: rgba(255, 0, 0, 0.2);
@@ -56,7 +56,7 @@ where the deletions are hidden but shown on hover
     width: 100%;
     bottom: 100%;
     left: 0;
-    z-index: 9; /* Below the tooltip but still part of the hover path */
+    z-index: 9; /* Below the tooltfip but still part of the hover path */
 }
 
 /* Show tooltip when hovering over suggestion marks */
@@ -102,3 +102,35 @@ where the deletions are hidden but shown on hover
 .suggestion-info {
     margin-bottom: 5px;
 }
+
+
+/* Add to your CSS file */
+.suggestion-deleted-content {
+    background-color: #fff0f0;
+    border: 1px solid #ffcccc;
+  }
+  
+  .deleted-text-content {
+    font-style: italic;
+    color: #d32f2f;
+    padding: 3px;
+    background-color: rgba(241, 157, 157);
+    border-radius: 2px;
+  }
+  
+  /* Make sure your hover effect works with the new class */
+  .suggestion-delete:hover .deleted-text-content {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0%;
+  }
+
+  .deleted-text-content::after {
+    content: "";
+    width: 0px;
+    height: 0px;
+    display: inline;
+  }
+
+  

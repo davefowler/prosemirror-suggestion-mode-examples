@@ -14,6 +14,8 @@ import {
   addSuggestionMarks,
 } from "prosemirror-suggest-mode";
 import { DOMParser } from "prosemirror-model";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import { Plugin } from "prosemirror-state";
 
 // Normally you can just direct import a theme
 import "prosemirror-suggest-mode/styles/inkAndSwitch.css";
@@ -24,6 +26,43 @@ const exampleSchema = new Schema({
   // When creating your schema, wrap the marks in the addSuggestionMarks function
   // this will add the needed suggestion_add and suggestion_delete marks to the schema
   marks: addSuggestionMarks(schema.spec.marks),
+});
+
+// Extending the suggestion plugin with an extra decorator showing deleted text on hover
+const deletedTextDecorator = new Plugin({
+  state: {
+    init() {
+      return DecorationSet.empty;
+    },
+    apply(tr, oldSet) {
+      // Map decorations through document changes
+      const newSet = oldSet.map(tr.mapping, tr.doc);
+
+      if (!tr.docChanged) return newSet;
+
+      // Find all suggestion-delete marks and create decorations
+      const decorations = [];
+      tr.doc.descendants((node, pos) => {
+        // Check each node's marks for suggestion-delete
+        node.marks.forEach((mark) => {
+          if (mark.type.name === "suggestion_delete") {
+            // Create a decoration for the full node that shows deleted text in tooltip
+            const decoration = Decoration.inline(pos, pos + node.nodeSize, {
+              class: "deleted-text-content",
+            });
+            decorations.push(decoration);
+          }
+        });
+      });
+
+      return newSet.add(tr.doc, decorations);
+    },
+  },
+  props: {
+    decorations(state) {
+      return this.getState(state);
+    },
+  },
 });
 
 // Initialize the editor with the suggestions plugin
@@ -41,7 +80,7 @@ window.addEventListener("load", () => {
   const state = EditorState.create({
     schema: exampleSchema,
     doc,
-    plugins: [keymap(baseKeymap), suggestionsPlugin],
+    plugins: [keymap(baseKeymap), suggestionsPlugin, deletedTextDecorator],
   });
 
   // Create the editor view
@@ -65,4 +104,42 @@ window.addEventListener("load", () => {
     ?.addEventListener("click", () => {
       rejectAllSuggestions(view);
     });
+});
+
+// Add a function to create tooltips for deleted text
+document.addEventListener("mouseover", (e) => {
+  const target = e.target as HTMLElement;
+  if (
+    target.classList.contains("suggestion-delete-with-tooltip") ||
+    target.closest(".suggestion-delete-with-tooltip")
+  ) {
+    const element = target.classList.contains("suggestion-delete-with-tooltip")
+      ? target
+      : target.closest(".suggestion-delete-with-tooltip");
+
+    if (!element) return;
+
+    // Get the deleted text from the data attribute
+    const deletedText = element.getAttribute("data-deleted-text");
+    if (!deletedText) return;
+
+    // Create or update tooltip
+    let tooltip = element.querySelector(".suggestion-deleted-content");
+    if (!tooltip) {
+      tooltip = document.createElement("div");
+      tooltip.className = "suggestion-tooltip suggestion-deleted-content";
+
+      const info = document.createElement("div");
+      info.className = "suggestion-info";
+      info.textContent = "Deleted text:";
+
+      const content = document.createElement("div");
+      content.className = "deleted-text-content";
+      content.textContent = deletedText;
+
+      tooltip.appendChild(info);
+      tooltip.appendChild(content);
+      element.appendChild(tooltip);
+    }
+  }
 });

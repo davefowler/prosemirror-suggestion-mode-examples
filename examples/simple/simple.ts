@@ -52,7 +52,7 @@ window.addEventListener("load", () => {
     view.state.tr.setMeta(suggestionsPluginKey, {
       username: "Your username",
       data: {
-        "example-attr": "these get added to the attrs of the suggestion spans",
+        exampleattr: "these get added to the attrs of the the hover tooltip",
       },
     })
   );

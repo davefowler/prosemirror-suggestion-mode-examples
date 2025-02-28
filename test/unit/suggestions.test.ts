@@ -443,7 +443,7 @@ describe("suggestionsPlugin", () => {
 
     test("should handle state updates", () => {
       // Access the apply function directly from the plugin spec
-      const applyFn = suggestionsPlugin.spec.state.apply;
+      const applyFn = suggestionsPlugin.spec.state!.apply;
 
       // Create a mock transaction with metadata
       const mockTr = {
@@ -534,13 +534,13 @@ describe("suggestionsPlugin", () => {
           }),
         })
       );
-      
+
       // Also verify the mark creation was called with the correct data
       expect(mockSchema.marks.suggestion_add.create).toHaveBeenCalledWith(
         expect.objectContaining({
           createdAt: expect.any(Number),
           username: "testUser",
-          data: { "example-attr": "test value" }
+          data: { "example-attr": "test value" },
         })
       );
     });

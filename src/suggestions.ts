@@ -31,20 +31,10 @@ const renderTooltip = (
           ? JSON.parse(mark.attrs.data)
           : mark.attrs.data;
 
-      // Ensure customData is an object before trying to iterate
-      if (
-        customData &&
-        typeof customData === "object" &&
-        !Array.isArray(customData)
-      ) {
-        // Add data attributes to the tooltip element
-        Object.entries(customData).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            // Use setAttribute instead of dataset to avoid DOMException in test environment
-            tooltip.setAttribute(`data-${key}`, String(value));
-          }
-        });
-      }
+      // Add data attributes to the tooltip element
+      Object.entries(customData).forEach(([key, value]) => {
+        tooltip.setAttribute(`data-${key}`, String(value));
+      });
     } catch (error) {
       console.error("Error processing suggestion data:", error);
     }

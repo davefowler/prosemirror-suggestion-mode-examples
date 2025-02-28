@@ -4,7 +4,8 @@ import { Schema, DOMParser } from "prosemirror-model";
 import { suggestionsPlugin } from "../../src/suggestions";
 import { suggestionsPluginKey } from "../../src/key";
 import { schema } from "prosemirror-schema-basic";
-import { exampleSetup } from "prosemirror-example-setup";
+import { keymap } from "prosemirror-keymap";
+import { baseKeymap } from "prosemirror-commands";
 
 describe("suggestionsPlugin integration", () => {
   let view: EditorView;
@@ -27,7 +28,7 @@ describe("suggestionsPlugin integration", () => {
       doc,
       schema,
       plugins: [
-        ...exampleSetup({ schema }),
+        keymap(baseKeymap),
         suggestionsPlugin.configure({
           inSuggestionMode: true,
           username: "testUser",

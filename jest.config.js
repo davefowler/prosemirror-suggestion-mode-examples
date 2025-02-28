@@ -32,8 +32,6 @@ module.exports = {
   forceExit: true,
   // Detect open handles (like unresolved promises)
   detectOpenHandles: true,
-  // Prioritize simple tests
-  testSequencer: './test/testSequencer.js',
   // Limit memory usage
   globals: {
     'ts-jest': {

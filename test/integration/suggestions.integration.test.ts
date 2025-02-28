@@ -29,17 +29,22 @@ describe("suggestionsPlugin integration", () => {
       schema,
       plugins: [
         keymap(baseKeymap),
-        suggestionsPlugin.configure({
-          inSuggestionMode: true,
-          username: "testUser",
-          data: { "example-attr": "test value" },
-          ...pluginState
-        })
+        suggestionsPlugin
       ]
     });
 
     // Create the editor view
     view = new EditorView(container, { state });
+    
+    // Configure the plugin with the desired state
+    view.dispatch(
+      view.state.tr.setMeta(suggestionsPluginKey, {
+        inSuggestionMode: true,
+        username: "testUser",
+        data: { "example-attr": "test value" },
+        ...pluginState
+      })
+    );
     
     return view;
   }

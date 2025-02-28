@@ -2,6 +2,8 @@
 
 A ProseMirror extension that implements a "suggestion mode" method to track and show changes similar to Google Docs', but inspired more by [Ink and Switch's Diffs](https://www.inkandswitch.com/patchwork/notebook/04/). This extension allows users to make suggested edits that can be reviewed, accepted, or rejected later.
 
+![ProseMirror Suggestion Mode Demo](./prosemirror-suggestions-demo.png)
+
 ## Design choices
 
 For simplicity this is not really a diffing capability where you can input two different versions and see the changes.  Instead if a user makes changes with a suggestion mode enabled, the changes are stored as extra markup on the document.  It's not really version control, it's just a way to make suggestions.
@@ -167,8 +169,6 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 
 TODO:
-- ink and switch styles - and extra decorator
-- tests
 - polish instructions
 - take screenshots for readme
 - deploy examples

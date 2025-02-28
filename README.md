@@ -2,7 +2,7 @@
 
 A ProseMirror plugin that implements a "suggestion mode" method to track and show changes similar to Google Docs and Word. This plugin allows users to make suggested edits that can be reviewed, accepted, or rejected later.
 
-![ProseMirror Suggestion Mode Demo](./assets/prosemirror-suggestions-demo.png)
+![ProseMirror Suggestion Mode Demo](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/assets/prosemirror-suggestion-mode-demo.png?raw=true)
 
 
 

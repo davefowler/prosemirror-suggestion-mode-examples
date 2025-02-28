@@ -7,6 +7,7 @@ import {
   acceptAllSuggestions,
   rejectAllSuggestions,
   setSuggestionMode,
+  suggestionsPluginKey,
 } from "prosemirror-suggest-mode";
 import { addSuggestionMarks } from "prosemirror-suggest-mode/schema";
 import { DOMParser } from "prosemirror-model";
@@ -45,6 +46,16 @@ window.addEventListener("load", () => {
 
   // Create the editor view
   const view = new EditorView(document.querySelector("#editor"), { state });
+
+  // set the username of the editor
+  view.dispatch(
+    view.state.tr.setMeta(suggestionsPluginKey, {
+      username: "Your username",
+      data: {
+        "example-attr": "these get added to the attrs of the suggestion spans",
+      },
+    })
+  );
 
   // Add event listeners for the controls
   document

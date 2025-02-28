@@ -5,7 +5,7 @@ import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 import { SuggestionsPluginState, suggestionsPluginKey } from "./key";
 import { acceptSuggestion, rejectSuggestion } from "./tools/accept-reject";
 
-// Default tooltip renderer that can be overridden
+// Default tooltip renderer
 const renderTooltip = (
   mark: Mark,
   view: EditorView,
@@ -158,14 +158,14 @@ export const suggestionsPlugin = new Plugin({
             // We are already inside a suggestion mark, let normal editing happen
             return;
           }
-          // Mark this transaction as a suggestion operation so it won't be intercepted again
+          // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
           tr.setMeta(suggestionsPluginKey, {
             suggestionOperation: true,
             handled: true, // Add this flag to indicate this input has been handled
           });
 
           if (text.length > 0) {
-            // reinsert old text with a suggestion_delete mark
+            // DELETE - reinsert removed text with a suggestion_delete mark
             let markFrom = from;
             let markTo = from + text.length;
 
@@ -202,7 +202,7 @@ export const suggestionsPlugin = new Plugin({
           }
 
           if (newText.length > 0) {
-            // insert new text with a suggestion_add mark
+            // ADD - insert new text with a suggestion_add mark
             let markFrom = newFrom;
             let markTo = newTo;
 
@@ -256,7 +256,7 @@ export const suggestionsPlugin = new Plugin({
       return {
         inSuggestionMode: true,
         username: "Anonymous",
-        activeMarkRange: null,
+        data: {},
       };
     },
 

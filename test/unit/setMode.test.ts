@@ -44,25 +44,23 @@ describe("setSuggestionMode", () => {
     mockPluginState = {
       username: "testUser",
       inSuggestionMode: false,
-      activeMarkRange: null,
       data: {},
     };
 
     // Mock getState to return our plugin state
-    (suggestionsPluginKey.getState as jest.Mock).mockReturnValue(mockPluginState);
+    (suggestionsPluginKey.getState as jest.Mock).mockReturnValue(
+      mockPluginState
+    );
   });
 
   test("should set suggestion mode to true", () => {
     setSuggestionMode(mockView, true);
 
     // Should set meta with updated state
-    expect(mockTr.setMeta).toHaveBeenCalledWith(
-      suggestionsPlugin,
-      {
-        ...mockPluginState,
-        inSuggestionMode: true,
-      }
-    );
+    expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionsPlugin, {
+      ...mockPluginState,
+      inSuggestionMode: true,
+    });
 
     // Should dispatch the transaction
     expect(mockView.dispatch).toHaveBeenCalledWith(mockTr);
@@ -72,13 +70,10 @@ describe("setSuggestionMode", () => {
     setSuggestionMode(mockView, false);
 
     // Should set meta with updated state
-    expect(mockTr.setMeta).toHaveBeenCalledWith(
-      suggestionsPlugin,
-      {
-        ...mockPluginState,
-        inSuggestionMode: false,
-      }
-    );
+    expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionsPlugin, {
+      ...mockPluginState,
+      inSuggestionMode: false,
+    });
 
     // Should dispatch the transaction
     expect(mockView.dispatch).toHaveBeenCalledWith(mockTr);

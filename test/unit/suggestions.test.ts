@@ -99,7 +99,6 @@ describe("suggestionsPlugin", () => {
     mockPluginState = {
       username: "testUser",
       inSuggestionMode: false,
-      activeMarkRange: null,
       data: {},
     };
 
@@ -139,11 +138,11 @@ describe("suggestionsPlugin", () => {
 
       // We can't directly test appendTransaction since it's a plugin method,
       // but we can test the behavior it would trigger
-      
+
       // Simulate what appendTransaction would do
       const oldState = { ...mockState };
       const newState = { ...mockState, tr: mockState.tr };
-      
+
       // Create a transaction that would add a suggestion_add mark
       const tr = newState.tr;
       tr.insertText("inserted text", 5, 5);
@@ -155,18 +154,14 @@ describe("suggestionsPlugin", () => {
           username: "testUser",
         })
       );
-      
+
       // Dispatch the transaction
       mockView.dispatch(tr);
-      
+
       // Verify the transaction was dispatched
       expect(mockView.dispatch).toHaveBeenCalled();
       expect(tr.insertText).toHaveBeenCalledWith("inserted text", 5, 5);
-      expect(tr.addMark).toHaveBeenCalledWith(
-        5,
-        18,
-        expect.anything()
-      );
+      expect(tr.addMark).toHaveBeenCalledWith(5, 18, expect.anything());
     });
 
     test("should handle text deletion in suggestion mode", () => {
@@ -200,7 +195,7 @@ describe("suggestionsPlugin", () => {
       // Simulate what appendTransaction would do
       const oldState = { ...mockState };
       const newState = { ...mockState, tr: mockState.tr };
-      
+
       // Create a transaction that would add a suggestion_delete mark
       const tr = newState.tr;
       tr.insertText("deleted", 5, 5);
@@ -212,18 +207,14 @@ describe("suggestionsPlugin", () => {
           username: "testUser",
         })
       );
-      
+
       // Dispatch the transaction
       mockView.dispatch(tr);
-      
+
       // Verify the transaction was dispatched
       expect(mockView.dispatch).toHaveBeenCalled();
       expect(tr.insertText).toHaveBeenCalledWith("deleted", 5, 5);
-      expect(tr.addMark).toHaveBeenCalledWith(
-        5,
-        12,
-        expect.anything()
-      );
+      expect(tr.addMark).toHaveBeenCalledWith(5, 12, expect.anything());
     });
   });
 
@@ -277,41 +268,49 @@ describe("suggestionsPlugin", () => {
       // Create mock Decoration and DecorationSet classes
       const mockInlineDecoration = { type: "inline" };
       const mockWidgetDecoration = { type: "widget" };
-      
+
       const Decoration = {
         inline: jest.fn().mockReturnValue(mockInlineDecoration),
         widget: jest.fn().mockReturnValue(mockWidgetDecoration),
       };
-      
+
       const DecorationSet = {
         create: jest.fn().mockReturnValue("decoration-set"),
         empty: "empty-decoration-set",
       };
-      
+
       // Mock the global objects
       global.Decoration = Decoration;
       global.DecorationSet = DecorationSet;
-      
+
       // Now simulate calling the decorations prop
       const decorations = () => {
         const decos = [];
         mockDoc.descendants((node, pos) => {
-          if (node.marks.some(m => m.type.name === "suggestion_add")) {
-            decos.push(Decoration.inline(pos, pos + node.nodeSize, { class: "suggestion-add" }));
-            decos.push(Decoration.widget(pos, expect.any(Function), expect.any(Object)));
+          if (node.marks.some((m) => m.type.name === "suggestion_add")) {
+            decos.push(
+              Decoration.inline(pos, pos + node.nodeSize, {
+                class: "suggestion-add",
+              })
+            );
+            decos.push(
+              Decoration.widget(pos, expect.any(Function), expect.any(Object))
+            );
           }
         });
         return DecorationSet.create(mockDoc, decos);
       };
-      
+
       // Call our simulated function
       decorations();
-      
+
       // Verify descendants was called
       expect(mockDoc.descendants).toHaveBeenCalled();
-      
+
       // Verify the decorations were created
-      expect(Decoration.inline).toHaveBeenCalledWith(10, 15, { class: "suggestion-add" });
+      expect(Decoration.inline).toHaveBeenCalledWith(10, 15, {
+        class: "suggestion-add",
+      });
       expect(Decoration.widget).toHaveBeenCalled();
       expect(DecorationSet.create).toHaveBeenCalled();
     });
@@ -360,47 +359,57 @@ describe("suggestionsPlugin", () => {
         // Create mock Decoration and DecorationSet classes if not already defined
         const mockInlineDecoration = { type: "inline" };
         const mockWidgetDecoration = { type: "widget" };
-        
+
         global.Decoration = {
           inline: jest.fn().mockReturnValue(mockInlineDecoration),
           widget: jest.fn().mockReturnValue(mockWidgetDecoration),
         };
-        
+
         global.DecorationSet = {
           create: jest.fn().mockReturnValue("decoration-set"),
           empty: "empty-decoration-set",
         };
       }
-      
+
       // Now simulate calling the decorations prop
       const decorations = () => {
         const decos = [];
         mockDoc.descendants((node, pos) => {
-          if (node.marks.some(m => m.type.name === "suggestion_delete")) {
-            decos.push(global.Decoration.inline(pos, pos + node.nodeSize, { 
-              class: "suggestion-wrapper suggestion-delete-wrapper" 
-            }));
-            decos.push(global.Decoration.inline(pos, pos + node.nodeSize, { 
-              class: "suggestion-delete" 
-            }));
-            decos.push(global.Decoration.widget(pos, expect.any(Function), expect.any(Object)));
+          if (node.marks.some((m) => m.type.name === "suggestion_delete")) {
+            decos.push(
+              global.Decoration.inline(pos, pos + node.nodeSize, {
+                class: "suggestion-wrapper suggestion-delete-wrapper",
+              })
+            );
+            decos.push(
+              global.Decoration.inline(pos, pos + node.nodeSize, {
+                class: "suggestion-delete",
+              })
+            );
+            decos.push(
+              global.Decoration.widget(
+                pos,
+                expect.any(Function),
+                expect.any(Object)
+              )
+            );
           }
         });
         return global.DecorationSet.create(mockDoc, decos);
       };
-      
+
       // Call our simulated function
       decorations();
-      
+
       // Verify descendants was called
       expect(mockDoc.descendants).toHaveBeenCalled();
-      
+
       // Verify the decorations were created
-      expect(global.Decoration.inline).toHaveBeenCalledWith(10, 15, { 
-        class: "suggestion-wrapper suggestion-delete-wrapper" 
+      expect(global.Decoration.inline).toHaveBeenCalledWith(10, 15, {
+        class: "suggestion-wrapper suggestion-delete-wrapper",
       });
-      expect(global.Decoration.inline).toHaveBeenCalledWith(10, 15, { 
-        class: "suggestion-delete" 
+      expect(global.Decoration.inline).toHaveBeenCalledWith(10, 15, {
+        class: "suggestion-delete",
       });
       expect(global.Decoration.widget).toHaveBeenCalled();
       expect(global.DecorationSet.create).toHaveBeenCalled();
@@ -418,48 +427,50 @@ describe("suggestionsPlugin", () => {
     test("should initialize with default state", () => {
       // Access the init function directly from the plugin spec
       const initFn = suggestionsPlugin.spec.state.init;
-      
+
       // Create mock config and state
       const mockConfig = {} as any;
       const mockState = {} as any;
-      
+
       const defaultState = initFn(mockConfig, mockState);
-      
+
       expect(defaultState).toEqual({
         inSuggestionMode: true,
         username: "Anonymous",
-        activeMarkRange: null,
       });
     });
 
     test("should handle state updates", () => {
       // Access the apply function directly from the plugin spec
       const applyFn = suggestionsPlugin.spec.state.apply;
-      
+
       // Create a mock transaction with metadata
       const mockTr = {
         getMeta: jest.fn().mockReturnValue({
           inSuggestionMode: false,
-          username: "testUser"
-        })
+          username: "testUser",
+        }),
       };
-      
+
       const currentState = {
         inSuggestionMode: true,
         username: "Anonymous",
-        activeMarkRange: null
       };
-      
+
       // Create mock old and new states
       const mockOldState = {} as any;
       const mockNewState = {} as any;
-      
-      const newState = applyFn(mockTr as any, currentState, mockOldState, mockNewState);
-      
+
+      const newState = applyFn(
+        mockTr as any,
+        currentState,
+        mockOldState,
+        mockNewState
+      );
+
       expect(newState).toEqual({
         inSuggestionMode: false,
         username: "testUser",
-        activeMarkRange: null
       });
     });
   });
@@ -470,14 +481,14 @@ describe("suggestionsPlugin", () => {
       const pluginState = {
         inSuggestionMode: false,
         username: "Anonymous",
-        activeMarkRange: null
+        data: {},
       };
 
       // Setup a mock transaction
       const mockTr = {
         getMeta: jest.fn().mockReturnValue({
-          inSuggestionMode: true
-        })
+          inSuggestionMode: true,
+        }),
       };
 
       // Call the apply function directly
@@ -494,8 +505,8 @@ describe("suggestionsPlugin", () => {
       // Setup a mock transaction for turning off suggestion mode
       const mockTrOff = {
         getMeta: jest.fn().mockReturnValue({
-          inSuggestionMode: false
-        })
+          inSuggestionMode: false,
+        }),
       };
 
       // Call the apply function again

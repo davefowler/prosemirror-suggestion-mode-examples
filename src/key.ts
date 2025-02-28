@@ -4,7 +4,6 @@ import { PluginKey } from "prosemirror-state";
 export interface SuggestionsPluginState {
   inSuggestionMode: boolean;
   username: string;
-  activeMarkRange: { from: number; to: number; createdAt: number } | null;
   data?: Record<string, any>;
   skipHandleTextInput?: boolean;
 }

@@ -164,7 +164,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## TODO
 
-- combine accepting and rejecting two an add and delete together when next to each other (mark as a replacement?)
+- combine accepting and rejecting two an add and delete together when next to each other (potentially make a suggestion_replace mark)
 - add reasons to suggestions display
 
 ## Design choices

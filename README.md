@@ -169,9 +169,5 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 
 TODO:
-- polish instructions
-- take screenshots for readme
-- deploy examples
-- launch as annote?
-- combine share and reject when next to each other
-- add reasons to suggestions
+- combine accepting and rejecting two an add and delete together when next to each other (mark as a replacement?)
+- add reasons to suggestions display

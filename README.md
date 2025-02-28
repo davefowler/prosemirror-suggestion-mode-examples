@@ -166,14 +166,12 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 [MIT](https://choosealicense.com/licenses/mit/)
 
 
-
-
 TODO:
 - ink and switch styles - and extra decorator
-- insert diff docs
-- extend and polish styles - google, word, ink and switch
 - tests
 - polish instructions
 - take screenshots for readme
 - deploy examples
 - launch as annote?
+- combine share and reject when next to each other
+- add reasons to suggestions

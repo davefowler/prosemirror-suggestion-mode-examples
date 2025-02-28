@@ -5,7 +5,6 @@ import { suggestionsPluginKey } from "../key";
 // Updated function to accept a suggestion without requiring type parameter
 export const acceptSuggestion = (view: EditorView, mark: Mark, pos: number) => {
   const tr = view.state.tr;
-  console.log("acceptSuggestion", mark, pos);
 
   // Mark this transaction as a suggestion operation so it won't be intercepted
   tr.setMeta(suggestionsPluginKey, { suggestionOperation: true });
@@ -47,7 +46,6 @@ export const acceptSuggestion = (view: EditorView, mark: Mark, pos: number) => {
       }
     );
 
-    console.log("deleting text from", from, "to", to);
     // Delete the text that has the deletion mark
     tr.delete(from, to);
   }
@@ -58,7 +56,6 @@ export const acceptSuggestion = (view: EditorView, mark: Mark, pos: number) => {
 // Reject an individual suggestion by its mark and position
 export const rejectSuggestion = (view: EditorView, mark: Mark, pos: number) => {
   const tr = view.state.tr;
-  console.log("rejectSuggestion", mark, pos);
 
   // Mark this transaction as a suggestion operation so it won't be intercepted
   tr.setMeta(suggestionsPluginKey, { suggestionOperation: true });

@@ -10,6 +10,27 @@ export type TextSuggestion = {
   textAfter?: string;
 };
 
+// internal function to replace text in prosemirror
+const replaceInProsemirror = (
+  view: EditorView,
+  from: number,
+  to: number,
+  suggestion: TextSuggestion
+) => {
+  const tr = view.state.tr;
+
+  // Store reason in metadata if available
+  if (suggestion.reason) {
+    tr.setMeta(suggestionsPluginKey, {
+      data: { reason: suggestion.reason },
+    });
+  }
+
+  // Replace the text
+  tr.replaceWith(from, to, view.state.schema.text(suggestion.textReplacement));
+  view.dispatch(tr);
+};
+
 /**
  * Apply text based search replace helpful for AI suggestions
  * @param view The editor view
@@ -41,67 +62,76 @@ export const suggestEdit = (
 
   // Apply each suggestion with context matching
   suggestions.forEach((suggestion) => {
-    try {
-      // Find matches with or without context
-      const textBefore = suggestion.textBefore || "";
-      const textAfter = suggestion.textAfter || "";
-      const pattern =
-        escapeRegExp(textBefore) +
-        escapeRegExp(suggestion.textToReplace) +
-        escapeRegExp(textAfter);
-      const regex = new RegExp(pattern, "g");
+    // Skip suggestions with empty textToReplace
+    if (!suggestion.textToReplace) {
+      console.warn("Skipping suggestion with empty textToReplace");
+      return;
+    }
 
-      // Find matches in the text content
-      let match;
-      let matches: { index: number; length: number }[] = [];
+    // Find matches with or without context
+    const textBefore = suggestion.textBefore || "";
+    const textAfter = suggestion.textAfter || "";
 
-      while ((match = regex.exec(docText)) !== null) {
-        // Store the match position and length
-        matches.push({
-          index: match.index,
-          length: match[0].length,
-        });
+    // Create the complete search pattern
+    const searchText = textBefore + suggestion.textToReplace + textAfter;
+    if (!searchText) {
+      // There is no text to replace, or text before or after.
+      // We're adding text into an empty doc
+      replaceInProsemirror(view, 0, 0, suggestion);
+      replacementCount++;
+      return; // go to next suggestion
+    }
+
+    const pattern = escapeRegExp(searchText);
+    const regex = new RegExp(pattern, "g");
+
+    // Find matches in the text content
+    let match;
+    let matches: { index: number; length: number }[] = [];
+    let matchCount = 0;
+    const MAX_MATCHES = 1000; // Safety limit to prevent infinite loops
+
+    while ((match = regex.exec(docText)) !== null) {
+      // Prevent infinite loops on zero-length matches
+      console.log("match", match);
+      if (match.index === regex.lastIndex) {
+        regex.lastIndex++;
       }
 
-      // For each match, find the actual document positions
-      matches.forEach(({ index, length }) => {
-        try {
-          // Calculate the position of just the 'textToReplace' part in the text content
-          const textMatchStart = index + textBefore.length;
-          const textMatchEnd = textMatchStart + suggestion.textToReplace.length;
+      // Safety check to prevent memory issues
+      matchCount++;
+      if (matchCount > MAX_MATCHES) {
+        console.warn(
+          "Too many matches found, stopping to prevent memory issues"
+        );
+        break;
+      }
 
-          // Find the actual document positions that correspond to these text positions
-          const docPositions = findDocumentPositions(
-            view.state.doc,
-            textMatchStart,
-            textMatchEnd
-          );
-
-          const { from, to } = docPositions;
-          const tr = view.state.tr;
-
-          // Store reason in metadata if available
-          if (suggestion.reason) {
-            tr.setMeta(suggestionsPluginKey, {
-              data: { reason: suggestion.reason },
-            });
-          }
-
-          // Replace the text
-          tr.replaceWith(
-            from,
-            to,
-            view.state.schema.text(suggestion.textReplacement)
-          );
-          view.dispatch(tr);
-          replacementCount++;
-        } catch (innerError) {
-          console.error("Error applying specific replacement:", innerError);
-        }
+      // Store the match position and length
+      matches.push({
+        index: match.index,
+        length: match[0].length,
       });
-    } catch (error) {
-      console.error("Error applying edit suggestion:", error);
     }
+
+    // For each match, find the actual document positions
+    matches.forEach(({ index, length }) => {
+      // Calculate the position of just the 'textToReplace' part in the text content
+      const textMatchStart = index + textBefore.length;
+      const textMatchEnd = textMatchStart + suggestion.textToReplace.length;
+
+      // Find the actual document positions that correspond to these text positions
+      const docPositions = findDocumentPositions(
+        view.state.doc,
+        textMatchStart,
+        textMatchEnd
+      );
+
+      const { from, to } = docPositions;
+
+      replaceInProsemirror(view, from, to, suggestion);
+      replacementCount++;
+    });
   });
 
   // Restore original username

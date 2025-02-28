@@ -23,6 +23,7 @@ const renderTooltip = (
       : `Added by ${mark.attrs.username} on ${date}`;
   tooltip.appendChild(infoText);
 
+  console.log("mark.attrs.data", typeof mark.attrs.data, mark.attrs.data);
   // Add custom data as attributes to the tooltip element if present
   if (mark.attrs.data) {
     try {
@@ -30,13 +31,24 @@ const renderTooltip = (
         typeof mark.attrs.data === "string"
           ? JSON.parse(mark.attrs.data)
           : mark.attrs.data;
-      
-      // Add data attributes to the tooltip element
-      Object.entries(customData).forEach(([key, value]) => {
-        tooltip.dataset[key] = String(value);
-      });
-    } catch (e) {
-      console.warn("Failed to parse custom data in suggestion mark:", e);
+
+      console.log("customData", typeof customData, customData);
+      // Ensure customData is an object before trying to iterate
+      if (
+        customData &&
+        typeof customData === "object" &&
+        !Array.isArray(customData)
+      ) {
+        // Add data attributes to the tooltip element
+        Object.entries(customData).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            console.log("key", key, "value", value);
+            tooltip.dataset[key] = String(value);
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error processing suggestion data:", error);
     }
   }
 
@@ -279,6 +291,7 @@ export const suggestionsPlugin = new Plugin({
   props: {
     decorations(state: EditorState) {
       const pluginState = this.getState(state);
+      console.log("pluginState", pluginState);
       if (!pluginState) return DecorationSet.empty;
 
       const decos: Decoration[] = [];

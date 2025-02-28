@@ -1,9 +1,9 @@
-import { EditorState, Plugin, Selection } from "prosemirror-state";
+import { EditorState, Plugin, Selection, TextSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { Schema, DOMParser } from "prosemirror-model";
+import { Schema, DOMParser, MarkSpec } from "prosemirror-model";
 import { suggestionsPlugin } from "../../src/suggestions";
 import { suggestionsPluginKey } from "../../src/key";
-import { schema } from "prosemirror-schema-basic";
+import { schema as basicSchema } from "prosemirror-schema-basic";
 import { keymap } from "prosemirror-keymap";
 import { baseKeymap } from "prosemirror-commands";
 
@@ -11,6 +11,40 @@ describe("suggestionsPlugin integration", () => {
   let view: EditorView;
   let state: EditorState;
   let container: HTMLElement;
+
+  // Create a schema with suggestion marks
+  const schema = new Schema({
+    nodes: basicSchema.spec.nodes,
+    marks: {
+      ...basicSchema.spec.marks,
+      suggestion_add: {
+        attrs: {
+          username: { default: "" },
+          createdAt: { default: 0 },
+          data: { default: null }
+        },
+        inclusive: false,
+        excludes: "",
+        parseDOM: [{ tag: "span.suggestion-add" }],
+        toDOM() {
+          return ["span", { class: "suggestion-add" }, 0];
+        }
+      },
+      suggestion_delete: {
+        attrs: {
+          username: { default: "" },
+          createdAt: { default: 0 },
+          data: { default: null }
+        },
+        inclusive: false,
+        excludes: "",
+        parseDOM: [{ tag: "span.suggestion-delete" }],
+        toDOM() {
+          return ["span", { class: "suggestion-delete" }, 0];
+        }
+      }
+    }
+  });
 
   // Helper to create a basic editor with our plugin
   function createEditor(content: string = "<p>Hello world</p>", pluginState = {}) {
@@ -133,7 +167,7 @@ describe("suggestionsPlugin integration", () => {
       // Select "awesome "
       const from = 6;
       const to = 14;
-      const tr = view.state.tr.setSelection(Selection.create(view.state.doc, from, to));
+      const tr = view.state.tr.setSelection(TextSelection.create(view.state.doc, from, to));
       view.dispatch(tr);
       
       // Delete the selected text

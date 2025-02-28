@@ -534,6 +534,15 @@ describe("suggestionsPlugin", () => {
           }),
         })
       );
+      
+      // Also verify the mark creation was called with the correct data
+      expect(mockSchema.marks.suggestion_add.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          createdAt: expect.any(Number),
+          username: "testUser",
+          data: { "example-attr": "test value" }
+        })
+      );
     });
   });
 

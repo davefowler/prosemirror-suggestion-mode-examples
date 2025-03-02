@@ -6,7 +6,7 @@ import {
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Schema, DOMParser, MarkSpec } from "prosemirror-model";
-import { suggestionsPlugin } from "../../src/suggestions";
+import { suggestionModePlugin } from "../../src/suggestions";
 import { suggestionsPluginKey } from "../../src/key";
 import { schema as basicSchema } from "prosemirror-schema-basic";
 import { keymap } from "prosemirror-keymap";
@@ -69,7 +69,7 @@ describe("suggestionsPlugin integration", () => {
     state = EditorState.create({
       doc,
       schema,
-      plugins: [keymap(baseKeymap), suggestionsPlugin],
+      plugins: [keymap(baseKeymap), suggestionModePlugin],
     });
 
     // Create the editor view

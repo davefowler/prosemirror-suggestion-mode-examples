@@ -1,7 +1,7 @@
 import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Schema, Node, Mark } from "prosemirror-model";
-import { suggestionsPlugin, findMarkRange } from "../../src/suggestions";
+import { suggestionModePlugin, findMarkRange } from "../../src/suggestions";
 import { suggestionsPluginKey } from "../../src/key";
 
 // Mock dependencies
@@ -418,15 +418,15 @@ describe("suggestionsPlugin", () => {
 
   describe("plugin initialization", () => {
     test("should have the correct props", () => {
-      expect(suggestionsPlugin).toBeDefined();
+      expect(suggestionModePlugin).toBeDefined();
       expect(suggestionsPluginKey).toBeDefined();
-      expect(suggestionsPlugin.props).toBeDefined();
-      expect(suggestionsPlugin.props.decorations).toBeDefined();
+      expect(suggestionModePlugin.props).toBeDefined();
+      expect(suggestionModePlugin.props.decorations).toBeDefined();
     });
 
     test("should initialize with default state", () => {
       // Access the init function directly from the plugin spec
-      const initFn = suggestionsPlugin.spec.state.init;
+      const initFn = suggestionModePlugin.spec.state.init;
 
       // Create mock config and state
       const mockConfig = {} as any;
@@ -443,7 +443,7 @@ describe("suggestionsPlugin", () => {
 
     test("should handle state updates", () => {
       // Access the apply function directly from the plugin spec
-      const applyFn = suggestionsPlugin.spec.state!.apply;
+      const applyFn = suggestionModePlugin.spec.state!.apply;
 
       // Create a mock transaction with metadata
       const mockTr = {
@@ -563,7 +563,7 @@ describe("suggestionsPlugin", () => {
       };
 
       // Call the apply function directly
-      const resultOn = suggestionsPlugin.spec.state.apply(
+      const resultOn = suggestionModePlugin.spec.state.apply(
         mockTr as any,
         pluginState,
         {} as any,
@@ -581,7 +581,7 @@ describe("suggestionsPlugin", () => {
       };
 
       // Call the apply function again
-      const resultOff = suggestionsPlugin.spec.state.apply(
+      const resultOff = suggestionModePlugin.spec.state.apply(
         mockTrOff as any,
         resultOn,
         {} as any,

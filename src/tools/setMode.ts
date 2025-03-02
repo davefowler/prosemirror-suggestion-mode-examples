@@ -1,5 +1,5 @@
 import { EditorView } from "prosemirror-view";
-import { suggestionsPlugin } from "../suggestions";
+import { suggestionModePlugin } from "../suggestions";
 import { suggestionsPluginKey } from "../key";
 
 export const setSuggestionMode = (
@@ -9,7 +9,7 @@ export const setSuggestionMode = (
   const state = suggestionsPluginKey.getState(view.state);
   if (!state) return;
   view.dispatch(
-    view.state.tr.setMeta(suggestionsPlugin, {
+    view.state.tr.setMeta(suggestionModePlugin, {
       ...state,
       inSuggestionMode: isSuggestionMode,
     })

@@ -37,10 +37,12 @@ where the deletions are hidden but shown on hover
     margin-bottom: 5px; /* Add space between hover-menu and text */
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     min-width: 150px;
-    white-space: nowrap;
+    white-space: normal; /* Allow wrapping */
     transition-delay: 0.1s;
     transition-property: display;
     color: black;
+    max-width: 300px;
+    overflow-wrap: break-word; /* Add this */
 }
 
 /* Create a relative positioning context for the hover-menu */
@@ -109,29 +111,27 @@ where the deletions are hidden but shown on hover
 .suggestion-deleted-content {
     background-color: #fff0f0;
     border: 1px solid #ffcccc;
-  }
+}
   
-  .deleted-text-content {
+.deleted-text-content {
     font-style: italic;
     color: #d32f2f;
     padding: 3px;
     background-color: rgba(241, 157, 157);
     border-radius: 2px;
-  }
-  
-  /* Make sure your hover effect works with the new class */
-  .suggestion-delete:hover .deleted-text-content {
-    display: block;
-    position: absolute;
-    top: 100%;
-    left: 0%;
-  }
+    word-break: break-word;
+    white-space: normal; /* Ensure text wrapping */
+    overflow-wrap: break-word; /* Modern property for breaking words */
+    max-width: 100%; /* Stay within parent container */
+    display: inline-block; /* Respect container width */
+}
 
-  .deleted-text-content::after {
-    content: "";
-    width: 0px;
-    height: 0px;
-    display: inline;
-  }
+/* Add a class for the deleted text container */
+.suggestion-deleted-text {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+  
 
   

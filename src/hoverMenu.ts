@@ -18,7 +18,7 @@ export interface MenuComponent {
 // Default components builders
 export const defaultComponents = {
   // Creates the info section showing who made the change and when
-  createInfoComponent(mark: Mark): MenuComponent {
+  createInfoComponent(mark: Mark, view: EditorView, pos: number): MenuComponent {
     const infoText = document.createElement("div");
     infoText.className = "suggestion-info";
 
@@ -79,12 +79,6 @@ export interface SuggestionHoverMenuOptions {
     ) => MenuComponent;
     // Add more component types as needed
   };
-  // Additional components to include
-  additionalComponents?: ((
-    mark: Mark,
-    view: EditorView,
-    pos: number
-  ) => MenuComponent)[];
   // CSS classes
   menuClass?: string;
 }
@@ -115,14 +109,6 @@ export function createSuggestionHoverMenu(
     defaultComponents.createButtonsComponent;
   const buttonsComponent = createButtons(mark, view, pos);
   menu.appendChild(buttonsComponent.dom);
-
-  // Add any additional components
-  if (options.additionalComponents) {
-    options.additionalComponents.forEach((createComponent) => {
-      const component = createComponent(mark, view, pos);
-      menu.appendChild(component.dom);
-    });
-  }
 
   // Add custom data as attributes to the menu element if present
   if (mark.attrs.data) {

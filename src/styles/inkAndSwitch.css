@@ -24,7 +24,7 @@ where the deletions are hidden but shown on hover
     color: red;
 }
 
-.suggestion-tooltip {
+.suggestion-hover-menu {
     background-color: #f0f0f0;
     padding: 5px;
     border-radius: 4px;
@@ -34,20 +34,21 @@ where the deletions are hidden but shown on hover
     z-index: 10;
     bottom: 100%; /* Position above the text */
     left: 0;
-    margin-bottom: 5px; /* Add space between tooltip and text */
+    margin-bottom: 5px; /* Add space between hover-menu and text */
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     min-width: 150px;
     white-space: nowrap;
     transition-delay: 0.1s;
     transition-property: display;
+    color: black;
 }
 
-/* Create a relative positioning context for the tooltip */
+/* Create a relative positioning context for the hover-menu */
 .suggestion-add, .suggestion-delete {
     position: relative;
 }
 
-/* Add a pseudo-element to bridge the gap between suggestion and tooltip */
+/* Add a pseudo-element to bridge the gap between suggestion and hover-menu */
 .suggestion-add::before, 
 .suggestion-delete::before {
     content: '';
@@ -59,10 +60,10 @@ where the deletions are hidden but shown on hover
     z-index: 9; /* Below the tooltfip but still part of the hover path */
 }
 
-/* Show tooltip when hovering over suggestion marks */
-.suggestion-delete:hover .suggestion-tooltip,
-.suggestion-add:hover .suggestion-tooltip,
-.suggestion-tooltip:hover {
+/* Show hover-menu when hovering over suggestion marks */
+.suggestion-delete:hover .suggestion-hover-menu,
+.suggestion-add:hover .suggestion-hover-menu,
+.suggestion-hover-menu:hover {
     display: block;
 }
 

@@ -106,7 +106,7 @@ export function createSuggestionHoverMenu(
   // Create and add the info component
   const createInfo =
     components.createInfoComponent || defaultComponents.createInfoComponent;
-  const infoComponent = createInfo(mark);
+  const infoComponent = createInfo(mark, view, pos);
   menu.appendChild(infoComponent.dom);
 
   // Create and add the buttons component

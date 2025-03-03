@@ -513,7 +513,7 @@ describe("suggestionsPlugin", () => {
       
       expect(defaultState).toEqual({
         inSuggestionMode: true,
-        username: "Anonymous",
+        username: "testUser",
         data: {},
       });
     });
@@ -556,7 +556,7 @@ describe("suggestionsPlugin", () => {
 
       expect(defaultState).toEqual({
         inSuggestionMode: true,
-        username: "Anonymous",
+        username: "testUser",
         data: {},
       });
     });

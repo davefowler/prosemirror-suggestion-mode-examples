@@ -1,9 +1,8 @@
 import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { ReplaceStep } from "prosemirror-transform";
 import { Mark, Node } from "prosemirror-model";
-import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
-import { SuggestionsPluginState, suggestionsPluginKey } from "./key";
-import { acceptSuggestion, rejectSuggestion } from "./tools/accept-reject";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import { SuggestionModePluginState, suggestionModePluginKey } from "./key";
 import {
   SuggestionHoverMenuRenderer,
   defaultRenderSuggestionHoverMenu,
@@ -20,7 +19,9 @@ export interface SuggestionsPluginOptions {
 }
 
 // Create the suggestions plugin
-export const suggestionsPlugin = (options: SuggestionsPluginOptions = {}) => {
+export const suggestionModePlugin = (
+  options: SuggestionModePluginOptions = {}
+) => {
   // If custom options but no renderer is provided, use default renderer with custom options
   let renderHoverMenu = options.hoverMenuRenderer;
 
@@ -33,7 +34,7 @@ export const suggestionsPlugin = (options: SuggestionsPluginOptions = {}) => {
   renderHoverMenu = renderHoverMenu || defaultRenderSuggestionHoverMenu;
 
   return new Plugin({
-    key: suggestionsPluginKey,
+    key: suggestionModePluginKey,
 
     appendTransaction(
       transactions: readonly Transaction[],
@@ -49,7 +50,7 @@ export const suggestionsPlugin = (options: SuggestionsPluginOptions = {}) => {
 
       transactions.forEach((transaction) => {
         // Skip if this is an internal operation
-        const meta = transaction.getMeta(suggestionsPluginKey);
+        const meta = transaction.getMeta(suggestionModePluginKey);
         if (meta && meta.suggestionOperation) {
           return;
         }
@@ -82,7 +83,7 @@ export const suggestionsPlugin = (options: SuggestionsPluginOptions = {}) => {
               return;
             }
             // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
-            tr.setMeta(suggestionsPluginKey, {
+            tr.setMeta(suggestionModePluginKey, {
               suggestionOperation: true,
               handled: true, // Add this flag to indicate this input has been handled
             });
@@ -178,7 +179,7 @@ export const suggestionsPlugin = (options: SuggestionsPluginOptions = {}) => {
     },
 
     state: {
-      init(): SuggestionsPluginState {
+      init(): SuggestionModePluginState {
         return {
           inSuggestionMode: true,
           username: options.username || "Anonymous",
@@ -188,10 +189,10 @@ export const suggestionsPlugin = (options: SuggestionsPluginOptions = {}) => {
 
       apply(
         tr: Transaction,
-        value: SuggestionsPluginState
-      ): SuggestionsPluginState {
+        value: SuggestionModePluginState
+      ): SuggestionModePluginState {
         // If there's metadata associated with this transaction, merge it into the current state
-        const meta = tr.getMeta(suggestionsPluginKey);
+        const meta = tr.getMeta(suggestionModePluginKey);
         if (meta) {
           return {
             ...value,

@@ -39,11 +39,11 @@ yarn add prosemirror-suggestion-mode
 ### Basic Setup
 
 ```javascript
-import { suggestionsPlugin } from 'prosemirror-suggestion-mode'
+import { suggestionModePlugin } from 'prosemirror-suggestion-mode'
 
 // Add to your ProseMirror plugins
 const plugins = [
-  suggestionsPlugin,
+  suggestionModePlugin,
   // ... other plugins
 ]
 ```
@@ -52,7 +52,7 @@ const plugins = [
 
 ```javascript
 // Enable suggestion mode with username and custom data
-view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
+view.dispatch(view.state.tr.setMeta(suggestionModePlugin, {
   suggestionMode: true,
   username: 'JohnDoe',
   data: {
@@ -63,12 +63,12 @@ view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
 }))
 
 // Disable suggestion mode
-view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
+view.dispatch(view.state.tr.setMeta(suggestionModePlugin, {
   suggestionMode: false
 }))
 
 // Change username and data
-view.dispatch(view.state.tr.setMeta(suggestionsPlugin, {
+view.dispatch(view.state.tr.setMeta(suggestionModePlugin, {
   suggestionMode: true,
   username: 'JaneSmith',
   data: {
@@ -89,10 +89,10 @@ Each suggestion will now be tagged with the username of the person who made it. 
 
 ```javascript
 // Accept a suggestion at the current selection
-suggestionsPlugin.accept(view)
+suggestionModePlugin.accept(view)
 
 // Reject a suggestion at the current selection
-suggestionsPlugin.reject(view)
+suggestionModePlugin.reject(view)
 ```
 
 ### Customizing Tooltips
@@ -105,7 +105,7 @@ Provide a custom tooltip renderer function when creating the plugin.  If you add
 
 ```javascript
 new Plugin({
-    ...suggestionsPlugin,
+    ...suggestionModePlugin,
     tooltipRenderer: (mark, type) => {
         // mark contains attrs like username, createdAt
         // type is either 'add' or 'delete'

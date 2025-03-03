@@ -7,7 +7,7 @@ import {
 import { EditorView } from "prosemirror-view";
 import { Schema, DOMParser, MarkSpec } from "prosemirror-model";
 import { suggestionModePlugin } from "../../src/suggestions";
-import { suggestionsPluginKey } from "../../src/key";
+import { suggestionModePluginKey } from "../../src/key";
 import { schema as basicSchema } from "prosemirror-schema-basic";
 import { keymap } from "prosemirror-keymap";
 import { baseKeymap } from "prosemirror-commands";
@@ -77,7 +77,7 @@ describe("suggestionsPlugin integration", () => {
 
     // Configure the plugin with the desired state
     view.dispatch(
-      view.state.tr.setMeta(suggestionsPluginKey, {
+      view.state.tr.setMeta(suggestionModePluginKey, {
         inSuggestionMode: true,
         username: "testUser",
         data: { "example-attr": "test value" },
@@ -100,7 +100,7 @@ describe("suggestionsPlugin integration", () => {
   describe("suggestion mode", () => {
     test("should initialize with suggestion mode enabled", () => {
       createEditor();
-      const pluginState = suggestionsPluginKey.getState(view.state);
+      const pluginState = suggestionModePluginKey.getState(view.state);
 
       expect(pluginState).toBeDefined();
       expect(pluginState.inSuggestionMode).toBe(true);
@@ -111,29 +111,29 @@ describe("suggestionsPlugin integration", () => {
       createEditor();
 
       // Get initial state
-      let pluginState = suggestionsPluginKey.getState(view.state);
+      let pluginState = suggestionModePluginKey.getState(view.state);
       expect(pluginState.inSuggestionMode).toBe(true);
 
       // Toggle suggestion mode off
       view.dispatch(
-        view.state.tr.setMeta(suggestionsPluginKey, {
+        view.state.tr.setMeta(suggestionModePluginKey, {
           inSuggestionMode: false,
         })
       );
 
       // Check that it's off
-      pluginState = suggestionsPluginKey.getState(view.state);
+      pluginState = suggestionModePluginKey.getState(view.state);
       expect(pluginState.inSuggestionMode).toBe(false);
 
       // Toggle it back on
       view.dispatch(
-        view.state.tr.setMeta(suggestionsPluginKey, {
+        view.state.tr.setMeta(suggestionModePluginKey, {
           inSuggestionMode: true,
         })
       );
 
       // Check that it's on again
-      pluginState = suggestionsPluginKey.getState(view.state);
+      pluginState = suggestionModePluginKey.getState(view.state);
       expect(pluginState.inSuggestionMode).toBe(true);
     });
   });

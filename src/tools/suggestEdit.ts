@@ -1,5 +1,5 @@
 import { EditorView } from "prosemirror-view";
-import { suggestionsPluginKey } from "../key";
+import { suggestionModePluginKey } from "../key";
 import { Node } from "prosemirror-model";
 
 export type TextSuggestion = {
@@ -21,7 +21,7 @@ const replaceInProsemirror = (
 
   // Store reason in metadata if available
   if (suggestion.reason) {
-    tr.setMeta(suggestionsPluginKey, {
+    tr.setMeta(suggestionModePluginKey, {
       data: { reason: suggestion.reason },
     });
   }
@@ -46,11 +46,11 @@ export const suggestEdit = (
   username: string
 ) => {
   // Store current state
-  const startingState = suggestionsPluginKey.getState(view.state);
+  const startingState = suggestionModePluginKey.getState(view.state);
   if (!startingState) return 0;
 
   view.dispatch(
-    view.state.tr.setMeta(suggestionsPluginKey, {
+    view.state.tr.setMeta(suggestionModePluginKey, {
       ...startingState,
       username,
       inSuggestionMode: true,
@@ -136,8 +136,8 @@ export const suggestEdit = (
 
   // Restore original username
   view.dispatch(
-    view.state.tr.setMeta(suggestionsPluginKey, {
-      ...suggestionsPluginKey.getState(view.state),
+    view.state.tr.setMeta(suggestionModePluginKey, {
+      ...suggestionModePluginKey.getState(view.state),
       username: startingState.username,
       data: startingState.data,
       inSuggestionMode: startingState.inSuggestionMode,

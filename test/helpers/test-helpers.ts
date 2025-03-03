@@ -7,7 +7,7 @@ import {
 import { EditorView } from "prosemirror-view";
 import { Schema, DOMParser } from "prosemirror-model";
 import { suggestionModePlugin } from "../../src/suggestions";
-import { suggestionsPluginKey } from "../../src/key";
+import { suggestionModePluginKey } from "../../src/key";
 
 // Define a basic schema for testing
 export const testSchema = new Schema({

@@ -2,7 +2,7 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Schema, Node, Mark } from "prosemirror-model";
 import { suggestionModePlugin, findMarkRange } from "../../src/suggestions";
-import { suggestionsPluginKey } from "../../src/key";
+import { suggestionModePluginKey } from "../../src/key";
 
 // Mock dependencies
 jest.mock("prosemirror-view");
@@ -103,7 +103,7 @@ describe("suggestionsPlugin", () => {
     };
 
     // Mock getState to return our plugin state
-    (suggestionsPluginKey.getState as jest.Mock).mockReturnValue(
+    (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
       mockPluginState
     );
   });
@@ -419,7 +419,7 @@ describe("suggestionsPlugin", () => {
   describe("plugin initialization", () => {
     test("should have the correct props", () => {
       expect(suggestionModePlugin).toBeDefined();
-      expect(suggestionsPluginKey).toBeDefined();
+      expect(suggestionModePluginKey).toBeDefined();
       expect(suggestionModePlugin.props).toBeDefined();
       expect(suggestionModePlugin.props.decorations).toBeDefined();
     });

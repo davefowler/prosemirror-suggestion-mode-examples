@@ -1,5 +1,5 @@
 import { findMarkRange } from "../../src/suggestions";
-import { suggestionsPluginKey } from "../../src/key";
+import { suggestionModePluginKey } from "../../src/key";
 import {
   createEditorState,
   createEditorView,
@@ -66,11 +66,11 @@ describe("findMarkRange", () => {
     await insertText(view, " awesome");
 
     // Toggle suggestion mode off and on to create a new mark session
-    const tr1 = view.state.tr.setMeta(suggestionsPluginKey, {
+    const tr1 = view.state.tr.setMeta(suggestionModePluginKey, {
       inSuggestionMode: false,
     });
     view.dispatch(tr1);
-    const tr2 = view.state.tr.setMeta(suggestionsPluginKey, {
+    const tr2 = view.state.tr.setMeta(suggestionModePluginKey, {
       inSuggestionMode: true,
     });
     view.dispatch(tr2);

@@ -1,7 +1,7 @@
 // Export all public API components
-export { suggestionModePlugin as suggestionsPlugin } from "./suggestions";
-export { suggestionsPluginKey } from "./key";
-export type { SuggestionsPluginState } from "./key";
+export { suggestionModePlugin } from "./suggestions";
+export { suggestionModePluginKey } from "./key";
+export type { SuggestionModePluginState } from "./key";
 export { addSuggestionMarks } from "./schema";
 
 export {

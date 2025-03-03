@@ -5,7 +5,6 @@ import { keymap } from "prosemirror-keymap";
 import { addListNodes } from "prosemirror-schema-list";
 import { Schema } from "prosemirror-model";
 import { schema } from "prosemirror-schema-basic";
-
 import {
   suggestionModePlugin,
   acceptAllSuggestions,

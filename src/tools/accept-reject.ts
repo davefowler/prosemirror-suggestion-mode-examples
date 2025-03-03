@@ -1,13 +1,13 @@
 import { EditorView } from "prosemirror-view";
 import { Mark } from "prosemirror-model";
-import { suggestionsPluginKey } from "../key";
+import { suggestionModePluginKey } from "../key";
 
 // Updated function to accept a suggestion without requiring type parameter
 export const acceptSuggestion = (view: EditorView, mark: Mark, pos: number) => {
   const tr = view.state.tr;
 
   // Mark this transaction as a suggestion operation so it won't be intercepted
-  tr.setMeta(suggestionsPluginKey, { suggestionOperation: true });
+  tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
 
   if (mark.type.name === "suggestion_add") {
     // For added text, we keep the text but remove the mark
@@ -58,7 +58,7 @@ export const rejectSuggestion = (view: EditorView, mark: Mark, pos: number) => {
   const tr = view.state.tr;
 
   // Mark this transaction as a suggestion operation so it won't be intercepted
-  tr.setMeta(suggestionsPluginKey, { suggestionOperation: true });
+  tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
 
   if (mark.type.name === "suggestion_add") {
     // For added text, we remove both the text and the mark

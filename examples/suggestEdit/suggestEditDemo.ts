@@ -5,7 +5,7 @@ import { keymap } from "prosemirror-keymap";
 import { addListNodes } from "prosemirror-schema-list";
 import { Schema } from "prosemirror-model";
 import {
-  suggestionsPlugin,
+  suggestionModePlugin,
   acceptAllSuggestions,
   rejectAllSuggestions,
   setSuggestionMode,
@@ -43,7 +43,9 @@ window.addEventListener("load", () => {
   const state = EditorState.create({
     schema: exampleSchema,
     doc,
-    plugins: [keymap(baseKeymap), suggestionsPlugin],
+    plugins: [keymap(baseKeymap), suggestionModePlugin({
+      username: "example user",
+    })],
   });
 
   // Create the editor view

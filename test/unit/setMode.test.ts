@@ -1,6 +1,6 @@
 import { EditorView } from "prosemirror-view";
 import { setSuggestionMode } from "../../src/tools/setMode";
-import { suggestionsPluginKey } from "../../src/key";
+import { suggestionModePluginKey } from "../../src/key";
 import { suggestionModePlugin } from "../../src/suggestions";
 // Mock dependencies
 jest.mock("prosemirror-view");
@@ -47,7 +47,7 @@ describe("setSuggestionMode", () => {
     };
 
     // Mock getState to return our plugin state
-    (suggestionsPluginKey.getState as jest.Mock).mockReturnValue(
+    (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
       mockPluginState
     );
   });
@@ -80,7 +80,7 @@ describe("setSuggestionMode", () => {
 
   test("should do nothing if plugin state is null", () => {
     // Mock getState to return null
-    (suggestionsPluginKey.getState as jest.Mock).mockReturnValueOnce(null);
+    (suggestionModePluginKey.getState as jest.Mock).mockReturnValueOnce(null);
 
     setSuggestionMode(mockView, true);
 

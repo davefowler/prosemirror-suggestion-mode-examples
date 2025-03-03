@@ -16,6 +16,7 @@ import { Schema } from "prosemirror-model";
 
 // Import a theme for the suggestions or create your own
 import "prosemirror-suggestion-mode/styles/default.css";
+import "prosemirror-suggestion-mode/styles/default.css";
 
 const exampleSchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),

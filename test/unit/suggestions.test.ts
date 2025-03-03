@@ -2,7 +2,7 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Schema, Node, Mark } from "prosemirror-model";
 import { suggestionModePlugin, findMarkRange } from "../../src/suggestions";
-import { suggestionsPluginKey } from "../../src/key";
+import { suggestionModePluginKey } from "../../src/key";
 
 // Mock dependencies
 jest.mock("prosemirror-view");
@@ -105,7 +105,7 @@ describe("suggestionsPlugin", () => {
     };
 
     // Mock getState to return our plugin state
-    (suggestionsPluginKey.getState as jest.Mock).mockReturnValue(
+    (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
       mockPluginState
     );
   });
@@ -267,21 +267,22 @@ describe("suggestionsPlugin", () => {
         create: jest.fn().mockReturnValue("decoration-set"),
       };
 
-      // Create mock Decoration and DecorationSet classes
+      // Create mock Decoration and DecorationSet classes with proper typing
       const mockInlineDecoration = { type: "inline" };
       const mockWidgetDecoration = { type: "widget" };
 
+      // Use type assertions to help TypeScript understand the function signatures
       const Decoration = {
-        inline: jest.fn().mockReturnValue(mockInlineDecoration),
-        widget: jest.fn().mockReturnValue(mockWidgetDecoration),
+        inline: jest.fn().mockReturnValue(mockInlineDecoration) as jest.Mock<any, [number, number, any]>,
+        widget: jest.fn().mockReturnValue(mockWidgetDecoration) as jest.Mock<any, [number, () => HTMLElement, any]>
       };
 
       const DecorationSet = {
-        create: jest.fn().mockReturnValue("decoration-set"),
+        create: jest.fn().mockReturnValue("decoration-set") as jest.Mock<any, [any, any[]]>,
         empty: "empty-decoration-set",
       };
 
-      // Mock the global objects
+      // Assign to global
       global.Decoration = Decoration;
       global.DecorationSet = DecorationSet;
 
@@ -291,15 +292,20 @@ describe("suggestionsPlugin", () => {
         mockDoc.descendants((node, pos) => {
           if (node.marks.some((m) => m.type.name === "suggestion_add")) {
             decos.push(
+              // @ts-ignore - Ignoring typing issues with mocks in tests
               Decoration.inline(pos, pos + node.nodeSize, {
                 class: "suggestion-add",
               })
             );
             decos.push(
-              Decoration.widget(pos, expect.any(Function), expect.any(Object))
+              // @ts-ignore - Ignoring typing issues with mocks in tests
+              Decoration.widget(pos, () => document.createElement("span"), { 
+                side: 1 
+              })
             );
           }
         });
+        // @ts-ignore - Ignoring typing issues with mocks in tests
         return DecorationSet.create(mockDoc, decos);
       };
 
@@ -379,20 +385,23 @@ describe("suggestionsPlugin", () => {
         mockDoc.descendants((node, pos) => {
           if (node.marks.some((m) => m.type.name === "suggestion_delete")) {
             decos.push(
+              // @ts-ignore - Ignoring typing issues with mocks in tests
               global.Decoration.inline(pos, pos + node.nodeSize, {
                 class: "suggestion-wrapper suggestion-delete-wrapper",
               })
             );
             decos.push(
+              // @ts-ignore - Ignoring typing issues with mocks in tests
               global.Decoration.inline(pos, pos + node.nodeSize, {
                 class: "suggestion-delete",
               })
             );
             decos.push(
+              // @ts-ignore - Ignoring typing issues with mocks in tests
               global.Decoration.widget(
                 pos,
-                expect.any(Function),
-                expect.any(Object)
+                () => document.createElement("span"),
+                { side: 1 }
               )
             );
           }
@@ -488,7 +497,7 @@ describe("suggestionsPlugin", () => {
       };
 
       // Mock getState to return our plugin state
-      (suggestionsPluginKey.getState as jest.Mock).mockReturnValue(
+      (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
         mockPluginState
       );
     });
@@ -520,17 +529,17 @@ describe("suggestionsPlugin", () => {
       };
       
       // Simulate setting meta on the transaction
-      mockTransaction.setMeta(suggestionsPluginKey, expectedMeta);
+      mockTransaction.setMeta(suggestionModePluginKey, expectedMeta);
       
       // Verify the transaction's setMeta was called with the correct parameters
-      expect(mockTransaction.setMeta).toHaveBeenCalledWith(suggestionsPluginKey, expectedMeta);
+      expect(mockTransaction.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, expectedMeta);
     });
   });
 
   describe("plugin initialization", () => {
     test("should have the correct props", () => {
       expect(pluginInstance).toBeDefined();
-      expect(suggestionsPluginKey).toBeDefined();
+      expect(suggestionModePluginKey).toBeDefined();
       expect(pluginInstance.props).toBeDefined();
       expect(pluginInstance.props.decorations).toBeDefined();
     });

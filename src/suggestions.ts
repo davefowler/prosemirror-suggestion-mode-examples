@@ -7,22 +7,30 @@ import { acceptSuggestion, rejectSuggestion } from "./tools/accept-reject";
 import {
   SuggestionHoverMenuRenderer,
   defaultRenderSuggestionHoverMenu,
-} from "./suggestionHoverMenu";
+  createSuggestionHoverMenu,
+  SuggestionHoverMenuOptions,
+} from "./hoverMenu";
 
 // Plugin options interface
-export interface SuggestionModePluginOptions {
-  username?: string; // username of the user who is making the suggestion
-  data?: Record<string, any>; // custom data to be added to the suggestion hover menu
-  hoverMenuRenderer?: SuggestionHoverMenuRenderer; // custom renderer for the suggestion hover menu
+export interface SuggestionsPluginOptions {
+  username?: string;
+  data?: Record<string, any>;
+  hoverMenuRenderer?: SuggestionHoverMenuRenderer;
+  hoverMenuOptions?: SuggestionHoverMenuOptions;
 }
 
 // Create the suggestions plugin
-export const suggestionModePlugin = (
-  options: SuggestionModePluginOptions = {}
-) => {
-  // Use provided hover menu renderer or fall back to default
-  const renderHoverMenu =
-    options.hoverMenuRenderer || defaultRenderSuggestionHoverMenu;
+export const suggestionsPlugin = (options: SuggestionsPluginOptions = {}) => {
+  // If custom options but no renderer is provided, use default renderer with custom options
+  let renderHoverMenu = options.hoverMenuRenderer;
+
+  if (!renderHoverMenu && options.hoverMenuOptions) {
+    renderHoverMenu = (mark, view, pos) =>
+      createSuggestionHoverMenu(mark, view, pos, options.hoverMenuOptions);
+  }
+
+  // Fall back to default renderer
+  renderHoverMenu = renderHoverMenu || defaultRenderSuggestionHoverMenu;
 
   return new Plugin({
     key: suggestionsPluginKey,

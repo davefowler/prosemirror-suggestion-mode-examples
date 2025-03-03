@@ -5,14 +5,13 @@ import { keymap } from "prosemirror-keymap";
 import { addListNodes } from "prosemirror-schema-list";
 import { Schema } from "prosemirror-model";
 import { schema } from "prosemirror-schema-basic";
-
 import {
-  suggestionsPlugin,
+  suggestionModePlugin,
   acceptAllSuggestions,
   rejectAllSuggestions,
   setSuggestionMode,
   addSuggestionMarks,
-} from "prosemirror-suggest-mode";
+} from "prosemirror-suggestion-mode";
 import { DOMParser } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { Plugin } from "prosemirror-state";
@@ -80,7 +79,7 @@ window.addEventListener("load", () => {
   const state = EditorState.create({
     schema: exampleSchema,
     doc,
-    plugins: [keymap(baseKeymap), suggestionsPlugin, deletedTextDecorator],
+    plugins: [keymap(baseKeymap), suggestionModePlugin, deletedTextDecorator],
   });
 
   // Create the editor view

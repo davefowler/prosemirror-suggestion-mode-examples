@@ -15,7 +15,7 @@ module.exports = {
         extensions: ['.ts', '.js'],
         alias: {
             // Create aliases so examples can find the source files but also work for npm users
-            'prosemirror-suggest-mode': path.resolve(__dirname, 'src')
+            'prosemirror-suggestion-mode': path.resolve(__dirname, 'src')
         }
     },
     plugins: [

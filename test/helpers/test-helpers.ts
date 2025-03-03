@@ -59,7 +59,7 @@ export function createEditorState(doc: string, plugins: Plugin[] = []) {
 
   return EditorState.create({
     doc: DOMParser.fromSchema(testSchema).parse(element),
-    plugins: [suggestionModePlugin, ...plugins],
+    plugins: [suggestionModePlugin({ username: "test" }), ...plugins],
   });
 }
 

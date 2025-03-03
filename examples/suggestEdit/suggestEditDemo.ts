@@ -12,7 +12,7 @@ import {
   suggestEdit,
   TextSuggestion,
   addSuggestionMarks,
-} from "prosemirror-suggest-mode";
+} from "prosemirror-suggestion-mode";
 import { DOMParser } from "prosemirror-model";
 import { schema } from "prosemirror-schema-basic";
 
@@ -25,7 +25,7 @@ const exampleSchema = new Schema({
 });
 
 // Normally you can just direct import a theme
-import "prosemirror-suggest-mode/styles/default.css";
+import "prosemirror-suggestion-mode/styles/default.css";
 
 // Initialize the editor with the suggestions plugin
 window.addEventListener("load", () => {

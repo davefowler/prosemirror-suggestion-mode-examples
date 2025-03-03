@@ -1,13 +1,12 @@
 import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { ReplaceStep } from "prosemirror-transform";
 import { Mark, Node } from "prosemirror-model";
-import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
+import { Decoration, DecorationSet } from "prosemirror-view";
 import { SuggestionsPluginState, suggestionsPluginKey } from "./key";
-import { acceptSuggestion, rejectSuggestion } from "./tools/accept-reject";
 import {
   SuggestionHoverMenuRenderer,
   defaultRenderSuggestionHoverMenu,
-} from "./suggestionHoverMenu";
+} from "./hoverMenu";
 
 // Plugin options interface
 export interface SuggestionModePluginOptions {
@@ -25,7 +24,7 @@ export const suggestionModePlugin = (
     options.hoverMenuRenderer || defaultRenderSuggestionHoverMenu;
 
   return new Plugin({
-    key: suggestionsPluginKey,
+    key: suggestionModePluginKey,
 
     appendTransaction(
       transactions: readonly Transaction[],

@@ -1,16 +1,16 @@
 import {
   EditorState,
-  Plugin,
   Selection,
   TextSelection,
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { Schema, DOMParser, MarkSpec } from "prosemirror-model";
+import { Schema, DOMParser, Mark } from "prosemirror-model";
 import { suggestionModePlugin } from "../../src/suggestions";
 import { suggestionsPluginKey } from "../../src/key";
 import { schema as basicSchema } from "prosemirror-schema-basic";
 import { keymap } from "prosemirror-keymap";
 import { baseKeymap } from "prosemirror-commands";
+import { addSuggestionMarks } from "../../src/schema";
 
 describe("suggestionsPlugin integration", () => {
   let view: EditorView;
@@ -20,35 +20,7 @@ describe("suggestionsPlugin integration", () => {
   // Create a schema with suggestion marks
   const schema = new Schema({
     nodes: basicSchema.spec.nodes,
-    marks: {
-      ...basicSchema.spec.marks,
-      suggestion_add: {
-        attrs: {
-          username: { default: "" },
-          createdAt: { default: 0 },
-          data: { default: null },
-        },
-        inclusive: false,
-        excludes: "",
-        parseDOM: [{ tag: "span.suggestion-add" }],
-        toDOM() {
-          return ["span", { class: "suggestion-add" }, 0];
-        },
-      },
-      suggestion_delete: {
-        attrs: {
-          username: { default: "" },
-          createdAt: { default: 0 },
-          data: { default: null },
-        },
-        inclusive: false,
-        excludes: "",
-        parseDOM: [{ tag: "span.suggestion-delete" }],
-        toDOM() {
-          return ["span", { class: "suggestion-delete" }, 0];
-        },
-      },
-    },
+    marks: addSuggestionMarks(basicSchema.spec.marks),
   });
 
   // Helper to create a basic editor with our plugin
@@ -69,7 +41,7 @@ describe("suggestionsPlugin integration", () => {
     state = EditorState.create({
       doc,
       schema,
-      plugins: [keymap(baseKeymap), suggestionModePlugin],
+      plugins: [keymap(baseKeymap), suggestionModePlugin({ username: "integration test user" })],
     });
 
     // Create the editor view
@@ -101,10 +73,10 @@ describe("suggestionsPlugin integration", () => {
     test("should initialize with suggestion mode enabled", () => {
       createEditor();
       const pluginState = suggestionsPluginKey.getState(view.state);
-
+      
       expect(pluginState).toBeDefined();
-      expect(pluginState.inSuggestionMode).toBe(true);
-      expect(pluginState.username).toBe("testUser");
+      expect(pluginState!.inSuggestionMode).toBe(true);
+      expect(pluginState!.username).toBe("testUser");
     });
 
     test("should toggle suggestion mode", () => {
@@ -112,7 +84,8 @@ describe("suggestionsPlugin integration", () => {
 
       // Get initial state
       let pluginState = suggestionsPluginKey.getState(view.state);
-      expect(pluginState.inSuggestionMode).toBe(true);
+      expect(pluginState).toBeDefined();
+      expect(pluginState!.inSuggestionMode).toBe(true);
 
       // Toggle suggestion mode off
       view.dispatch(
@@ -123,7 +96,8 @@ describe("suggestionsPlugin integration", () => {
 
       // Check that it's off
       pluginState = suggestionsPluginKey.getState(view.state);
-      expect(pluginState.inSuggestionMode).toBe(false);
+      expect(pluginState).toBeDefined();
+      expect(pluginState!.inSuggestionMode).toBe(false);
 
       // Toggle it back on
       view.dispatch(
@@ -134,7 +108,8 @@ describe("suggestionsPlugin integration", () => {
 
       // Check that it's on again
       pluginState = suggestionsPluginKey.getState(view.state);
-      expect(pluginState.inSuggestionMode).toBe(true);
+      expect(pluginState).toBeDefined();
+      expect(pluginState!.inSuggestionMode).toBe(true);
     });
   });
 
@@ -215,7 +190,7 @@ describe("suggestionsPlugin integration", () => {
       expect(view.state.doc.textContent).toBe("Hello  awesome world");
 
       // Check that there's a suggestion_add mark with our custom data
-      let markWithData = null;
+      let markWithData: Mark | null = null;
       view.state.doc.nodesBetween(position, position + 8, (node) => {
         node.marks.forEach((mark) => {
           if (mark.type.name === "suggestion_add") {
@@ -225,7 +200,7 @@ describe("suggestionsPlugin integration", () => {
       });
 
       expect(markWithData).not.toBeNull();
-      expect(markWithData.attrs.data).toEqual({ exampleattr: "test value" });
+      expect(markWithData!.attrs.data).toEqual({ exampleattr: "test value" });
     });
   });
 
@@ -304,7 +279,7 @@ describe("suggestionsPlugin integration", () => {
       expect(hasDeleteMark).toBe(true);
 
       // Ensure we have two separate suggestion marks (one for add, one for delete)
-      const allMarks = [];
+      const allMarks: Mark[] = [];
       view.state.doc.nodesBetween(0, view.state.doc.content.size, (node) => {
         node.marks.forEach((mark) => {
           if (
@@ -381,7 +356,7 @@ describe("suggestionsPlugin integration", () => {
       expect(view.state.doc.textContent).toBe("Hellonew  world");
 
       // Check what suggestion marks we have after the operation
-      const suggestionMarks = [];
+      const suggestionMarkNames: ("suggestion_add" | "suggestion_delete")[] = [];
       view.state.doc.nodesBetween(
         0,
         view.state.doc.content.size,
@@ -391,28 +366,22 @@ describe("suggestionsPlugin integration", () => {
               mark.type.name === "suggestion_add" ||
               mark.type.name === "suggestion_delete"
             ) {
-              console.log(
-                `Found mark: ${mark.type.name} at position ${pos} to ${
-                  pos + node.nodeSize
-                }`
-              );
-              suggestionMarks.push(mark.type.name);
+              suggestionMarkNames.push(mark.type.name as "suggestion_add" | "suggestion_delete");
             }
           });
         }
       );
 
-      console.log("All suggestion marks:", suggestionMarks);
+      console.log("All suggestion marks:", suggestionMarkNames);
 
       // We should only have suggestion_add marks, no suggestion_delete marks
-      const hasOnlyAddMarks = suggestionMarks.every(
+      const hasOnlyAddMarks = suggestionMarkNames.every(
         (name) => name === "suggestion_add"
       );
 
-      // For now, let's just verify we have at least one mark
-      // We can fix the real issue after seeing the debugging output
-      expect(suggestionMarks.length).toBeGreaterThan(0);
-      // expect(hasOnlyAddMarks).toBe(true);
+      expect(suggestionMarkNames.length).toBeGreaterThan(0);
+      // not sure if this check is correct, just on commenting for
+      expect(hasOnlyAddMarks).toBe(true);
     });
   });
 });

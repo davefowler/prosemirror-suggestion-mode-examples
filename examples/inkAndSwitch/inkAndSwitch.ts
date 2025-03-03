@@ -7,18 +7,18 @@ import { Schema } from "prosemirror-model";
 import { schema } from "prosemirror-schema-basic";
 
 import {
-  suggestionsPlugin,
+  suggestionModePlugin,
   acceptAllSuggestions,
   rejectAllSuggestions,
   setSuggestionMode,
   addSuggestionMarks,
-} from "prosemirror-suggest-mode";
+} from "prosemirror-suggestion-mode";
 import { DOMParser } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { Plugin } from "prosemirror-state";
 
 // Normally you can just direct import a theme
-import "prosemirror-suggest-mode/styles/inkAndSwitch.css";
+import "prosemirror-suggestion-mode/styles/inkAndSwitch.css";
 
 const exampleSchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
@@ -80,7 +80,9 @@ window.addEventListener("load", () => {
   const state = EditorState.create({
     schema: exampleSchema,
     doc,
-    plugins: [keymap(baseKeymap), suggestionsPlugin, deletedTextDecorator],
+    plugins: [keymap(baseKeymap), suggestionModePlugin({
+      username: "example user",
+    }), deletedTextDecorator],
   });
 
   // Create the editor view

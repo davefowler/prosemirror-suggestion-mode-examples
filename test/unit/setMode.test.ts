@@ -2,7 +2,6 @@ import { EditorView } from "prosemirror-view";
 import { setSuggestionMode } from "../../src/tools/setMode";
 import { suggestionsPluginKey } from "../../src/key";
 import { suggestionModePlugin } from "../../src/suggestions";
-
 // Mock dependencies
 jest.mock("prosemirror-view");
 jest.mock("../../src/key", () => ({
@@ -97,7 +96,7 @@ describe("setSuggestionMode", () => {
 
     // Should preserve custom properties
     expect(mockTr.setMeta).toHaveBeenCalledWith(
-      suggestionModePlugin,
+      suggestionsPluginKey,
       expect.objectContaining({
         customProp: "customValue",
         inSuggestionMode: true,

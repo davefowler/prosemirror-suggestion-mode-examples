@@ -175,6 +175,7 @@ http://localhost:8080
 
 ## TODO
 
+- make hover menu customizable
 - combine accepting and rejecting two an add and delete together when next to each other (potentially make a suggestion_replace mark)
 - add reasons to suggestions display
 

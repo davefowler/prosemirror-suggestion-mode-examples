@@ -14,8 +14,8 @@
     "types": ["jest", "node"],
     "baseUrl": ".",
     "paths": {
-      "prosemirror-suggest-mode/*": ["src/*"],
-      "prosemirror-suggest-mode": ["src"]
+      "prosemirror-suggestion-mode/*": ["src/*"],
+      "prosemirror-suggestion-mode": ["src"]
     }
   },
   "include": ["src/**/*", "examples/**/*"],

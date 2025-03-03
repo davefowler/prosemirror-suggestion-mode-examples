@@ -21,7 +21,7 @@ jest.mock("prosemirror-model");
 // Mock the key module but keep the actual key
 jest.mock("../../src/key", () => {
   return {
-    suggestionsPluginKey: {
+    suggestionModePluginKey: {
       getState: jest.fn(),
     },
   };

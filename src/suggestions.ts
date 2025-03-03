@@ -70,18 +70,21 @@ export const suggestionModePlugin = (
             const isDelete = oldText.length > 0 && newText.length === 0;
             const isAdd = oldText.length === 0 && newText.length > 0;
             const isReplace = oldText.length > 0 && newText.length > 0;
-            // if from is inside a suggestion mark don't do anything
-            const from$ = newState.doc.resolve(from + (isDelete ? +1 : 0));
-            const marksAtFrom = from$.marks();
-            const fromMark = marksAtFrom.find(
-              (m) =>
-                m.type.name === "suggestion_add" ||
-                m.type.name === "suggestion_delete"
+            
+            // Check if we're inside an existing suggestion mark
+            // This needs a more robust check
+            const isInsideSuggestionMark = isInsideAnyMark(
+              oldState,
+              from,
+              ["suggestion_add", "suggestion_delete"]
             );
-            if (fromMark) {
+
+            if (isInsideSuggestionMark) {
+              console.log('isInsideSuggestionMark', isInsideSuggestionMark, from);
               // We are already inside a suggestion mark, let normal editing happen
               return;
             }
+            
             // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
             tr.setMeta(suggestionModePluginKey, {
               suggestionOperation: true,
@@ -322,4 +325,48 @@ export const findMarkRange = (
   }
 
   return { from, to, mark };
+};
+
+// Add this helper function to properly check if a position is inside a mark
+export const isInsideAnyMark = (
+  state: EditorState,
+  pos: number,
+  markNames: string[]
+): boolean => {
+  const $pos = state.doc.resolve(pos);
+  let node = $pos.node($pos.depth);
+  let index = $pos.index($pos.depth);
+  
+  // Check if we're at the end of a text node
+  if (index === node.childCount) {
+    const $before = state.doc.resolve(pos - 1);
+    if ($before.parent === node) {
+      const nodeBefore = $before.nodeBefore;
+      if (nodeBefore) {
+        // Check if the node before has any of the specified marks
+        return nodeBefore.marks.some(mark => 
+          markNames.includes(mark.type.name)
+        );
+      }
+    }
+  }
+  
+  // Check if the current position has any of the specified marks
+  // First check if there's a node at this position
+  const nodeAtPos = $pos.nodeAfter || $pos.nodeBefore;
+  if (nodeAtPos) {
+    return nodeAtPos.marks.some(mark => 
+      markNames.includes(mark.type.name)
+    );
+  }
+  
+  // Also check the node at this position directly
+  const resolvedNode = state.doc.nodeAt(pos);
+  if (resolvedNode) {
+    return resolvedNode.marks.some(mark => 
+      markNames.includes(mark.type.name)
+    );
+  }
+  
+  return false;
 };

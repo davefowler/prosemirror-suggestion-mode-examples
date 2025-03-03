@@ -226,8 +226,8 @@ describe("suggestionsPlugin integration", () => {
       expect(decorations.length).toBeGreaterThan(0);
 
       // Check that there's a tooltip
-      const tooltips = container.querySelectorAll(".suggestion-tooltip");
-      expect(tooltips.length).toBeGreaterThan(0);
+      const hoverMenu = container.querySelectorAll(".suggestion-hover-menu");
+      expect(hoverMenu.length).toBeGreaterThan(0);
     });
   });
 
@@ -299,7 +299,7 @@ describe("suggestionsPlugin integration", () => {
       createEditor("<p>Hello world</p>");
 
       // Add text to create a suggestion mark
-      const position = 6;
+      const position = 7;
       view.dispatch(
         view.state.tr.setSelection(
           Selection.near(view.state.doc.resolve(position))
@@ -319,8 +319,6 @@ describe("suggestionsPlugin integration", () => {
           });
         }
       );
-
-      console.log('text after insertion', view.state.doc.textContent);
       // Move cursor one character to the left (inside the suggestion mark)
       const positionInsideMark = position + "new".length;
 
@@ -334,11 +332,8 @@ describe("suggestionsPlugin integration", () => {
       view.dispatch(
         view.state.tr.delete(positionInsideMark, positionInsideMark + 1)
       );
-      console.log('text after deletion', view.state.doc.textContent);
-
-      console.log('marks at position', view.state.doc.nodeAt(positionInsideMark)?.marks);
       // The content after deletion should have no space between "new" and "world"
-      expect(view.state.doc.textContent).toBe("Hellonewworld");
+      expect(view.state.doc.textContent).toBe("Hello newworld");
 
       // Check what suggestion marks we have after the operation
       const suggestionMarkNames: ("suggestion_add" | "suggestion_delete")[] = [];

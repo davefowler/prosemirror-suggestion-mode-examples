@@ -3,7 +3,7 @@ import { EditorView } from "prosemirror-view";
 import { baseKeymap } from "prosemirror-commands";
 import { keymap } from "prosemirror-keymap";
 import {
-  suggestionsPlugin,
+  suggestionModePlugin,
   acceptAllSuggestions,
   rejectAllSuggestions,
   setSuggestionMode,
@@ -41,7 +41,7 @@ window.addEventListener("load", () => {
   const state = EditorState.create({
     schema: exampleSchema,
     doc,
-    plugins: [keymap(baseKeymap), suggestionsPlugin],
+    plugins: [keymap(baseKeymap), suggestionModePlugin],
   });
 
   // Create the editor view
@@ -49,7 +49,7 @@ window.addEventListener("load", () => {
 
   // set the username of the editor
   view.dispatch(
-    view.state.tr.setMeta(suggestionsPluginKey, {
+    view.state.tr.setMeta(suggestionModePluginKey, {
       username: "Your username",
       data: {
         exampleattr: "these get added to the attrs of the the hover tooltip",

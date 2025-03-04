@@ -27,6 +27,32 @@ const exampleSchema = new Schema({
 // Normally you can just direct import a theme
 import "prosemirror-suggestion-mode/styles/default.css";
 
+// Create a custom component for displaying suggestion reason in the hover menu
+const createSuggestionReasonComponent = (mark: any, view: EditorView, pos: number): { dom: HTMLElement } => {
+  // Skip if not a suggestion mark
+  if (!mark.type.name.startsWith('suggestion_')) {
+    return { dom: document.createElement('div') };
+  }
+
+  const reasonDiv = document.createElement('div');
+  reasonDiv.className = 'suggestion-reason';
+  const reason = mark.attrs.data?.reason;
+  console.log('reason', reason, 'mark', mark);
+  if (reason) {
+    const reasonLabel = document.createElement('strong');
+    reasonLabel.textContent = 'Reason: ';
+    
+    const reasonText = document.createElement('span');
+    reasonText.textContent = reason;
+    reasonText.className = 'reason-content';
+    
+    reasonDiv.appendChild(reasonLabel);
+    reasonDiv.appendChild(reasonText);
+  }
+  
+  return { dom: reasonDiv };
+};
+
 // Initialize the editor with the suggestions plugin
 window.addEventListener("load", () => {
   // === REGULAR EDITOR SETUP ===
@@ -45,6 +71,12 @@ window.addEventListener("load", () => {
     doc,
     plugins: [keymap(baseKeymap), suggestionModePlugin({
       username: "example user",
+      // Add hover menu options to show suggestion reasons
+      hoverMenuOptions: {
+        components: {
+          createInfoComponent: createSuggestionReasonComponent
+        }
+      }
     })],
   });
 
@@ -122,34 +154,7 @@ window.addEventListener("load", () => {
 
   const suggestionsDiv = document.querySelector("#suggestions");
 
-  // Format the suggestions for display
-  let formattedText = "[\n";
-
-  exampleSuggestions.forEach((suggestion, index) => {
-    formattedText += "  {\n";
-    formattedText += `    textToReplace: "${suggestion.textToReplace}",\n`;
-    formattedText += `    textReplacement: "${suggestion.textReplacement}",\n`;
-
-    if (suggestion.reason) {
-      formattedText += `    reason: "${suggestion.reason}",\n`;
-    }
-
-    if (suggestion.textBefore) {
-      formattedText += `    textBefore: "${suggestion.textBefore}",\n`;
-    }
-
-    if (suggestion.textAfter) {
-      formattedText += `    textAfter: "${suggestion.textAfter}",\n`;
-    }
-
-    // Remove trailing comma for the last property
-    formattedText = formattedText.slice(0, -2) + "\n";
-    formattedText +=
-      "  }" + (index < exampleSuggestions.length - 1 ? ",\n" : "\n");
-  });
-
-  formattedText += "]";
 
   // Use a pre element to preserve formatting
-  suggestionsDiv.innerHTML = `<pre>${formattedText}</pre>`;
+  suggestionsDiv.innerHTML = `<pre>${JSON.stringify(exampleSuggestions, null, 2)}</pre>`;
 });

@@ -173,12 +173,6 @@ The development server will be available at:
 http://localhost:8080
 
 
-## TODO
-
-- make hover menu customizable
-- combine accepting and rejecting two an add and delete together when next to each other (potentially make a suggestion_replace mark)
-- add reasons to suggestions display
-
 ## Implementation choices
 
 For simplicity this is not really a diffing capability where you can input two different versions and see the changes.  Instead if a user makes changes with a suggestion mode enabled, the changes are stored as extra markup on the document.  It's not really version control, it's just a way to make suggestions.

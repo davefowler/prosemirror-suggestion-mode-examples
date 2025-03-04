@@ -1,7 +1,7 @@
 import { PluginKey } from "prosemirror-state";
 
 // Define interfaces for plugin state
-export interface SuggestionsPluginState {
+export interface SuggestionModePluginState {
   inSuggestionMode: boolean;
   username: string;
   data?: Record<string, any>;
@@ -9,6 +9,6 @@ export interface SuggestionsPluginState {
 }
 
 // Plugin key for accessing the plugin state
-export const suggestionsPluginKey = new PluginKey<SuggestionsPluginState>(
+export const suggestionModePluginKey = new PluginKey<SuggestionModePluginState>(
   "suggestions"
 );

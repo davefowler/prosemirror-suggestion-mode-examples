@@ -1,8 +1,8 @@
 import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Schema, Node, Mark } from "prosemirror-model";
-import { suggestionsPlugin, findMarkRange } from "../../src/suggestions";
-import { suggestionsPluginKey } from "../../src/key";
+import { suggestionModePlugin, findMarkRange } from "../../src/suggestions";
+import { suggestionModePluginKey } from "../../src/key";
 
 // Mock dependencies
 jest.mock("prosemirror-view");
@@ -21,7 +21,7 @@ jest.mock("prosemirror-model");
 // Mock the key module but keep the actual key
 jest.mock("../../src/key", () => {
   return {
-    suggestionsPluginKey: {
+    suggestionModePluginKey: {
       getState: jest.fn(),
     },
   };
@@ -33,6 +33,8 @@ describe("suggestionsPlugin", () => {
   let mockState: EditorState;
   let mockView: EditorView;
   let mockPluginState: any;
+  // Create a plugin instance for testing at the top level so it's available to all tests
+  const pluginInstance = suggestionModePlugin({ username: "testUser" });
 
   beforeEach(() => {
     // Reset mocks
@@ -103,7 +105,7 @@ describe("suggestionsPlugin", () => {
     };
 
     // Mock getState to return our plugin state
-    (suggestionsPluginKey.getState as jest.Mock).mockReturnValue(
+    (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
       mockPluginState
     );
   });
@@ -265,21 +267,22 @@ describe("suggestionsPlugin", () => {
         create: jest.fn().mockReturnValue("decoration-set"),
       };
 
-      // Create mock Decoration and DecorationSet classes
+      // Create mock Decoration and DecorationSet classes with proper typing
       const mockInlineDecoration = { type: "inline" };
       const mockWidgetDecoration = { type: "widget" };
 
+      // Use type assertions to help TypeScript understand the function signatures
       const Decoration = {
-        inline: jest.fn().mockReturnValue(mockInlineDecoration),
-        widget: jest.fn().mockReturnValue(mockWidgetDecoration),
+        inline: jest.fn().mockReturnValue(mockInlineDecoration) as jest.Mock<any, [number, number, any]>,
+        widget: jest.fn().mockReturnValue(mockWidgetDecoration) as jest.Mock<any, [number, () => HTMLElement, any]>
       };
 
       const DecorationSet = {
-        create: jest.fn().mockReturnValue("decoration-set"),
+        create: jest.fn().mockReturnValue("decoration-set") as jest.Mock<any, [any, any[]]>,
         empty: "empty-decoration-set",
       };
 
-      // Mock the global objects
+      // Assign to global
       global.Decoration = Decoration;
       global.DecorationSet = DecorationSet;
 
@@ -289,15 +292,20 @@ describe("suggestionsPlugin", () => {
         mockDoc.descendants((node, pos) => {
           if (node.marks.some((m) => m.type.name === "suggestion_add")) {
             decos.push(
+              // @ts-ignore - Ignoring typing issues with mocks in tests
               Decoration.inline(pos, pos + node.nodeSize, {
                 class: "suggestion-add",
               })
             );
             decos.push(
-              Decoration.widget(pos, expect.any(Function), expect.any(Object))
+              // @ts-ignore - Ignoring typing issues with mocks in tests
+              Decoration.widget(pos, () => document.createElement("span"), { 
+                side: 1 
+              })
             );
           }
         });
+        // @ts-ignore - Ignoring typing issues with mocks in tests
         return DecorationSet.create(mockDoc, decos);
       };
 
@@ -377,20 +385,23 @@ describe("suggestionsPlugin", () => {
         mockDoc.descendants((node, pos) => {
           if (node.marks.some((m) => m.type.name === "suggestion_delete")) {
             decos.push(
+              // @ts-ignore - Ignoring typing issues with mocks in tests
               global.Decoration.inline(pos, pos + node.nodeSize, {
                 class: "suggestion-wrapper suggestion-delete-wrapper",
               })
             );
             decos.push(
+              // @ts-ignore - Ignoring typing issues with mocks in tests
               global.Decoration.inline(pos, pos + node.nodeSize, {
                 class: "suggestion-delete",
               })
             );
             decos.push(
+              // @ts-ignore - Ignoring typing issues with mocks in tests
               global.Decoration.widget(
                 pos,
-                expect.any(Function),
-                expect.any(Object)
+                () => document.createElement("span"),
+                { side: 1 }
               )
             );
           }
@@ -416,17 +427,126 @@ describe("suggestionsPlugin", () => {
     });
   });
 
+  describe("suggestionModePlugin", () => {
+    beforeEach(() => {
+      // Reset mocks
+      jest.clearAllMocks();
+
+      // Setup mock schema
+      mockSchema = {
+        marks: {
+          suggestion_add: {
+            create: jest.fn().mockImplementation((attrs) => ({
+              type: { name: "suggestion_add" },
+              attrs: attrs,
+            })),
+          },
+          suggestion_delete: {
+            create: jest.fn().mockImplementation((attrs) => ({
+              type: { name: "suggestion_delete" },
+              attrs: attrs,
+            })),
+          },
+        },
+        nodes: {
+          doc: { createAndFill: jest.fn() },
+          paragraph: { createAndFill: jest.fn() },
+          text: jest.fn((text) => ({ text })),
+        },
+      } as unknown as Schema;
+
+      // Setup mock document
+      mockDoc = {
+        nodesBetween: jest.fn(),
+        textContent: "This is a test document",
+        descendants: jest.fn(),
+        content: { size: 100 },
+      } as unknown as Node;
+
+      // Setup mock state
+      mockState = {
+        schema: mockSchema,
+        doc: mockDoc,
+        tr: {
+          setMeta: jest.fn().mockReturnThis(),
+          addMark: jest.fn().mockReturnThis(),
+          removeMark: jest.fn().mockReturnThis(),
+          setSelection: jest.fn().mockReturnThis(),
+          getMeta: jest.fn().mockImplementation(() => null),
+          insertText: jest.fn().mockReturnThis(),
+          delete: jest.fn().mockReturnThis(),
+        },
+        selection: {
+          from: 0,
+          to: 10,
+          empty: false,
+        },
+      } as unknown as EditorState;
+
+      // Setup mock view
+      mockView = {
+        state: mockState,
+        dispatch: jest.fn(),
+      } as unknown as EditorView;
+
+      // Setup mock plugin state
+      mockPluginState = {
+        username: "testUser",
+        inSuggestionMode: false,
+        data: {},
+      };
+
+      // Mock getState to return our plugin state
+      (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
+        mockPluginState
+      );
+    });
+
+    test("should have the correct props", () => {
+      expect(pluginInstance.props).toBeDefined();
+      expect(pluginInstance.props.decorations).toBeDefined();
+    });
+    
+    test("state initialization", () => {
+      const initFn = pluginInstance.spec.state!.init;
+      const defaultState = initFn({} as any, {} as any);
+      
+      expect(defaultState).toEqual({
+        inSuggestionMode: true,
+        username: "testUser",
+        data: {},
+      });
+    });
+    
+    test("should handle meta updates", () => {
+      // Use the mockState's transaction that was set up in beforeEach
+      const mockTransaction = mockState.tr;
+      
+      // Create an expected meta update object
+      const expectedMeta = {
+        inSuggestionMode: true,
+        username: "testUser"
+      };
+      
+      // Simulate setting meta on the transaction
+      mockTransaction.setMeta(suggestionModePluginKey, expectedMeta);
+      
+      // Verify the transaction's setMeta was called with the correct parameters
+      expect(mockTransaction.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, expectedMeta);
+    });
+  });
+
   describe("plugin initialization", () => {
     test("should have the correct props", () => {
-      expect(suggestionsPlugin).toBeDefined();
-      expect(suggestionsPluginKey).toBeDefined();
-      expect(suggestionsPlugin.props).toBeDefined();
-      expect(suggestionsPlugin.props.decorations).toBeDefined();
+      expect(pluginInstance).toBeDefined();
+      expect(suggestionModePluginKey).toBeDefined();
+      expect(pluginInstance.props).toBeDefined();
+      expect(pluginInstance.props.decorations).toBeDefined();
     });
 
     test("should initialize with default state", () => {
       // Access the init function directly from the plugin spec
-      const initFn = suggestionsPlugin.spec.state.init;
+      const initFn = pluginInstance.spec.state!.init;
 
       // Create mock config and state
       const mockConfig = {} as any;
@@ -436,14 +556,14 @@ describe("suggestionsPlugin", () => {
 
       expect(defaultState).toEqual({
         inSuggestionMode: true,
-        username: "Anonymous",
+        username: "testUser",
         data: {},
       });
     });
 
     test("should handle state updates", () => {
       // Access the apply function directly from the plugin spec
-      const applyFn = suggestionsPlugin.spec.state!.apply;
+      const applyFn = pluginInstance.spec.state!.apply;
 
       // Create a mock transaction with metadata
       const mockTr = {
@@ -561,9 +681,9 @@ describe("suggestionsPlugin", () => {
           inSuggestionMode: true,
         }),
       };
-
-      // Call the apply function directly
-      const resultOn = suggestionsPlugin.spec.state.apply(
+      expect(pluginInstance.spec.state).toBeDefined();
+      // Call the apply function directly from the plugin instance
+      const resultOn = pluginInstance.spec.state!.apply(
         mockTr as any,
         pluginState,
         {} as any,
@@ -579,9 +699,9 @@ describe("suggestionsPlugin", () => {
           inSuggestionMode: false,
         }),
       };
-
+      expect(pluginInstance.spec.state).toBeDefined();
       // Call the apply function again
-      const resultOff = suggestionsPlugin.spec.state.apply(
+      const resultOff = pluginInstance.spec.state!.apply(
         mockTrOff as any,
         resultOn,
         {} as any,

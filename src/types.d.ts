@@ -46,24 +46,24 @@ declare module "prosemirror-model" {
 }
 
 // Module declarations for webpack alias
-declare module "prosemirror-suggest-mode" {
+declare module "prosemirror-suggestion-mode" {
   export * from "./index";
 }
 
-declare module "prosemirror-suggest-mode/suggestions" {
+declare module "prosemirror-suggestion-mode/suggestions" {
   export * from "./suggestions";
 }
 
-declare module "prosemirror-suggest-mode/schema" {
+declare module "prosemirror-suggestion-mode/schema" {
   export * from "./schema";
 }
 
-declare module "prosemirror-suggest-mode/styles/default.css" {
+declare module "prosemirror-suggestion-mode/styles/default.css" {
   const content: any;
   export default content;
 }
 
-declare module "prosemirror-suggest-mode/styles/inkAndSwitch.css" {
+declare module "prosemirror-suggestion-mode/styles/inkAndSwitch.css" {
   const content: any;
   export default content;
 }

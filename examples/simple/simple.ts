@@ -3,20 +3,20 @@ import { EditorView } from "prosemirror-view";
 import { baseKeymap } from "prosemirror-commands";
 import { keymap } from "prosemirror-keymap";
 import {
-  suggestionsPlugin,
+  suggestionModePlugin,
   acceptAllSuggestions,
   rejectAllSuggestions,
   setSuggestionMode,
-  suggestionsPluginKey,
-} from "prosemirror-suggest-mode";
-import { addSuggestionMarks } from "prosemirror-suggest-mode/schema";
+} from "prosemirror-suggestion-mode";
+import { addSuggestionMarks } from "prosemirror-suggestion-mode/schema";
 import { DOMParser } from "prosemirror-model";
 import { schema } from "prosemirror-schema-basic";
 import { addListNodes } from "prosemirror-schema-list";
 import { Schema } from "prosemirror-model";
 
 // Import a theme for the suggestions or create your own
-import "prosemirror-suggest-mode/styles/default.css";
+import "prosemirror-suggestion-mode/styles/default.css";
+import "prosemirror-suggestion-mode/styles/default.css";
 
 const exampleSchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
@@ -41,21 +41,19 @@ window.addEventListener("load", () => {
   const state = EditorState.create({
     schema: exampleSchema,
     doc,
-    plugins: [keymap(baseKeymap), suggestionsPlugin],
+    plugins: [
+      keymap(baseKeymap), // basic keymap for the editor 
+      // suggestion mode plugin factory function with init values
+      suggestionModePlugin({ 
+        username: "example user", 
+        data: { // put any custom ata here that you want added as attrs to the hover tooltip
+            exampleattr: "these get added to the attrs of the the hover tooltip" 
+          } 
+      })],
   });
 
   // Create the editor view
   const view = new EditorView(document.querySelector("#editor"), { state });
-
-  // set the username of the editor
-  view.dispatch(
-    view.state.tr.setMeta(suggestionsPluginKey, {
-      username: "Your username",
-      data: {
-        exampleattr: "these get added to the attrs of the the hover tooltip",
-      },
-    })
-  );
 
   // Add event listeners for the controls
   document

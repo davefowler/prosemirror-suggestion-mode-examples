@@ -1,15 +1,17 @@
 import { EditorView } from "prosemirror-view";
 import { Mark } from "prosemirror-model";
 import { acceptSuggestion, rejectSuggestion, acceptAllSuggestions, rejectAllSuggestions } from "../../src/tools/accept-reject";
-import { suggestionsPluginKey } from "../../src/key";
+import { suggestionModePluginKey } from "../../src/key";
 
 // Mock dependencies
 jest.mock("prosemirror-view");
-jest.mock("../../src/key", () => ({
-  suggestionsPluginKey: {
-    getState: jest.fn(),
-  },
-}));
+jest.mock("../../src/key", () => {
+  return {
+    suggestionModePluginKey: {
+      getState: jest.fn(),
+    },
+  };
+});
 
 describe("accept-reject functions", () => {
   let mockView: jest.Mocked<EditorView>;
@@ -103,7 +105,7 @@ describe("accept-reject functions", () => {
 
       // Should set meta to mark this as a suggestion operation
       expect(mockTr.setMeta).toHaveBeenCalledWith(
-        suggestionsPluginKey, 
+        suggestionModePluginKey, 
         { suggestionOperation: true }
       );
 
@@ -120,7 +122,7 @@ describe("accept-reject functions", () => {
 
       // Should set meta to mark this as a suggestion operation
       expect(mockTr.setMeta).toHaveBeenCalledWith(
-        suggestionsPluginKey, 
+        suggestionModePluginKey, 
         { suggestionOperation: true }
       );
 
@@ -139,7 +141,7 @@ describe("accept-reject functions", () => {
 
       // Should set meta to mark this as a suggestion operation
       expect(mockTr.setMeta).toHaveBeenCalledWith(
-        suggestionsPluginKey, 
+        suggestionModePluginKey, 
         { suggestionOperation: true }
       );
 
@@ -156,7 +158,7 @@ describe("accept-reject functions", () => {
 
       // Should set meta to mark this as a suggestion operation
       expect(mockTr.setMeta).toHaveBeenCalledWith(
-        suggestionsPluginKey, 
+        suggestionModePluginKey, 
         { suggestionOperation: true }
       );
 

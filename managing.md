@@ -19,7 +19,7 @@ npm test
 ## Deploying to netlify
 
 ```bash
-npm run deploy:netlify
+npm run deploy:netlify:prod
 ```
 
 

@@ -1,17 +1,18 @@
 import { EditorView } from "prosemirror-view";
 import { setSuggestionMode } from "../../src/tools/setMode";
-import { suggestionsPluginKey } from "../../src/key";
-import { suggestionsPlugin } from "../../src/suggestions";
-
+import { suggestionModePluginKey } from "../../src/key";
+import { suggestionModePlugin } from "../../src/suggestions";
 // Mock dependencies
 jest.mock("prosemirror-view");
-jest.mock("../../src/key", () => ({
-  suggestionsPluginKey: {
-    getState: jest.fn(),
-  },
-}));
+jest.mock("../../src/key", () => {
+  return {
+    suggestionModePluginKey: {
+      getState: jest.fn(),
+    },
+  };
+});
 jest.mock("../../src/suggestions", () => ({
-  suggestionsPlugin: {},
+  suggestionModePlugin: {},
 }));
 
 describe("setSuggestionMode", () => {
@@ -48,7 +49,7 @@ describe("setSuggestionMode", () => {
     };
 
     // Mock getState to return our plugin state
-    (suggestionsPluginKey.getState as jest.Mock).mockReturnValue(
+    (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
       mockPluginState
     );
   });
@@ -57,7 +58,7 @@ describe("setSuggestionMode", () => {
     setSuggestionMode(mockView, true);
 
     // Should set meta with updated state
-    expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionsPlugin, {
+    expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
       ...mockPluginState,
       inSuggestionMode: true,
     });
@@ -70,7 +71,7 @@ describe("setSuggestionMode", () => {
     setSuggestionMode(mockView, false);
 
     // Should set meta with updated state
-    expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionsPlugin, {
+    expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
       ...mockPluginState,
       inSuggestionMode: false,
     });
@@ -81,7 +82,7 @@ describe("setSuggestionMode", () => {
 
   test("should do nothing if plugin state is null", () => {
     // Mock getState to return null
-    (suggestionsPluginKey.getState as jest.Mock).mockReturnValueOnce(null);
+    (suggestionModePluginKey.getState as jest.Mock).mockReturnValueOnce(null);
 
     setSuggestionMode(mockView, true);
 
@@ -97,7 +98,7 @@ describe("setSuggestionMode", () => {
 
     // Should preserve custom properties
     expect(mockTr.setMeta).toHaveBeenCalledWith(
-      suggestionsPlugin,
+      suggestionModePluginKey,
       expect.objectContaining({
         customProp: "customValue",
         inSuggestionMode: true,

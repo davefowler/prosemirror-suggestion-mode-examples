@@ -125,7 +125,7 @@ export const suggestionModePlugin = (
                 newState.schema.marks.suggestion_delete.create({
                   createdAt: Date.now(),
                   username: pluginState.username,
-                  data: { ...pluginState.data, ...meta.data },
+                  data: { ...pluginState.data, ...meta?.data || {} },
                 })
               );
               changed = true;
@@ -163,7 +163,7 @@ export const suggestionModePlugin = (
                 newState.schema.marks.suggestion_add.create({
                   createdAt: Date.now(),
                   username: pluginState.username,
-                  data: { ...pluginState.data, ...meta.data },
+                  data: { ...pluginState.data, ...meta?.data || {} },
                 })
               );
               changed = true;

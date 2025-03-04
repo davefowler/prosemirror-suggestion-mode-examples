@@ -17,7 +17,7 @@
     z-index: 10;
     bottom: 100%; /* Position above the text */
     left: 0;
-    margin-bottom: 5px; /* Add space between hover-menu and text */
+    margin-bottom: 0px; /* Add space between hover-menu and text */
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     min-width: 150px;
     white-space: nowrap;

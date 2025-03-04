@@ -8,6 +8,7 @@
 - Fully renamed to prosemirror-suggestion-mode from prosemirror-suggestions to avoid confusion with another lib
 - Made the hover menu extendable
 - Added a new example called inkAndSwitch which shows how to use the suggestion mode in a more complex example
+- fixed suggestEdit demo to show reason in hover menu
 
 ## 1.0.01
 

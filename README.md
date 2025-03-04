@@ -38,7 +38,7 @@ yarn add prosemirror-suggestion-mode
 
 ### Basic Setup
 
-First import the helper to add the plugin's marks to your schema.  
+First import the *addSuggestionMarks* helper to add the plugin's marks to your schema.  
 
 ```javascript
 import { addSuggestionMarks } from "prosemirror-suggestion-mode/schema";
@@ -52,7 +52,7 @@ const exampleSchema = new Schema({
 });
 ```
 
-Then add the plugin to your plugins array when you create the editor
+Then add the plugin to your plugins array with the *suggestionModePlugin* plugin factory function when you create the editor
 
 ```javascript
   import { suggestionModePlugin } from 'prosemirror-suggestion-mode'
@@ -74,7 +74,7 @@ Then add the plugin to your plugins array when you create the editor
 the init options for the plugin are:
 
 ```javascript
-username?: string; 
+username?: string; // of who is making the suggestions
 data?: Record<string, any>; // custom metadata that will get added to the attrs of the mark nodes
 hoverMenuRenderer?: (mark: Mark, view: EditorView, pos: number) => HTMLElement;  // override to create a fully custom hover menu
 hoverMenuOptions?: { // override parts of this to customise just parts of the hover menu
@@ -87,7 +87,7 @@ hoverMenuOptions?: { // override parts of this to customise just parts of the ho
 ```
 
 
-### Toggle Suggestion Mode and Set Metadata
+### Toggle Suggestion Mode 
 
 
 There are a few helpers for common tasks like:
@@ -100,13 +100,13 @@ setSuggestionMode(view, true); // enable suggestion mode
 setSuggestionMode(view, false); // disable suggestion mode
 ```
 
+### Change the username or data
 
-To cahnge username and data that will get stored in the suggestion mark attributes you can do:
+To change the username and data that will get stored in the suggestion mark attributes you can do:
 
 ```javascript
 // Change username and data
 view.dispatch(view.state.tr.setMeta(suggestionModePlugin, {
-  suggestionMode: true,
   username: 'JaneSmith',
   data: {
     department: 'Marketing',

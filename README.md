@@ -8,8 +8,8 @@ A ProseMirror plugin that implements a "suggestion mode" method to track and sho
 Check out the [live demos](https://prosemirror-suggestion-mode.netlify.app) 
 
  - [Simple example](https://prosemirror-suggestion-mode.netlify.app/examples/simple/)
- - [Text based suggestions (for AI)](https://prosemirror-suggestion-mode.netlify.app/examples/suggestedit/)
- - [Style/decorator additions](https://prosemirror-suggestion-mode.netlify.app/examples/inkandswitch/)
+ - [Text based suggestions (for AI) & Custom Hover Menu example ](https://prosemirror-suggestion-mode.netlify.app/examples/suggestedit/)
+ - [Custom Hover Menu Advanced Example](https://prosemirror-suggestion-mode.netlify.app/examples/inkandswitch/)
 
 [![ProseMirror Suggestion Mode Demo](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/assets/prosemirror-suggestion-mode-demo.png?raw=true)](https://prosemirror-suggestion-mode.netlify.app/examples/simple/)
 
@@ -38,35 +38,72 @@ yarn add prosemirror-suggestion-mode
 
 ### Basic Setup
 
-```javascript
-import { suggestionModePlugin } from 'prosemirror-suggestion-mode'
+First import the helper to add the plugin's marks to your schema.  
 
-// Add to your ProseMirror plugins
-const plugins = [
-  suggestionModePlugin,
-  // ... other plugins
-]
+```javascript
+import { addSuggestionMarks } from "prosemirror-suggestion-mode/schema";
+
+const exampleSchema = new Schema({
+  nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
+
+  // When creating your schema, wrap the marks in the addSuggestionMarks function
+  // this will add the needed suggestion_add and suggestion_delete marks to the schema
+  marks: addSuggestionMarks(schema.spec.marks),
+});
 ```
+
+Then add the plugin to your plugins array when you create the editor
+
+```javascript
+  import { suggestionModePlugin } from 'prosemirror-suggestion-mode'
+  const state = EditorState.create({
+    schema: exampleSchema,
+    doc,
+    plugins: [
+      keymap(baseKeymap), // basic keymap for the editor 
+      // suggestion mode plugin factory function with init values
+      suggestionModePlugin({ 
+        username: "example user", 
+        data: { // put any custom ata here that you want added as attrs to the hover tooltip
+            exampleattr: "these get added to the attrs of the the hover tooltip" 
+          } 
+      })],
+  });
+```
+
+the init options for the plugin are:
+
+```javascript
+username?: string; 
+data?: Record<string, any>; // custom metadata that will get added to the attrs of the mark nodes
+hoverMenuRenderer?: (mark: Mark, view: EditorView, pos: number) => HTMLElement;  // override to create a fully custom hover menu
+hoverMenuOptions?: { // override parts of this to customise just parts of the hover menu
+  components?: {
+    createInfoComponent?: (mark: Mark, view: EditorView, pos: number) => HTMLElement; // override to create a custom info component above the buttons
+    createButtonsComponent?: (mark: Mark, view: EditorView, pos: number) => HTMLElement; // override to create a custom buttons component below the info component
+  };
+  menuClass?: string; // class to apply to the hover menu
+};  
+```
+
 
 ### Toggle Suggestion Mode and Set Metadata
 
+
+There are a few helpers for common tasks like:
+
+Setting the suggestion mode on/off
+
 ```javascript
-// Enable suggestion mode with username and custom data
-view.dispatch(view.state.tr.setMeta(suggestionModePlugin, {
-  suggestionMode: true,
-  username: 'JohnDoe',
-  data: {
-    department: 'Engineering',
-    priority: 'high',
-    reviewerId: 'REV-123'
-  }
-}))
+import { setSuggestionMode } from 'prosemirror-suggestion-mode'
+setSuggestionMode(view, true); // enable suggestion mode
+setSuggestionMode(view, false); // disable suggestion mode
+```
 
-// Disable suggestion mode
-view.dispatch(view.state.tr.setMeta(suggestionModePlugin, {
-  suggestionMode: false
-}))
 
+To cahnge username and data that will get stored in the suggestion mark attributes you can do:
+
+```javascript
 // Change username and data
 view.dispatch(view.state.tr.setMeta(suggestionModePlugin, {
   suggestionMode: true,
@@ -80,78 +117,45 @@ view.dispatch(view.state.tr.setMeta(suggestionModePlugin, {
 
 The `data` attribute can contain any JSON-serializable object. This data will be stored with the suggestion mark and displayed in the tooltip by default.
 
-Each suggestion will now be tagged with the username of the person who made it. This is useful for:
-- Tracking who made which suggestions
-- Filtering suggestions by user
-- Displaying user information in the UI when hovering over suggestions
 
 ### Accept/Reject Suggestions
 
-```javascript
-// Accept a suggestion at the current selection
-suggestionModePlugin.accept(view)
-
-// Reject a suggestion at the current selection
-suggestionModePlugin.reject(view)
-```
-
-### Customizing Tooltips
-
-You can customize the content and appearance of suggestion tooltips in two ways:
-
-#### 1. Custom Tooltip Renderer
-
-Provide a custom tooltip renderer function when creating the plugin.  If you added extra data to the suggestion mark you can access it in the tooltip renderer.  Below we've added a profile image url.
+Here are the helper functions for accepting and rejecting suggestions individually or in bulk.
 
 ```javascript
-new Plugin({
-    ...suggestionModePlugin,
-    tooltipRenderer: (mark, type) => {
-        // mark contains attrs like username, createdAt
-        // type is either 'add' or 'delete'
-        return `<img src="${mark.attrs.data.profileImageUrl}" /> ${mark.attrs.username} edited on ${mark.attrs.createdAt}`
-    }
-})
+import { acceptSuggestion, rejectSuggestion, acceptAllSuggestions, rejectAllSuggestions } from 'prosemirror-suggestion-mode'
+// Accept a suggestion at the given mark and position
+acceptSuggestion(view, mark, pos)
+
+// Reject a suggestion at the given mark and position
+rejectSuggestion(view, mark, pos)
+
+// Accept all suggestions
+acceptAllSuggestions(view)
+
+// Reject all suggestions
+rejectAllSuggestions(view)
 ```
+
+### Customizing the Hover Menu
+
+You can customize the content and appearance of suggestion hover menu by either overwritting a component of the default hover menu, or by providing your own full hover menu renderer.
+
+See the examples for more details: 
+ - [SuggestEdit Example](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/examples/suggestEdit/suggestEditDemo.ts) - puts 'reasons' in the hover menu [demo](https://prosemirror-suggestion-mode.netlify.app/examples/suggestedit/)
+ - [Ink & Switch Example ](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/examples/inkAndSwitch/inkAndSwitch.ts) - hides the deletes and shows what was deleted only on hover [demo](https://prosemirror-suggestion-mode.netlify.app/examples/inkandswitch/) 
+
 
 #### 2. CSS Styling
 
-Override the default tooltip styles in your CSS:
+For basic styling you can simply import the [default styles](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/src/styles/default.css) 
 
-```css
-.suggestion-tooltip {
-    /* Change tooltip background */
-    background: #444;
-    
-    /* Modify padding/spacing */
-    padding: 8px 12px;
-    
-    /* Customize font */
-    font-size: 13px;
-    font-family: sans-serif;
-}
-
-/* Style the tooltip arrow */
-.suggestion-tooltip::after {
-    border-top-color: #444;
-}
-
-/* Adjust tooltip position */
-.suggestion-tooltip-wrapper {
-    margin-top: 5px;
-}
+```javascript
+import 'prosemirror-suggestion-mode/styles/default.css'
 ```
 
-The tooltipRenderer function gives you full control over the tooltip content, while CSS customization lets you style the tooltip appearance.
+The hover menu customizations give you full control over the hover menu content, while CSS customization lets you style the hover menu appearance.
 
-### Accepting/Rejecting All Suggestions
-
-The plugin exposes two utility functions for bulk processing of suggestions:
-
-- `acceptAllSuggestions(view)`: Accepts all suggestions in the document
-- `rejectAllSuggestions(view)`: Rejects all suggestions in the document
-
-These functions take the EditorView as their only parameter.  See the example for more details.
 
 ## Contributing
 

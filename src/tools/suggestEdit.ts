@@ -21,8 +21,6 @@ const replaceInProsemirror = (
 
   // Store reason in metadata if available
   if (suggestion.reason) {
-
-    console.log('setting reason', suggestion.reason);
     tr.setMeta(suggestionModePluginKey, {
       data: { reason: suggestion.reason },
     });

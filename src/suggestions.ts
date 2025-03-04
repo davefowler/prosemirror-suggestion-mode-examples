@@ -80,7 +80,7 @@ export const suggestionModePlugin = (
             );
 
             if (isInsideSuggestionMark) {
-              console.log('isInsideSuggestionMark', isInsideSuggestionMark, from);
+              // console.log('isInsideSuggestionMark', isInsideSuggestionMark, from);
               // We are already inside a suggestion mark, let normal editing happen
               return;
             }

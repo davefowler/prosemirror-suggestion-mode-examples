@@ -37,7 +37,6 @@ const createSuggestionReasonComponent = (mark: any, view: EditorView, pos: numbe
   const reasonDiv = document.createElement('div');
   reasonDiv.className = 'suggestion-reason';
   const reason = mark.attrs.data?.reason;
-  console.log('reason', reason, 'mark', mark);
   if (reason) {
     const reasonLabel = document.createElement('strong');
     reasonLabel.textContent = 'Reason: ';

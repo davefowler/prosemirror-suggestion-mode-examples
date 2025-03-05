@@ -512,7 +512,7 @@ describe("suggestionsPlugin", () => {
       const defaultState = initFn({} as any, {} as any);
       
       expect(defaultState).toEqual({
-        inSuggestionMode: true,
+        inSuggestionMode: false,
         username: "testUser",
         data: {},
       });
@@ -555,7 +555,7 @@ describe("suggestionsPlugin", () => {
       const defaultState = initFn(mockConfig, mockState);
 
       expect(defaultState).toEqual({
-        inSuggestionMode: true,
+        inSuggestionMode: false,
         username: "testUser",
         data: {},
       });

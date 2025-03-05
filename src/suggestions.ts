@@ -12,6 +12,7 @@ import {
 
 // Plugin options interface
 export interface SuggestionModePluginOptions {
+  inSuggestionMode?: boolean; // starting status of suggestion mode
   username?: string;
   data?: Record<string, any>;
   hoverMenuRenderer?: SuggestionHoverMenuRenderer;
@@ -184,7 +185,7 @@ export const suggestionModePlugin = (
     state: {
       init(): SuggestionModePluginState {
         return {
-          inSuggestionMode: true,
+          inSuggestionMode: options.inSuggestionMode || false,
           username: options.username || "Anonymous",
           data: options.data || {},
         };

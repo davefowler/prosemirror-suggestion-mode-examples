@@ -70,6 +70,7 @@ window.addEventListener("load", () => {
     doc,
     plugins: [keymap(baseKeymap), suggestionModePlugin({
       username: "example user",
+      inSuggestionMode: true, // start in suggestion mode - toggled below
       // Add hover menu options to show suggestion reasons
       hoverMenuOptions: {
         components: {

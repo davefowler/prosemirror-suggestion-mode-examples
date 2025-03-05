@@ -81,6 +81,7 @@ window.addEventListener("load", () => {
       keymap(baseKeymap), 
       suggestionModePlugin({
         username: "example user",
+        inSuggestionMode: true, // start in suggestion mode - toggled below
         // Add hover menu options to show deleted text
         hoverMenuOptions: {
             components: {

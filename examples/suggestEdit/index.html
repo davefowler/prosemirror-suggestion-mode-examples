@@ -10,10 +10,13 @@
             padding: 20px;
             text-align: center;
         }
-        .suggestions-container {
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 800px;
             text-align: left;
-            max-width: 800px;
-            margin: 20px auto;
+            margin-left: auto;
+            margin-right: auto;
         }
         .ProseMirror {
             white-space: pre-wrap;
@@ -36,39 +39,41 @@
     </style>
 </head>
 <body>
-    <h1>Prosemirror-suggestion-mode suggestEdit Example</h1>
+    <div class="container">
+        <h1>Prosemirror-suggestion-mode suggestEdit Example</h1>
 
-    <p>Will apply these suggestions to the editor:</p>
+        <div id="editor" class="editor"></div>
+        <div class="controls">
+            <label>
+                <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
+            </label>
+            
+            <!-- Buttons to accept/reject all suggestions -->
+            <button id="acceptAllSuggestions" class="suggestion-accept">Accept All</button>
+            <button id="rejectAllSuggestions" class="suggestion-reject">Reject All</button>
+            <span id="modeIndicator"></span>
+        </div>
 
-    <div class="suggestions-container">
+        <p>In the above example we apply the suggestions to the editor using a potentially easier api, one especially useful for AI contributions.  Here's an example of some suggestions to input:</p>
+
         <pre id="suggestions"></pre>
     
 
-    You can apply the suggestions with this tool 
-    <pre>
-        suggestEdit(view, [
-            {
-                textToReplace: "pre-eminence",
-                textReplacement: "pre-eminence",
-                reason: "Corrected spelling",
-                textBefore: "Whether it will become a ",
-                textAfter: " can we help decide",
-            },   
-        ], "username");
-    </pre>
-</div>
-    <div class="controls">
-        <label>
-            <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
-        </label>
-        
-        <!-- Buttons to accept/reject all suggestions -->
-        <button id="acceptAllSuggestions" class="suggestion-accept">Accept All</button>
-        <button id="rejectAllSuggestions" class="suggestion-reject">Reject All</button>
-        <span id="modeIndicator"></span>
-    </div>
+        <p>You can apply the suggestions of that format with the <b>suggestEdit</b> function</p>
+        <pre>
+import { suggestEdit } from "prosemirror-suggestion-mode";
+suggestEdit(view, [
+    {
+    "textToReplace": "pre-eminence",
+    "textReplacement": "leadership position",
+    "reason": "Using more common terminology",
+    "textBefore": "only if the United States occupies a position of ",
+    "textAfter": " can we help decide"
+  } 
+], "username");
+        </pre>
 
-    <div id="editor" class="editor"></div>
+    </div>
 
     <script src="/examples/suggestEdit/suggestEditDemo.js"></script>
 </body>

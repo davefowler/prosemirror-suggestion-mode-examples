@@ -46,6 +46,7 @@ window.addEventListener("load", () => {
       // suggestion mode plugin factory function with init values
       suggestionModePlugin({ 
         username: "example user", 
+        inSuggestionMode: true, // start in suggestion mode - toggled below
         data: { // put any custom ata here that you want added as attrs to the hover tooltip
             exampleattr: "these get added to the attrs of the the hover tooltip" 
           } 

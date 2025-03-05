@@ -10,6 +10,15 @@
             padding: 20px;
             text-align: center;
         }
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 800px;
+            text-align: left;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         .ProseMirror {
             white-space: pre-wrap;
             background: white;
@@ -31,9 +40,10 @@
     </style>
 </head>
 <body>
-    <h1>Simple Prosemirror Suggestion Mode Example</h1>
-    <div class="controls">
-        <label>
+    <div class="container">
+        <h1>Simple Prosemirror Suggestion Mode Example</h1>
+        <div class="controls">
+            <label>
             <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
         </label>
         
@@ -41,8 +51,10 @@
         <button id="acceptAllSuggestions" class="suggestion-accept">Accept All</button>
         <button id="rejectAllSuggestions" class="suggestion-reject">Reject All</button>
         <span id="modeIndicator"></span>
+        </div>
+        <div id="editor" class="editor"></div>
     </div>
-    <div id="editor" class="editor"></div>
     <script src="simple.js"></script>
+
 </body>
 </html>

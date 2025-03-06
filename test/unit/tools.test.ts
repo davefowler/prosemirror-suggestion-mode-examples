@@ -99,7 +99,6 @@ describe("suggestEdit", () => {
   });
 
   test("should handle suggestions with empty textToReplace", () => {
-    console.log("empty text to replace starting");
     const suggestions: TextSuggestion[] = [
       {
         textToReplace: "",

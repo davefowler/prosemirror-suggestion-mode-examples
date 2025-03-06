@@ -1,4 +1,5 @@
-import { Schema } from "prosemirror-model";
+import { Schema, MarkSpec } from "prosemirror-model";
+import { Schema as SchemaType } from "prosemirror-model";
 
 // Define suggestion marks
 export const suggestionMarks = {
@@ -43,9 +44,11 @@ export const suggestionMarks = {
 };
 
 // Helper function to add suggestion marks to an existing schema
-export const addSuggestionMarks = (marks: Schema["spec"]["marks"]): Record<string, any> => {
+export const addSuggestionMarks = (
+  marks: SchemaType["spec"]["marks"] | Record<string, MarkSpec>
+): Record<string, MarkSpec> => {
   // Create a new object to store our marks
-  const result: Record<string, any> = {};
+  const result: Record<string, MarkSpec> = {};
   
   // If marks has a forEach method (like OrderedMap), use it to build our object
   if (typeof marks.forEach === 'function') {

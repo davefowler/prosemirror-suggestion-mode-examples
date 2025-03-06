@@ -41,7 +41,7 @@ yarn add prosemirror-suggestion-mode
 First import the *addSuggestionMarks* helper to add the plugin's marks to your schema.  
 
 ```javascript
-import { addSuggestionMarks } from "prosemirror-suggestion-mode/schema";
+import { addSuggestionMarks } from "prosemirror-suggestion-mode";
 
 const exampleSchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
@@ -74,10 +74,12 @@ Then add the plugin to your plugins array with the *suggestionModePlugin* plugin
 the init options for the plugin are:
 
 ```javascript
-username?: string; // of who is making the suggestions
-data?: Record<string, any>; // custom metadata that will get added to the attrs of the mark nodes
-hoverMenuRenderer?: (mark: Mark, view: EditorView, pos: number) => HTMLElement;  // override to create a fully custom hover menu
-hoverMenuOptions?: { // override parts of this to customise just parts of the hover menu
+suggestionModePlugin({
+  inSuggestionMode: false, // starting status of suggestion mode
+  username?: string; // of who is making the suggestions
+  data?: Record<string, any>; // custom metadata that will get added to the attrs of the mark nodes
+  hoverMenuRenderer?: (mark: Mark, view: EditorView, pos: number) => HTMLElement;  // override to create a fully custom hover menu
+  hoverMenuOptions?: { // override parts of this to customise just parts of the hover menu
   components?: {
     createInfoComponent?: (mark: Mark, view: EditorView, pos: number) => HTMLElement; // override to create a custom info component above the buttons
     createButtonsComponent?: (mark: Mark, view: EditorView, pos: number) => HTMLElement; // override to create a custom buttons component below the info component

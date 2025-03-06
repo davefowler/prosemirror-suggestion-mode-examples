@@ -20,6 +20,10 @@ npm test
 
 ```bash
 npm run deploy:netlify:prod
+
+or for short
+
+npm run deploy
 ```
 
 

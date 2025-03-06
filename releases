@@ -1,5 +1,11 @@
 # Release Notes
 
+## 1.0.16
+
+- Updated peer dependencies to match ProseMirror 1.x
+- removed unecessary dev dependencies
+- fixed addSuggestionMarks to accept more flexible mark input types
+- added schema.integration.test.ts to test the addSuggestionMarks function
 
 ## 1.0.11
 

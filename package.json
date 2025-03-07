@@ -15,6 +15,7 @@
     "test:unit": "jest test/unit --runInBand",
     "test:tools": "jest test/unit/tools.test.ts --no-coverage --runInBand",
     "start": "webpack serve --mode development",
+    "dev": "webpack serve --mode development",
     "build": "webpack --mode production",
     "build:lib": "tsc -p tsconfig.lib.json",
     "build:examples": "webpack --mode production",

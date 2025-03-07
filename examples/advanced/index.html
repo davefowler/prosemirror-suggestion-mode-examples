@@ -43,6 +43,10 @@
             display: flex;
             gap: 5px;
             margin-bottom: 10px;
+            padding: 5px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
         .editor-toolbar button {
             padding: 5px 10px;
@@ -50,6 +54,7 @@
             border: 1px solid #ccc;
             border-radius: 3px;
             cursor: pointer;
+            min-width: 30px;
         }
         .editor-toolbar button:hover {
             background: #e1e1e1;
@@ -57,6 +62,10 @@
         .editor-toolbar button.active {
             background: #ddd;
             font-weight: bold;
+        }
+        .separator {
+            margin: 0 5px;
+            color: #ccc;
         }
         .suggestion-controls {
             border-top: 1px solid #eee;
@@ -70,10 +79,14 @@
         <h1>Advanced Prosemirror Suggestion Mode Example</h1>
         
         <div class="editor-toolbar">
-            <button id="bold" title="Bold (Ctrl+B)">B</button>
-            <button id="italic" title="Italic (Ctrl+I)">I</button>
-            <button id="undo" title="Undo (Ctrl+Z)">Undo</button>
-            <button id="redo" title="Redo (Ctrl+Y)">Redo</button>
+            <button id="bold" title="Bold (Ctrl+B)"><strong>B</strong></button>
+            <button id="italic" title="Italic (Ctrl+I)"><em>I</em></button>
+            <button id="h1" title="Heading 1 (Shift+Ctrl+1)">H1</button>
+            <button id="h2" title="Heading 2 (Shift+Ctrl+2)">H2</button>
+            <button id="h3" title="Heading 3 (Shift+Ctrl+3)">H3</button>
+            <span class="separator">|</span>
+            <button id="undo" title="Undo (Ctrl+Z)">↩️</button>
+            <button id="redo" title="Redo (Ctrl+Y)">↪️</button>
         </div>
         
         <div class="suggestion-controls">

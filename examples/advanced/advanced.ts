@@ -1,9 +1,8 @@
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { baseKeymap } from "prosemirror-commands";
+import { baseKeymap, toggleMark, setBlockType } from "prosemirror-commands";
 import { keymap } from "prosemirror-keymap";
 import { history, undo, redo } from "prosemirror-history";
-import { toggleMark } from "prosemirror-commands";
 import {
   suggestionModePlugin,
   acceptAllSuggestions,
@@ -50,6 +49,9 @@ window.addEventListener("load", () => {
         "Mod-Shift-z": redo,
         "Mod-b": toggleMark(advancedSchema.marks.strong),
         "Mod-i": toggleMark(advancedSchema.marks.em),
+        "Shift-Ctrl-1": setBlockType(advancedSchema.nodes.heading, { level: 1 }),
+        "Shift-Ctrl-2": setBlockType(advancedSchema.nodes.heading, { level: 2 }),
+        "Shift-Ctrl-3": setBlockType(advancedSchema.nodes.heading, { level: 3 }),
       }),
       keymap(baseKeymap),
       suggestionModePlugin({ 
@@ -80,7 +82,7 @@ window.addEventListener("load", () => {
     }
   });
 
-  // Function to update toolbar button states based on current marks
+  // Function to update toolbar button states based on current marks and nodes
   function updateToolbarState(view) {
     const { state } = view;
     const { schema, selection } = state;
@@ -97,6 +99,15 @@ window.addEventListener("load", () => {
       state.doc.resolve(from).marks()
     ) || (!empty && state.doc.rangeHasMark(from, to, schema.marks.em));
     document.getElementById("italic").classList.toggle("active", italicActive);
+    
+    // Update heading buttons
+    const node = selection.$from.node();
+    document.getElementById("h1").classList.toggle("active", 
+      node.type.name === 'heading' && node.attrs.level === 1);
+    document.getElementById("h2").classList.toggle("active", 
+      node.type.name === 'heading' && node.attrs.level === 2);
+    document.getElementById("h3").classList.toggle("active", 
+      node.type.name === 'heading' && node.attrs.level === 3);
   }
 
   // Add event listeners for the toolbar buttons
@@ -107,6 +118,22 @@ window.addEventListener("load", () => {
 
   document.getElementById("italic").addEventListener("click", () => {
     toggleMark(advancedSchema.marks.em)(view.state, view.dispatch, view);
+    view.focus();
+  });
+  
+  // Add heading buttons
+  document.getElementById("h1").addEventListener("click", () => {
+    setBlockType(advancedSchema.nodes.heading, { level: 1 })(view.state, view.dispatch, view);
+    view.focus();
+  });
+  
+  document.getElementById("h2").addEventListener("click", () => {
+    setBlockType(advancedSchema.nodes.heading, { level: 2 })(view.state, view.dispatch, view);
+    view.focus();
+  });
+  
+  document.getElementById("h3").addEventListener("click", () => {
+    setBlockType(advancedSchema.nodes.heading, { level: 3 })(view.state, view.dispatch, view);
     view.focus();
   });
 

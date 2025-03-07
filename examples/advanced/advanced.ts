@@ -43,40 +43,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Create editor state with all necessary plugins
     console.log("Creating editor state...");
-    const state = EditorState.create({
-    schema: advancedSchema,
-    doc,
-    plugins: [
-      history(),
-      keymap({
-        "Mod-z": undo,
-        "Mod-y": redo,
-        "Mod-Shift-z": redo,
-        "Mod-b": toggleMark(advancedSchema.marks.strong),
-        "Mod-i": toggleMark(advancedSchema.marks.em),
-        "Shift-Ctrl-1": setBlockType(advancedSchema.nodes.heading, { level: 1 }),
-        "Shift-Ctrl-2": setBlockType(advancedSchema.nodes.heading, { level: 2 }),
-        "Shift-Ctrl-3": setBlockType(advancedSchema.nodes.heading, { level: 3 }),
-      }),
-      keymap(baseKeymap),
-      suggestionModePlugin({ 
-        username: "advanced user", 
-        inSuggestionMode: true,
-        data: { 
-          source: "advanced example" 
-        } 
-      })
-    ],
-  });
-  } catch (error) {
-    console.error("Error initializing editor:", error);
-  }
-
-  // Create the editor view
-  const editorElement = document.querySelector("#editor");
-  console.log("Editor element:", editorElement); // Debug log
-  const view = new EditorView(editorElement, { 
-    state,
+    const editorState = EditorState.create({
+      schema: advancedSchema,
+      doc,
+      plugins: [
+        history(),
+        keymap({
+          "Mod-z": undo,
+          "Mod-y": redo,
+          "Mod-Shift-z": redo,
+          "Mod-b": toggleMark(advancedSchema.marks.strong),
+          "Mod-i": toggleMark(advancedSchema.marks.em),
+          "Shift-Ctrl-1": setBlockType(advancedSchema.nodes.heading, { level: 1 }),
+          "Shift-Ctrl-2": setBlockType(advancedSchema.nodes.heading, { level: 2 }),
+          "Shift-Ctrl-3": setBlockType(advancedSchema.nodes.heading, { level: 3 }),
+        }),
+        keymap(baseKeymap),
+        suggestionModePlugin({ 
+          username: "advanced user", 
+          inSuggestionMode: true,
+          data: { 
+            source: "advanced example" 
+          } 
+        })
+      ],
+    });
+    
+    // Create the editor view
+    const editorElement = document.querySelector("#editor");
+    console.log("Editor element:", editorElement); // Debug log
+    const view = new EditorView(editorElement, { 
+      state: editorState,
     // Add a handler for when the editor gets focus
     handleDOMEvents: {
       focus: (view, event) => {

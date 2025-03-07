@@ -34,6 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
     <p>Try making some edits with suggestion mode enabled to see how they appear as suggestions.</p>
   `;
 
+  // Define view at a higher scope so it's accessible to event handlers
+  let view: EditorView;
+
   try {
     console.log("Initializing advanced editor...");
     const parser = DOMParser.fromSchema(advancedSchema);
@@ -72,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Create the editor view
     const editorElement = document.querySelector("#editor");
     console.log("Editor element:", editorElement); // Debug log
-    const view = new EditorView(editorElement, { 
+    view = new EditorView(editorElement, { 
       state: editorState,
       // Add a handler for when the editor gets focus
       handleDOMEvents: {
@@ -93,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Function to update toolbar button states based on current marks and nodes
-  function updateToolbarState(view) {
+  function updateToolbarState(view: EditorView) {
     const { state } = view;
     const { schema, selection } = state;
     const { from, to, empty } = selection;

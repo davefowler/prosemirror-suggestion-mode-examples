@@ -74,20 +74,23 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Editor element:", editorElement); // Debug log
     const view = new EditorView(editorElement, { 
       state: editorState,
-    // Add a handler for when the editor gets focus
-    handleDOMEvents: {
-      focus: (view, event) => {
+      // Add a handler for when the editor gets focus
+      handleDOMEvents: {
+        focus: (view, event) => {
+          updateToolbarState(view);
+          return false; // Let other handlers run
+        }
+      },
+      // Update toolbar state when selection changes
+      dispatchTransaction: (transaction) => {
+        const newState = view.state.apply(transaction);
+        view.updateState(newState);
         updateToolbarState(view);
-        return false; // Let other handlers run
       }
-    },
-    // Update toolbar state when selection changes
-    dispatchTransaction: (transaction) => {
-      const newState = view.state.apply(transaction);
-      view.updateState(newState);
-      updateToolbarState(view);
-    }
-  });
+    });
+  } catch (error) {
+    console.error("Error initializing editor:", error);
+  }
 
   // Function to update toolbar button states based on current marks and nodes
   function updateToolbarState(view) {

@@ -148,6 +148,7 @@ window.addEventListener("load", () => {
     },
   ];
 
+
   exampleSuggestions.forEach((suggestion) => {
     suggestEdit(view, [suggestion], "somebody");
   });

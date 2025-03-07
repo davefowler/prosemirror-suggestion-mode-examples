@@ -105,13 +105,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const boldActive = schema.marks.strong.isInSet(
       state.doc.resolve(from).marks()
     ) || (!empty && state.doc.rangeHasMark(from, to, schema.marks.strong));
-    document.getElementById("bold").classList.toggle("active", boldActive);
+    document.getElementById("bold").classList.toggle("active", !!boldActive);
     
     // Update italic button
     const italicActive = schema.marks.em.isInSet(
       state.doc.resolve(from).marks()
     ) || (!empty && state.doc.rangeHasMark(from, to, schema.marks.em));
-    document.getElementById("italic").classList.toggle("active", italicActive);
+    document.getElementById("italic").classList.toggle("active", !!italicActive);
     
     // Update heading buttons
     const node = selection.$from.node();

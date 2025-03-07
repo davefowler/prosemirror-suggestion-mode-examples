@@ -115,12 +115,13 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Update heading buttons
     const node = selection.$from.node();
-    document.getElementById("h1").classList.toggle("active", 
-      node.type.name === 'heading' && node.attrs.level === 1);
-    document.getElementById("h2").classList.toggle("active", 
-      node.type.name === 'heading' && node.attrs.level === 2);
-    document.getElementById("h3").classList.toggle("active", 
-      node.type.name === 'heading' && node.attrs.level === 3);
+    const isH1 = node.type.name === 'heading' && node.attrs.level === 1;
+    const isH2 = node.type.name === 'heading' && node.attrs.level === 2;
+    const isH3 = node.type.name === 'heading' && node.attrs.level === 3;
+    
+    document.getElementById("h1").classList.toggle("active", isH1);
+    document.getElementById("h2").classList.toggle("active", isH2);
+    document.getElementById("h3").classList.toggle("active", isH3);
   }
 
   // Add event listeners for the toolbar buttons

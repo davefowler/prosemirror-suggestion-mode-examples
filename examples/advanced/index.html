@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Advanced ProseMirror Suggestions Demo</title>
+    <style>
+        body {
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 800px;
+            text-align: left;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .ProseMirror {
+            white-space: pre-wrap;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 20px auto;
+            max-width: 800px;
+            min-height: 200px;
+            padding: 10px;
+            text-align: left;
+        }
+        .controls {
+            max-width: 800px;
+            margin: 20px auto;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .editor-toolbar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .editor-toolbar button {
+            padding: 5px 10px;
+            background: #f1f1f1;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .editor-toolbar button:hover {
+            background: #e1e1e1;
+        }
+        .editor-toolbar button.active {
+            background: #ddd;
+            font-weight: bold;
+        }
+        .suggestion-controls {
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Prosemirror Suggestion Mode Example</h1>
+        
+        <div class="editor-toolbar">
+            <button id="bold" title="Bold (Ctrl+B)">B</button>
+            <button id="italic" title="Italic (Ctrl+I)">I</button>
+            <button id="undo" title="Undo (Ctrl+Z)">Undo</button>
+            <button id="redo" title="Redo (Ctrl+Y)">Redo</button>
+        </div>
+        
+        <div class="suggestion-controls">
+            <label>
+                <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
+            </label>
+            
+            <!-- Buttons to accept/reject all suggestions -->
+            <button id="acceptAllSuggestions" class="suggestion-accept">Accept All</button>
+            <button id="rejectAllSuggestions" class="suggestion-reject">Reject All</button>
+            <span id="modeIndicator"></span>
+        </div>
+        
+        <div id="editor" class="editor"></div>
+    </div>
+    <script src="advanced.js"></script>
+</body>
+</html>

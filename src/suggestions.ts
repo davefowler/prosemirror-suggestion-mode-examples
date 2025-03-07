@@ -1,15 +1,21 @@
-import { Plugin, Transaction, EditorState } from "prosemirror-state";
-import { ReplaceStep } from "prosemirror-transform";
-import { Mark, Node } from "prosemirror-model";
-import { Decoration, DecorationSet } from "prosemirror-view";
-import { SuggestionModePluginState, suggestionModePluginKey } from "./key";
+import { Plugin, Transaction, EditorState } from 'prosemirror-state';
+import {
+  ReplaceStep,
+  AddMarkStep,
+  RemoveMarkStep,
+  ReplaceAroundStep,
+} from 'prosemirror-transform';
+import { Mark, Node } from 'prosemirror-model';
+import { Decoration, DecorationSet } from 'prosemirror-view';
+import { SuggestionModePluginState, suggestionModePluginKey } from './key';
 import {
   SuggestionHoverMenuRenderer,
   createSuggestionHoverMenu,
   defaultRenderSuggestionHoverMenu,
   SuggestionHoverMenuOptions,
-} from "./hoverMenu";
+} from './hoverMenu';
 
+type AnyStep = ReplaceStep | AddMarkStep | RemoveMarkStep | ReplaceAroundStep;
 // Plugin options interface
 export interface SuggestionModePluginOptions {
   inSuggestionMode?: boolean; // starting status of suggestion mode
@@ -56,36 +62,64 @@ export const suggestionModePlugin = (
           return;
         }
 
-        transaction.steps.forEach((step) => {
-          if (step instanceof ReplaceStep) {
+        transaction.steps.forEach((step: AnyStep) => {
+          //  1 ReplaceStep: Created when text is inserted, deleted, or replaced. This is the most common step type, triggered by:
+          //     • Typing text
+          //     • Deleting text (backspace/delete)
+          //     • Pasting content
+          //     • Cutting content
+          //  2 AddMarkStep: Created when adding a mark to existing content, triggered by:
+          //     • Applying formatting (bold, italic, etc.)
+          //     • Using formatting keyboard shortcuts (Ctrl+B, Ctrl+I)
+          //     • Using formatting buttons in the toolbar
+          //  3 RemoveMarkStep: Created when removing a mark from content, triggered by:
+          //     • Removing formatting
+          //     • Toggling off a mark that was previously applied
+          //  4 ReplaceAroundStep: Created for more complex replacements that preserve some content, triggered by:
+          //     • Wrapping content in a node (e.g., turning text into a list item)
+          //     • Unwrapping content from a node
+          if (true) {
+            //step instanceof ReplaceStep) { // TODO - remove if unecessry
+            console.log('transaction step is of type ', typeof step, step);
             const from = step.from;
             const to = step.to;
-            const oldText = oldState.doc.textBetween(from, to, " ");
-            const newText = step.slice.content.textBetween(
-              0,
-              step.slice.content.size,
-              " "
-            );
+            const oldText = oldState.doc.textBetween(from, to, ' ');
             const newFrom = from + oldText.length;
+
+            let newText = '';
+            if (step instanceof AddMarkStep || step instanceof RemoveMarkStep) {
+              // we want to reapply the old text as new text with different marks
+              newText = oldText;
+            } else {
+              newText = step.slice.content.textBetween(
+                0,
+                step.slice.content.size,
+                ' '
+              );
+            }
             const newTo = newFrom + newText.length;
             const isDelete = oldText.length > 0 && newText.length === 0;
             const isAdd = oldText.length === 0 && newText.length > 0;
             const isReplace = oldText.length > 0 && newText.length > 0;
-            
+
             // Check if we're inside an existing suggestion mark
             // This needs a more robust check
             const isInsideSuggestionMark = isInsideAnyMark(
               oldState,
-              from,
-              ["suggestion_add", "suggestion_delete"]
+              from - (isAdd ? 1 : 0),
+              ['suggestion_add', 'suggestion_delete']
             );
 
             if (isInsideSuggestionMark) {
-              // console.log('isInsideSuggestionMark', isInsideSuggestionMark, from);
+              console.log(
+                'isInsideSuggestionMark',
+                isInsideSuggestionMark,
+                from
+              );
               // We are already inside a suggestion mark, let normal editing happen
               return;
             }
-            
+
             // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
             tr.setMeta(suggestionModePluginKey, {
               suggestionOperation: true,
@@ -101,7 +135,7 @@ export const suggestionModePlugin = (
               const deleteMarkRange = findMarkRange(
                 newState,
                 markFrom,
-                "suggestion_delete"
+                'suggestion_delete'
               );
 
               tr.insertText(oldText, from, from);
@@ -126,7 +160,7 @@ export const suggestionModePlugin = (
                 newState.schema.marks.suggestion_delete.create({
                   createdAt: Date.now(),
                   username: pluginState.username,
-                  data: { ...pluginState.data, ...meta?.data || {} },
+                  data: { ...pluginState.data, ...(meta?.data || {}) },
                 })
               );
               changed = true;
@@ -141,7 +175,7 @@ export const suggestionModePlugin = (
               const addMarkRange = findMarkRange(
                 newState,
                 newFrom,
-                "suggestion_add"
+                'suggestion_add'
               );
 
               if (addMarkRange) {
@@ -164,7 +198,7 @@ export const suggestionModePlugin = (
                 newState.schema.marks.suggestion_add.create({
                   createdAt: Date.now(),
                   username: pluginState.username,
-                  data: { ...pluginState.data, ...meta?.data || {} },
+                  data: { ...pluginState.data, ...(meta?.data || {}) },
                 })
               );
               changed = true;
@@ -186,7 +220,7 @@ export const suggestionModePlugin = (
       init(): SuggestionModePluginState {
         return {
           inSuggestionMode: options.inSuggestionMode || false,
-          username: options.username || "Anonymous",
+          username: options.username || 'Anonymous',
           data: options.data || {},
         };
       },
@@ -218,13 +252,13 @@ export const suggestionModePlugin = (
         state.doc.descendants((node: Node, pos: number) => {
           // Handle suggestion_add marks
           const addMark = node.marks.find(
-            (m: Mark) => m.type.name === "suggestion_add"
+            (m: Mark) => m.type.name === 'suggestion_add'
           );
           if (addMark) {
             // Add inline decoration for the actual text
             decos.push(
               Decoration.inline(pos, pos + node.nodeSize, {
-                class: "suggestion-add",
+                class: 'suggestion-add',
               })
             );
 
@@ -238,7 +272,7 @@ export const suggestionModePlugin = (
                 {
                   side: 1,
                   key: `suggestion-add-hover-menu-${pos}`,
-                  class: "suggestion-hover-menu-wrapper",
+                  class: 'suggestion-hover-menu-wrapper',
                 }
               )
             );
@@ -246,20 +280,20 @@ export const suggestionModePlugin = (
 
           // Handle suggestion_delete marks
           const delMark = node.marks.find(
-            (m: Mark) => m.type.name === "suggestion_delete"
+            (m: Mark) => m.type.name === 'suggestion_delete'
           );
           if (delMark) {
             // Create a wrapper for both the suggestion and its hover menu
             decos.push(
               Decoration.inline(pos, pos + node.nodeSize, {
-                class: "suggestion-wrapper suggestion-delete-wrapper",
+                class: 'suggestion-wrapper suggestion-delete-wrapper',
               })
             );
 
             // Add class to the node with the deletion mark
             decos.push(
               Decoration.inline(pos, pos + node.nodeSize, {
-                class: "suggestion-delete",
+                class: 'suggestion-delete',
               })
             );
 
@@ -273,7 +307,7 @@ export const suggestionModePlugin = (
                 {
                   side: 1,
                   key: `suggestion-delete-hover-menu-${pos}`,
-                  class: "suggestion-hover-menu-wrapper",
+                  class: 'suggestion-hover-menu-wrapper',
                 }
               )
             );
@@ -337,7 +371,7 @@ export const isInsideAnyMark = (
   const $pos = state.doc.resolve(pos);
   let node = $pos.node($pos.depth);
   let index = $pos.index($pos.depth);
-  
+
   // Check if we're at the end of a text node
   if (index === node.childCount) {
     const $before = state.doc.resolve(pos - 1);
@@ -345,29 +379,27 @@ export const isInsideAnyMark = (
       const nodeBefore = $before.nodeBefore;
       if (nodeBefore) {
         // Check if the node before has any of the specified marks
-        return nodeBefore.marks.some(mark => 
+        return nodeBefore.marks.some((mark) =>
           markNames.includes(mark.type.name)
         );
       }
     }
   }
-  
+
   // Check if the current position has any of the specified marks
   // First check if there's a node at this position
   const nodeAtPos = $pos.nodeAfter || $pos.nodeBefore;
   if (nodeAtPos) {
-    return nodeAtPos.marks.some(mark => 
-      markNames.includes(mark.type.name)
-    );
+    return nodeAtPos.marks.some((mark) => markNames.includes(mark.type.name));
   }
-  
+
   // Also check the node at this position directly
   const resolvedNode = state.doc.nodeAt(pos);
   if (resolvedNode) {
-    return resolvedNode.marks.some(mark => 
+    return resolvedNode.marks.some((mark) =>
       markNames.includes(mark.type.name)
     );
   }
-  
+
   return false;
 };

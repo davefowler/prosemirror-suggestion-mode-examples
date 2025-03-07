@@ -1,3 +1,4 @@
+console.log("Advanced example script loading...");
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { baseKeymap, toggleMark, setBlockType } from "prosemirror-commands";
@@ -25,7 +26,7 @@ const advancedSchema = new Schema({
 });
 
 // Initialize the editor with the suggestions plugin
-window.addEventListener("load", () => {
+document.addEventListener("DOMContentLoaded", () => {
   const content = `
     <p>This is an <b>advanced</b> example of ProseMirror with suggestion mode.</p>
     <p>You can use <i>formatting</i> tools like bold and italic.</p>
@@ -33,12 +34,16 @@ window.addEventListener("load", () => {
     <p>Try making some edits with suggestion mode enabled to see how they appear as suggestions.</p>
   `;
 
-  const parser = DOMParser.fromSchema(advancedSchema);
-  const htmlDoc = new window.DOMParser().parseFromString(content, "text/html");
-  const doc = parser.parse(htmlDoc.body);
+  try {
+    console.log("Initializing advanced editor...");
+    const parser = DOMParser.fromSchema(advancedSchema);
+    const htmlDoc = new window.DOMParser().parseFromString(content, "text/html");
+    const doc = parser.parse(htmlDoc.body);
+    console.log("Document parsed successfully");
 
-  // Create editor state with all necessary plugins
-  const state = EditorState.create({
+    // Create editor state with all necessary plugins
+    console.log("Creating editor state...");
+    const state = EditorState.create({
     schema: advancedSchema,
     doc,
     plugins: [
@@ -63,9 +68,14 @@ window.addEventListener("load", () => {
       })
     ],
   });
+  } catch (error) {
+    console.error("Error initializing editor:", error);
+  }
 
   // Create the editor view
-  const view = new EditorView(document.querySelector("#editor"), { 
+  const editorElement = document.querySelector("#editor");
+  console.log("Editor element:", editorElement); // Debug log
+  const view = new EditorView(editorElement, { 
     state,
     // Add a handler for when the editor gets focus
     handleDOMEvents: {

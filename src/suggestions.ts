@@ -102,29 +102,41 @@ export const suggestionModePlugin = (
             const isAdd = oldText.length === 0 && newText.length > 0;
             const isReplace = oldText.length > 0 && newText.length > 0;
 
-            // Check if we're inside an existing suggestion mark
-            // This needs a more robust check
-            const isInsideSuggestionMark = isInsideAnyMark(
-              oldState,
-              from - (isAdd ? 1 : 0),
-              ['suggestion_add', 'suggestion_delete']
-            );
-
-            if (isInsideSuggestionMark) {
-              console.log(
-                'isInsideSuggestionMark',
-                isInsideSuggestionMark,
-                from
-              );
-              // We are already inside a suggestion mark, let normal editing happen
-              return;
-            }
-
             // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
             tr.setMeta(suggestionModePluginKey, {
               suggestionOperation: true,
               handled: true, // Add this flag to indicate this input has been handled
             });
+
+            // Check if we're inside an existing suggestion mark
+            // This needs a more robust check
+            const wrappingSuggestionMark = isInsideAnyMark(
+              oldState,
+              from - (isAdd ? 1 : 0),
+              ['suggestion_add', 'suggestion_delete']
+            );
+
+            if (wrappingSuggestionMark) {
+              console.log(
+                'isInsideSuggestionMark',
+                wrappingSuggestionMark,
+                from
+              );
+              if (newText.length > 1) {
+                console.log(
+                  'inserting new text and adding mark',
+                  newText,
+                  from,
+                  wrappingSuggestionMark
+                );
+                // need to handle a paste in the middle of a suggestion mark
+                // insert the new text and add the wrapping mark to it
+                tr.addMark(from, from + newText.length, wrappingSuggestionMark);
+                changed = true;
+              }
+              // We are already inside a suggestion mark, don't process further
+              return;
+            }
 
             if (oldText.length > 0) {
               // DELETE - reinsert removed text with a suggestion_delete mark
@@ -137,7 +149,7 @@ export const suggestionModePlugin = (
                 markFrom,
                 'suggestion_delete'
               );
-
+              console.log('inserting old text', oldText, from);
               tr.insertText(oldText, from, from);
               if (deleteMarkRange) {
                 // Remove existing mark and expand mark range to include it
@@ -367,7 +379,7 @@ export const isInsideAnyMark = (
   state: EditorState,
   pos: number,
   markNames: string[]
-): boolean => {
+): Mark | null => {
   const $pos = state.doc.resolve(pos);
   let node = $pos.node($pos.depth);
   let index = $pos.index($pos.depth);
@@ -379,7 +391,7 @@ export const isInsideAnyMark = (
       const nodeBefore = $before.nodeBefore;
       if (nodeBefore) {
         // Check if the node before has any of the specified marks
-        return nodeBefore.marks.some((mark) =>
+        return nodeBefore.marks.find((mark) =>
           markNames.includes(mark.type.name)
         );
       }
@@ -390,16 +402,16 @@ export const isInsideAnyMark = (
   // First check if there's a node at this position
   const nodeAtPos = $pos.nodeAfter || $pos.nodeBefore;
   if (nodeAtPos) {
-    return nodeAtPos.marks.some((mark) => markNames.includes(mark.type.name));
+    return nodeAtPos.marks.find((mark) => markNames.includes(mark.type.name));
   }
 
   // Also check the node at this position directly
   const resolvedNode = state.doc.nodeAt(pos);
   if (resolvedNode) {
-    return resolvedNode.marks.some((mark) =>
+    return resolvedNode.marks.find((mark) =>
       markNames.includes(mark.type.name)
     );
   }
 
-  return false;
+  return null;
 };

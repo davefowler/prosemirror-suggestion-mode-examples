@@ -50,7 +50,7 @@
     display: block;
 }
 
-/* Style for suggestion buttons */
+/* Style for suggestion hover menu and but */
 .suggestion-buttons {
     display: flex;
     gap: 5px;

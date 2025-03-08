@@ -1,6 +1,6 @@
-import { Mark } from "prosemirror-model";
-import { EditorView } from "prosemirror-view";
-import { acceptSuggestion, rejectSuggestion } from "./tools/accept-reject";
+import { Mark } from 'prosemirror-model';
+import { EditorView } from 'prosemirror-view';
+import { acceptSuggestion, rejectSuggestion } from './tools/accept-reject';
 
 // Type for suggestion hover menu renderer function
 export type SuggestionHoverMenuRenderer = (
@@ -18,15 +18,18 @@ export interface MenuComponent {
 // Default components builders
 export const defaultComponents = {
   // Creates the info section showing who made the change and when
-  createInfoComponent(mark: Mark, view: EditorView, pos: number): MenuComponent {
-    const infoText = document.createElement("div");
-    infoText.className = "suggestion-info";
+  createInfoComponent(
+    mark: Mark,
+    view: EditorView,
+    pos: number
+  ): MenuComponent {
+    const infoText = document.createElement('div');
+    infoText.className = 'suggestion-info';
 
-    const date = new Date(mark.attrs.createdAt).toLocaleDateString();
     infoText.textContent =
-      mark.type.name === "suggestion_delete"
-        ? `Deleted by ${mark.attrs.username} on ${date}`
-        : `Added by ${mark.attrs.username} on ${date}`;
+      mark.type.name === 'suggestion_delete'
+        ? `Deleted by ${mark.attrs.username}`
+        : `Added by ${mark.attrs.username}}`;
 
     return { dom: infoText };
   },
@@ -37,21 +40,21 @@ export const defaultComponents = {
     view: EditorView,
     pos: number
   ): MenuComponent {
-    const buttonsDiv = document.createElement("div");
-    buttonsDiv.className = "suggestion-buttons";
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.className = 'suggestion-buttons';
 
-    const acceptButton = document.createElement("button");
-    acceptButton.className = "suggestion-accept";
-    acceptButton.textContent = "Accept";
-    acceptButton.addEventListener("click", (e) => {
+    const acceptButton = document.createElement('button');
+    acceptButton.className = 'suggestion-accept';
+    acceptButton.textContent = 'Accept';
+    acceptButton.addEventListener('click', (e) => {
       e.stopPropagation();
       acceptSuggestion(view, mark, pos);
     });
 
-    const rejectButton = document.createElement("button");
-    rejectButton.className = "suggestion-reject";
-    rejectButton.textContent = "Reject";
-    rejectButton.addEventListener("click", (e) => {
+    const rejectButton = document.createElement('button');
+    rejectButton.className = 'suggestion-reject';
+    rejectButton.textContent = 'Reject';
+    rejectButton.addEventListener('click', (e) => {
       e.stopPropagation();
       rejectSuggestion(view, mark, pos);
     });
@@ -91,8 +94,8 @@ export function createSuggestionHoverMenu(
   options: SuggestionHoverMenuOptions = {}
 ): HTMLElement {
   // Create the menu container
-  const menu = document.createElement("div");
-  menu.className = options.menuClass || "suggestion-hover-menu";
+  const menu = document.createElement('div');
+  menu.className = options.menuClass || 'suggestion-hover-menu';
 
   // Use component factories or fall back to defaults
   const components = options.components || {};
@@ -114,7 +117,7 @@ export function createSuggestionHoverMenu(
   if (mark.attrs.data) {
     try {
       const customData =
-        typeof mark.attrs.data === "string"
+        typeof mark.attrs.data === 'string'
           ? JSON.parse(mark.attrs.data)
           : mark.attrs.data;
 
@@ -123,7 +126,7 @@ export function createSuggestionHoverMenu(
         menu.setAttribute(`data-${key}`, String(value));
       });
     } catch (error) {
-      console.error("Error processing suggestion data:", error);
+      console.error('Error processing suggestion data:', error);
     }
   }
 

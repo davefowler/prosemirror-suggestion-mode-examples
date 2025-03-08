@@ -78,149 +78,89 @@ export const suggestionModePlugin = (
           //  4 ReplaceAroundStep: Created for more complex replacements that preserve some content, triggered by:
           //     • Wrapping content in a node (e.g., turning text into a list item)
           //     • Unwrapping content from a node
-          if (true) {
-            //step instanceof ReplaceStep) { // TODO - remove if unecessry
-            console.log('transaction step is of type ', typeof step, step);
-            const from = step.from;
-            const to = step.to;
-            const oldText = oldState.doc.textBetween(from, to, ' ');
-            const newFrom = from + oldText.length;
 
-            let newText = '';
-            if (step instanceof AddMarkStep || step instanceof RemoveMarkStep) {
-              // we want to reapply the old text as new text with different marks
-              newText = oldText;
-            } else {
-              newText = step.slice.content.textBetween(
-                0,
-                step.slice.content.size,
-                ' '
-              );
-            }
-            const newTo = newFrom + newText.length;
-            const isDelete = oldText.length > 0 && newText.length === 0;
-            const isAdd = oldText.length === 0 && newText.length > 0;
-            const isReplace = oldText.length > 0 && newText.length > 0;
+          //step instanceof ReplaceStep) { // TODO - remove if unecessry
+          console.log('transaction step is of type ', typeof step, step);
+          const from = step.from;
+          const to = step.to;
 
-            // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
-            tr.setMeta(suggestionModePluginKey, {
-              suggestionOperation: true,
-              handled: true, // Add this flag to indicate this input has been handled
-            });
+          const removedSlice = oldState.doc.slice(from, to, false); // TODO - last boolean is includeParents.  Needed?
+          const addedSlice =
+            step instanceof AddMarkStep || step instanceof RemoveMarkStep
+              ? removedSlice
+              : step.slice;
 
-            // Check if we're inside an existing suggestion mark
-            // This needs a more robust check
-            const wrappingSuggestionMark = isInsideAnyMark(
-              oldState,
-              from - (isAdd ? 1 : 0),
-              ['suggestion_add', 'suggestion_delete']
-            );
+          // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
+          tr.setMeta(suggestionModePluginKey, {
+            suggestionOperation: true,
+            handled: true, // Add this flag to indicate this input has been handled
+          });
 
-            if (wrappingSuggestionMark) {
+          // Check if we're inside an existing suggestion mark
+          // This needs a more robust check
+          // TODO - i could just check if the slice has a mark applied?
+
+          console.log('checking mark at position:', from);
+          const $pos = oldState.doc.resolve(from);
+          const marksAtPos = $pos.marks();
+          const suggestionMark = marksAtPos.find(
+            (m) =>
+              m.type.name === 'suggestion_add' ||
+              m.type.name === 'suggestion_delete'
+          );
+          if (suggestionMark) {
+            if (addedSlice.content.size > 1) {
               console.log(
-                'isInsideSuggestionMark',
-                wrappingSuggestionMark,
-                from
+                'inserting new text and adding mark',
+                addedSlice.content,
+                from,
+                suggestionMark
               );
-              if (newText.length > 1) {
-                console.log(
-                  'inserting new text and adding mark',
-                  newText,
-                  from,
-                  wrappingSuggestionMark
-                );
-                // need to handle a paste in the middle of a suggestion mark
-                // insert the new text and add the wrapping mark to it
-                tr.addMark(from, from + newText.length, wrappingSuggestionMark);
-                changed = true;
-              }
-              // We are already inside a suggestion mark, don't process further
-              return;
-            }
-
-            if (oldText.length > 0) {
-              // DELETE - reinsert removed text with a suggestion_delete mark
-              let markFrom = from;
-              let markTo = from + oldText.length;
-
-              // Check for adjacent suggestion_delete mark (on old version of doc)
-              const deleteMarkRange = findMarkRange(
-                newState,
-                markFrom,
-                'suggestion_delete'
-              );
-              console.log('inserting old text', oldText, from);
-              tr.insertText(oldText, from, from);
-              if (deleteMarkRange) {
-                // Remove existing mark and expand mark range to include it
-                tr.removeMark(
-                  deleteMarkRange.from,
-                  deleteMarkRange.to,
-                  newState.schema.marks.suggestion_delete
-                );
-                // Expand range to include existing mark
-                markFrom = Math.min(
-                  markFrom,
-                  deleteMarkRange.from + oldText.length
-                );
-                markTo = Math.max(markTo, deleteMarkRange.to + oldText.length);
-              }
-
-              tr.addMark(
-                markFrom,
-                markTo,
-                newState.schema.marks.suggestion_delete.create({
-                  createdAt: Date.now(),
-                  username: pluginState.username,
-                  data: { ...pluginState.data, ...(meta?.data || {}) },
-                })
-              );
+              // need to handle a paste in the middle of a suggestion mark
+              // insert the new text and add the wrapping mark to it
+              console.log('adding mark', suggestionMark.type.name);
+              tr.addMark(from, from + addedSlice.content.size, suggestionMark);
               changed = true;
             }
-
-            if (newText.length > 0) {
-              // ADD - insert new text with a suggestion_add mark
-              let markFrom = newFrom;
-              let markTo = newTo;
-
-              // Check for adjacent suggestion_add mark
-              const addMarkRange = findMarkRange(
-                newState,
-                newFrom,
-                'suggestion_add'
-              );
-
-              if (addMarkRange) {
-                // Remove existing mark
-                tr.removeMark(
-                  addMarkRange.from,
-                  addMarkRange.to,
-                  newState.schema.marks.suggestion_add
-                );
-
-                // Expand range to include existing mark
-                markFrom = Math.min(markFrom, addMarkRange.from);
-                markTo = Math.max(markTo, addMarkRange.to);
-              }
-
-              // somewhere else the insert already happens don't re-insert
-              tr.addMark(
-                markFrom,
-                markTo,
-                newState.schema.marks.suggestion_add.create({
-                  createdAt: Date.now(),
-                  username: pluginState.username,
-                  data: { ...pluginState.data, ...(meta?.data || {}) },
-                })
-              );
-              changed = true;
-            }
-
-            // if it's only a deletion, move the cursor to the start of the deleted text
-            const newCursorPos = newText.length > 0 ? newTo : from;
-            const Selection = newState.selection.constructor as any;
-            tr.setSelection(Selection.create(tr.doc, newCursorPos));
+            // We are already inside a suggestion mark, don't process further
+            return;
           }
+
+          if (removedSlice.content.size > 0) {
+            // content was removed.  We need to put it back and add a suggestion_delete to it
+            tr.insert(from, removedSlice.content);
+            tr.addMark(
+              from,
+              from + removedSlice.content.size,
+              newState.schema.marks.suggestion_delete.create({
+                username: pluginState.username,
+                data: { ...pluginState.data, ...(meta?.data || {}) },
+              })
+            );
+            changed = true;
+          }
+
+          if (addedSlice.content.size > 0) {
+            // ADD - mark the new text with a suggestion_add
+            // The insert already happend
+            // but we've just inserted the removedSlice infront of it so we need to adjust
+            const addedFrom = from + removedSlice.content.size;
+
+            tr.addMark(
+              addedFrom,
+              addedFrom + addedSlice.content.size,
+              newState.schema.marks.suggestion_add.create({
+                username: pluginState.username,
+                data: { ...pluginState.data, ...(meta?.data || {}) },
+              })
+            );
+            changed = true;
+          }
+
+          // if it's only a deletion, move the cursor to the start of the deleted text
+          // const newCursorPos = addedSlice.content.size > 0 ? newTo : from;
+          // const Selection = newState.selection.constructor as any;
+          // tr.setSelection(Selection.create(tr.doc, newCursorPos));
         });
       });
 
@@ -372,46 +312,4 @@ export const findMarkRange = (
   }
 
   return { from, to, mark };
-};
-
-// Add this helper function to properly check if a position is inside a mark
-export const isInsideAnyMark = (
-  state: EditorState,
-  pos: number,
-  markNames: string[]
-): Mark | null => {
-  const $pos = state.doc.resolve(pos);
-  let node = $pos.node($pos.depth);
-  let index = $pos.index($pos.depth);
-
-  // Check if we're at the end of a text node
-  if (index === node.childCount) {
-    const $before = state.doc.resolve(pos - 1);
-    if ($before.parent === node) {
-      const nodeBefore = $before.nodeBefore;
-      if (nodeBefore) {
-        // Check if the node before has any of the specified marks
-        return nodeBefore.marks.find((mark) =>
-          markNames.includes(mark.type.name)
-        );
-      }
-    }
-  }
-
-  // Check if the current position has any of the specified marks
-  // First check if there's a node at this position
-  const nodeAtPos = $pos.nodeAfter || $pos.nodeBefore;
-  if (nodeAtPos) {
-    return nodeAtPos.marks.find((mark) => markNames.includes(mark.type.name));
-  }
-
-  // Also check the node at this position directly
-  const resolvedNode = state.doc.nodeAt(pos);
-  if (resolvedNode) {
-    return resolvedNode.marks.find((mark) =>
-      markNames.includes(mark.type.name)
-    );
-  }
-
-  return null;
 };

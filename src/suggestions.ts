@@ -198,7 +198,6 @@ export const suggestionModePlugin = (
 
     props: {
       decorations(state: EditorState) {
-        // Wrap adjacent groups of marks in a single decoration for the hover menu
         const pluginState = this.getState(state);
         if (!pluginState) return DecorationSet.empty;
 
@@ -207,105 +206,54 @@ export const suggestionModePlugin = (
           start: number;
           end: number;
           username: string;
-          type: 'add' | 'delete';
           marks: Mark[];
         } | null = null;
 
+        // First pass: collect all marks and their ranges
         state.doc.descendants((node: Node, pos: number) => {
-          const addMark = node.marks.find(
-            (m) => m.type.name === 'suggestion_add'
+          const suggestionMark = node.marks.find(
+            (m) =>
+              m.type.name === 'suggestion_add' ||
+              m.type.name === 'suggestion_delete'
           );
-          const delMark = node.marks.find(
-            (m) => m.type.name === 'suggestion_delete'
-          );
-          const suggestionMark = addMark || delMark;
 
           if (suggestionMark) {
-            const type = addMark ? 'add' : 'delete';
-
             if (!currentGroup) {
               // Start a new group
               currentGroup = {
                 start: pos,
                 end: pos + node.nodeSize,
                 username: suggestionMark.attrs.username,
-                type,
                 marks: [suggestionMark],
               };
             } else if (
-              currentGroup.username === suggestionMark.attrs.username &&
-              currentGroup.type === type &&
-              currentGroup.end === pos
+              currentGroup.username === suggestionMark.attrs.username
             ) {
               // Extend current group
               currentGroup.end = pos + node.nodeSize;
               currentGroup.marks.push(suggestionMark);
             } else {
-              // Finish current group and start a new one
               // Add decorations for the completed group
-              decos.push(
-                Decoration.inline(currentGroup.start, currentGroup.end, {
-                  class: `suggestion-${currentGroup.type}`,
-                })
-              );
-
-              // Add single hover menu for the group
-              decos.push(
-                Decoration.widget(
-                  currentGroup.start,
-                  (view) => {
-                    // Pass the first mark as representative for the group
-                    return renderHoverMenu(
-                      currentGroup.marks,
-                      view,
-                      currentGroup.start
-                    );
-                  },
-                  {
-                    side: 1,
-                    key: `suggestion-${currentGroup.type}-hover-menu-${currentGroup.start}`,
-                    class: 'suggestion-hover-menu-wrapper',
-                  }
-                )
-              );
+              addGroupDecorations(decos, currentGroup, renderHoverMenu);
 
               // Start new group
               currentGroup = {
                 start: pos,
                 end: pos + node.nodeSize,
                 username: suggestionMark.attrs.username,
-                type,
                 marks: [suggestionMark],
               };
             }
+          } else if (currentGroup) {
+            // No suggestion mark found, finish current group if it exists
+            addGroupDecorations(decos, currentGroup, renderHoverMenu);
+            currentGroup = null;
           }
         });
 
         // Handle the last group if it exists
         if (currentGroup) {
-          decos.push(
-            Decoration.inline(currentGroup.start, currentGroup.end, {
-              class: `suggestion-${currentGroup.type}`,
-            })
-          );
-
-          decos.push(
-            Decoration.widget(
-              currentGroup.start,
-              (view) => {
-                return renderHoverMenu(
-                  currentGroup.marks,
-                  view,
-                  currentGroup.start
-                );
-              },
-              {
-                side: 1,
-                key: `suggestion-${currentGroup.type}-hover-menu-${currentGroup.start}`,
-                class: 'suggestion-hover-menu-wrapper',
-              }
-            )
-          );
+          addGroupDecorations(decos, currentGroup, renderHoverMenu);
         }
 
         return DecorationSet.create(state.doc, decos);
@@ -313,6 +261,35 @@ export const suggestionModePlugin = (
     },
   });
 };
+
+// Helper function to add decorations for a group
+function addGroupDecorations(
+  decos: Decoration[],
+  group: { start: number; end: number; username: string; marks: Mark[] },
+  renderHoverMenu: SuggestionHoverMenuRenderer
+) {
+  // Add the group wrapper decoration first
+  decos.push(
+    Decoration.widget(
+      group.start,
+      (view) => {
+        return renderHoverMenu(group.marks, view, group.start);
+      },
+      {
+        side: -1,
+        key: `suggestion-hover-menu-${group.start}`,
+        class: 'suggestion-hover-menu-wrapper',
+      }
+    )
+  );
+
+  // Then add the group decoration that wraps everything
+  decos.push(
+    Decoration.inline(group.start, group.end, {
+      class: 'suggestion-group',
+    })
+  );
+}
 
 // Function to find if a position is inside a mark and return its range
 export const findMarkRange = (

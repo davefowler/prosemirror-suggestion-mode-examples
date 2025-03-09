@@ -1,133 +1,142 @@
-import { EditorView } from "prosemirror-view";
-import { Mark } from "prosemirror-model";
-import { suggestionModePluginKey } from "../key";
+import { EditorView } from 'prosemirror-view';
+import { Mark } from 'prosemirror-model';
+import { suggestionModePluginKey } from '../key';
+import { EditorState, Transaction } from 'prosemirror-state';
 
-// Updated function to accept a suggestion without requiring type parameter
-export const acceptSuggestion = (view: EditorView, mark: Mark, pos: number) => {
-  const tr = view.state.tr;
-
-  // Mark this transaction as a suggestion operation so it won't be intercepted
-  tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
-
-  if (mark.type.name === "suggestion_add") {
-    // For added text, we keep the text but remove the mark
-    // Find the full range of this mark
-    let from = pos;
-    let to = pos;
-
-    // Find the boundaries of the mark
-    view.state.doc.nodesBetween(
-      0,
-      view.state.doc.content.size,
-      (node, nodePos) => {
-        if (node.marks.some((m) => m.eq(mark))) {
-          from = Math.min(from, nodePos);
-          to = Math.max(to, nodePos + node.nodeSize);
-        }
-      }
-    );
-
-    // Remove just the mark, keeping the text
-    tr.removeMark(from, to, mark.type);
-  } else if (mark.type.name === "suggestion_delete") {
-    // For deleted text, we remove both the text and the mark
-    let from = pos;
-    let to = pos;
-
-    // Find the boundaries of the mark
-    view.state.doc.nodesBetween(
-      0,
-      view.state.doc.content.size,
-      (node, nodePos) => {
-        if (node.marks.some((m) => m.eq(mark))) {
-          from = Math.min(from, nodePos);
-          to = Math.max(to, nodePos + node.nodeSize);
-        }
-      }
-    );
-
-    // Delete the text that has the deletion mark
-    tr.delete(from, to);
-  }
-
-  view.dispatch(tr);
-};
-
-// Reject an individual suggestion by its mark and position
-export const rejectSuggestion = (view: EditorView, mark: Mark, pos: number) => {
-  const tr = view.state.tr;
-
-  // Mark this transaction as a suggestion operation so it won't be intercepted
-  tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
-
-  if (mark.type.name === "suggestion_add") {
-    // For added text, we remove both the text and the mark
-    let from = pos;
-    let to = pos;
-
-    // Find the boundaries of the mark
-    view.state.doc.nodesBetween(
-      0,
-      view.state.doc.content.size,
-      (node, nodePos) => {
-        if (node.marks.some((m) => m.eq(mark))) {
-          from = Math.min(from, nodePos);
-          to = Math.max(to, nodePos + node.nodeSize);
-        }
-      }
-    );
-
-    // Delete the text that has the insertion mark
-    tr.delete(from, to);
-  } else if (mark.type.name === "suggestion_delete") {
-    // For deleted text, we keep the text but remove the mark
-    let from = pos;
-    let to = pos;
-
-    // Find the boundaries of the mark
-    view.state.doc.nodesBetween(
-      0,
-      view.state.doc.content.size,
-      (node, nodePos) => {
-        if (node.marks.some((m) => m.eq(mark))) {
-          from = Math.min(from, nodePos);
-          to = Math.max(to, nodePos + node.nodeSize);
-        }
-      }
-    );
-
-    // Remove just the mark, keeping the text
-    tr.removeMark(from, to, mark.type);
-  }
-
-  view.dispatch(tr);
-};
-
-const handleAllSuggestions = (
-  view: EditorView,
-  acceptOrReject: "accept" | "reject"
+// Helper function to find mark boundaries
+const findMarkBoundaries = (
+  doc: EditorState['doc'],
+  mark: Mark,
+  pos: number
 ) => {
-  view.state.doc.descendants((node, pos) => {
-    const suggestionMark = node.marks.find(
-      (m) =>
-        m.type.name === "suggestion_add" || m.type.name === "suggestion_delete"
-    );
-    if (!suggestionMark) return;
+  let from = pos;
+  let to = pos;
 
-    if (acceptOrReject === "accept") {
-      acceptSuggestion(view, suggestionMark, pos);
-    } else {
-      rejectSuggestion(view, suggestionMark, pos);
+  doc.nodesBetween(0, doc.content.size, (node, nodePos) => {
+    if (node.marks.some((m) => m.eq(mark))) {
+      from = Math.min(from, nodePos);
+      to = Math.max(to, nodePos + node.nodeSize);
     }
   });
+
+  return { from, to };
 };
 
-// Accept all suggestions in an editor
+// Command to accept multiple suggestions in a single transaction
+export const acceptSuggestionsCommand = (marks: Mark[], pos: number) => {
+  return (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+    if (!dispatch) return true;
+
+    const tr = state.tr;
+    tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
+
+    // Process all marks in a single transaction
+    marks.forEach((mark) => {
+      const { from, to } = findMarkBoundaries(state.doc, mark, pos);
+      if (mark.type.name === 'suggestion_add') {
+        // For added text, we keep the text but remove the mark
+        tr.removeMark(from, to, mark.type);
+      } else if (mark.type.name === 'suggestion_delete') {
+        // For deleted text, we remove both the text and the mark
+        tr.delete(from, to);
+      }
+    });
+
+    dispatch(tr);
+    return true;
+  };
+};
+
+// Command to reject multiple suggestions in a single transaction
+export const rejectSuggestionsCommand = (marks: Mark[], pos: number) => {
+  return (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+    if (!dispatch) return true;
+
+    const tr = state.tr;
+    tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
+
+    // Process all marks in a single transaction
+    marks.forEach((mark) => {
+      const { from, to } = findMarkBoundaries(state.doc, mark, pos);
+      if (mark.type.name === 'suggestion_add') {
+        // For added text, we remove both the text and the mark
+        tr.delete(from, to);
+      } else if (mark.type.name === 'suggestion_delete') {
+        // For deleted text, we keep the text but remove the mark
+        tr.removeMark(from, to, mark.type);
+      }
+    });
+
+    dispatch(tr);
+    return true;
+  };
+};
+
+// Single mark commands for backward compatibility
+export const acceptSuggestionCommand = (mark: Mark, pos: number) => {
+  return acceptSuggestionsCommand([mark], pos);
+};
+
+export const rejectSuggestionCommand = (mark: Mark, pos: number) => {
+  return rejectSuggestionsCommand([mark], pos);
+};
+
+// Wrapper functions for backward compatibility
+export const acceptSuggestion = (view: EditorView, mark: Mark, pos: number) => {
+  acceptSuggestionCommand(mark, pos)(view.state, view.dispatch);
+};
+
+export const rejectSuggestion = (view: EditorView, mark: Mark, pos: number) => {
+  rejectSuggestionCommand(mark, pos)(view.state, view.dispatch);
+};
+
+// Command to handle all suggestions
+const handleAllSuggestionsCommand = (acceptOrReject: 'accept' | 'reject') => {
+  return (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+    if (!dispatch) return true;
+
+    // Collect all suggestion marks
+    const marks: { mark: Mark; pos: number }[] = [];
+    state.doc.descendants((node, pos) => {
+      const suggestionMark = node.marks.find(
+        (m) =>
+          m.type.name === 'suggestion_add' ||
+          m.type.name === 'suggestion_delete'
+      );
+      if (suggestionMark) {
+        marks.push({ mark: suggestionMark, pos });
+      }
+    });
+
+    if (marks.length === 0) return false;
+
+    // Handle all marks in a single transaction
+    const command =
+      acceptOrReject === 'accept'
+        ? acceptSuggestionsCommand(
+            marks.map((m) => m.mark),
+            marks[0].pos
+          )
+        : rejectSuggestionsCommand(
+            marks.map((m) => m.mark),
+            marks[0].pos
+          );
+
+    return command(state, dispatch);
+  };
+};
+
+// Export commands for accepting/rejecting all suggestions
+export const acceptAllSuggestionsCommand =
+  handleAllSuggestionsCommand('accept');
+export const rejectAllSuggestionsCommand =
+  handleAllSuggestionsCommand('reject');
+
+// Wrapper functions for backward compatibility
 export const acceptAllSuggestions = (view: EditorView) => {
-  handleAllSuggestions(view, "accept");
+  acceptAllSuggestionsCommand(view.state, view.dispatch);
 };
 
-// Reject all suggestions in an editor
 export const rejectAllSuggestions = (view: EditorView) => {
-  handleAllSuggestions(view, "reject");
+  rejectAllSuggestionsCommand(view.state, view.dispatch);
 };

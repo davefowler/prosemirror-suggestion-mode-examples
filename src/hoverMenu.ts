@@ -1,10 +1,13 @@
 import { Mark } from 'prosemirror-model';
 import { EditorView } from 'prosemirror-view';
-import { acceptSuggestion, rejectSuggestion } from './tools/accept-reject';
+import {
+  acceptSuggestionsCommand,
+  rejectSuggestionsCommand,
+} from './tools/accept-reject';
 
 // Type for suggestion hover menu renderer function
 export type SuggestionHoverMenuRenderer = (
-  mark: Mark,
+  marks: Mark[],
   view: EditorView,
   pos: number
 ) => HTMLElement;
@@ -12,31 +15,35 @@ export type SuggestionHoverMenuRenderer = (
 // Menu item interface
 export interface MenuComponent {
   dom: HTMLElement;
-  update?: (mark: Mark, view: EditorView, pos: number) => void;
+  update?: (marks: Mark[], view: EditorView, pos: number) => void;
 }
 
 // Default components builders
 export const defaultComponents = {
   // Creates the info section showing who made the change and when
   createInfoComponent(
-    mark: Mark,
+    marks: Mark[],
     view: EditorView,
     pos: number
   ): MenuComponent {
     const infoText = document.createElement('div');
     infoText.className = 'suggestion-info';
 
+    // Group by username to show a consolidated message
+    const usernames = new Set(marks.map((mark) => mark.attrs.username));
+    const type = marks[0].type.name; // All marks in a group are the same type
+
     infoText.textContent =
-      mark.type.name === 'suggestion_delete'
-        ? `Deleted by ${mark.attrs.username}`
-        : `Added by ${mark.attrs.username}}`;
+      type === 'suggestion_delete'
+        ? `Deleted by ${Array.from(usernames).join(', ')}`
+        : `Added by ${Array.from(usernames).join(', ')}`;
 
     return { dom: infoText };
   },
 
   // Creates the buttons section with accept/reject
   createButtonsComponent(
-    mark: Mark,
+    marks: Mark[],
     view: EditorView,
     pos: number
   ): MenuComponent {
@@ -48,7 +55,8 @@ export const defaultComponents = {
     acceptButton.textContent = 'Accept';
     acceptButton.addEventListener('click', (e) => {
       e.stopPropagation();
-      acceptSuggestion(view, mark, pos);
+      // Apply accept command for all marks in a single transaction
+      acceptSuggestionsCommand(marks, pos)(view.state, view.dispatch);
     });
 
     const rejectButton = document.createElement('button');
@@ -56,7 +64,8 @@ export const defaultComponents = {
     rejectButton.textContent = 'Reject';
     rejectButton.addEventListener('click', (e) => {
       e.stopPropagation();
-      rejectSuggestion(view, mark, pos);
+      // Apply reject command for all marks in a single transaction
+      rejectSuggestionsCommand(marks, pos)(view.state, view.dispatch);
     });
 
     buttonsDiv.appendChild(acceptButton);
@@ -71,12 +80,12 @@ export interface SuggestionHoverMenuOptions {
   // Component factories - can be replaced or extended
   components?: {
     createInfoComponent?: (
-      mark: Mark,
+      marks: Mark[],
       view: EditorView,
       pos: number
     ) => MenuComponent;
     createButtonsComponent?: (
-      mark: Mark,
+      marks: Mark[],
       view: EditorView,
       pos: number
     ) => MenuComponent;
@@ -88,7 +97,7 @@ export interface SuggestionHoverMenuOptions {
 
 // Create a hover menu with the specified components
 export function createSuggestionHoverMenu(
-  mark: Mark,
+  marks: Mark[],
   view: EditorView,
   pos: number,
   options: SuggestionHoverMenuOptions = {}
@@ -103,41 +112,25 @@ export function createSuggestionHoverMenu(
   // Create and add the info component
   const createInfo =
     components.createInfoComponent || defaultComponents.createInfoComponent;
-  const infoComponent = createInfo(mark, view, pos);
+  const infoComponent = createInfo(marks, view, pos);
   menu.appendChild(infoComponent.dom);
 
   // Create and add the buttons component
   const createButtons =
     components.createButtonsComponent ||
     defaultComponents.createButtonsComponent;
-  const buttonsComponent = createButtons(mark, view, pos);
+  const buttonsComponent = createButtons(marks, view, pos);
   menu.appendChild(buttonsComponent.dom);
 
-  // Add custom data as attributes to the menu element if present
-  if (mark.attrs.data) {
-    try {
-      const customData =
-        typeof mark.attrs.data === 'string'
-          ? JSON.parse(mark.attrs.data)
-          : mark.attrs.data;
-
-      // Add data attributes to the menu element
-      Object.entries(customData).forEach(([key, value]) => {
+  // Add any custom data attributes from all marks
+  const customData = marks.flatMap((mark) => mark.attrs.data || {});
+  customData.forEach((data) => {
+    if (data) {
+      Object.entries(data).forEach(([key, value]) => {
         menu.setAttribute(`data-${key}`, String(value));
       });
-    } catch (error) {
-      console.error('Error processing suggestion data:', error);
     }
-  }
+  });
 
   return menu;
 }
-
-// Default suggestion hover menu renderer
-export const defaultRenderSuggestionHoverMenu: SuggestionHoverMenuRenderer = (
-  mark: Mark,
-  view: EditorView,
-  pos: number
-): HTMLElement => {
-  return createSuggestionHoverMenu(mark, view, pos);
-};

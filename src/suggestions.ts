@@ -11,7 +11,6 @@ import { SuggestionModePluginState, suggestionModePluginKey } from './key';
 import {
   SuggestionHoverMenuRenderer,
   createSuggestionHoverMenu,
-  defaultRenderSuggestionHoverMenu,
   SuggestionHoverMenuOptions,
 } from './hoverMenu';
 
@@ -38,7 +37,7 @@ export const suggestionModePlugin = (
   }
 
   // Fall back to default renderer
-  renderHoverMenu = renderHoverMenu || defaultRenderSuggestionHoverMenu;
+  renderHoverMenu = renderHoverMenu || createSuggestionHoverMenu;
 
   return new Plugin({
     key: suggestionModePluginKey,
@@ -120,6 +119,7 @@ export const suggestionModePlugin = (
               // insert the new text and add the wrapping mark to it
               console.log('adding mark', suggestionMark.type.name);
               tr.addMark(from, from + addedSlice.content.size, suggestionMark);
+              // seems to automatically get rid of other suggestion marks
               changed = true;
             }
             // We are already inside a suggestion mark, don't process further
@@ -158,9 +158,11 @@ export const suggestionModePlugin = (
           }
 
           // if it's only a deletion, move the cursor to the start of the deleted text
-          // const newCursorPos = addedSlice.content.size > 0 ? newTo : from;
-          // const Selection = newState.selection.constructor as any;
-          // tr.setSelection(Selection.create(tr.doc, newCursorPos));
+          if (addedSlice.content.size === 0) {
+            const newCursorPos = from;
+            const Selection = newState.selection.constructor as any;
+            tr.setSelection(Selection.create(tr.doc, newCursorPos));
+          }
         });
       });
 
@@ -196,75 +198,115 @@ export const suggestionModePlugin = (
 
     props: {
       decorations(state: EditorState) {
+        // Wrap adjacent groups of marks in a single decoration for the hover menu
         const pluginState = this.getState(state);
         if (!pluginState) return DecorationSet.empty;
 
         const decos: Decoration[] = [];
+        let currentGroup: {
+          start: number;
+          end: number;
+          username: string;
+          type: 'add' | 'delete';
+          marks: Mark[];
+        } | null = null;
 
         state.doc.descendants((node: Node, pos: number) => {
-          // Handle suggestion_add marks
           const addMark = node.marks.find(
-            (m: Mark) => m.type.name === 'suggestion_add'
+            (m) => m.type.name === 'suggestion_add'
           );
-          if (addMark) {
-            // Add inline decoration for the actual text
-            decos.push(
-              Decoration.inline(pos, pos + node.nodeSize, {
-                class: 'suggestion-add',
-              })
-            );
-
-            // Add the hover menu within the wrapper
-            decos.push(
-              Decoration.widget(
-                pos,
-                (view) => {
-                  return renderHoverMenu(addMark, view, pos);
-                },
-                {
-                  side: 1,
-                  key: `suggestion-add-hover-menu-${pos}`,
-                  class: 'suggestion-hover-menu-wrapper',
-                }
-              )
-            );
-          }
-
-          // Handle suggestion_delete marks
           const delMark = node.marks.find(
-            (m: Mark) => m.type.name === 'suggestion_delete'
+            (m) => m.type.name === 'suggestion_delete'
           );
-          if (delMark) {
-            // Create a wrapper for both the suggestion and its hover menu
-            decos.push(
-              Decoration.inline(pos, pos + node.nodeSize, {
-                class: 'suggestion-wrapper suggestion-delete-wrapper',
-              })
-            );
+          const suggestionMark = addMark || delMark;
 
-            // Add class to the node with the deletion mark
-            decos.push(
-              Decoration.inline(pos, pos + node.nodeSize, {
-                class: 'suggestion-delete',
-              })
-            );
+          if (suggestionMark) {
+            const type = addMark ? 'add' : 'delete';
 
-            // Add hover menu for deleted text
-            decos.push(
-              Decoration.widget(
-                pos,
-                (view) => {
-                  return renderHoverMenu(delMark, view, pos);
-                },
-                {
-                  side: 1,
-                  key: `suggestion-delete-hover-menu-${pos}`,
-                  class: 'suggestion-hover-menu-wrapper',
-                }
-              )
-            );
+            if (!currentGroup) {
+              // Start a new group
+              currentGroup = {
+                start: pos,
+                end: pos + node.nodeSize,
+                username: suggestionMark.attrs.username,
+                type,
+                marks: [suggestionMark],
+              };
+            } else if (
+              currentGroup.username === suggestionMark.attrs.username &&
+              currentGroup.type === type &&
+              currentGroup.end === pos
+            ) {
+              // Extend current group
+              currentGroup.end = pos + node.nodeSize;
+              currentGroup.marks.push(suggestionMark);
+            } else {
+              // Finish current group and start a new one
+              // Add decorations for the completed group
+              decos.push(
+                Decoration.inline(currentGroup.start, currentGroup.end, {
+                  class: `suggestion-${currentGroup.type}`,
+                })
+              );
+
+              // Add single hover menu for the group
+              decos.push(
+                Decoration.widget(
+                  currentGroup.start,
+                  (view) => {
+                    // Pass the first mark as representative for the group
+                    return renderHoverMenu(
+                      currentGroup.marks,
+                      view,
+                      currentGroup.start
+                    );
+                  },
+                  {
+                    side: 1,
+                    key: `suggestion-${currentGroup.type}-hover-menu-${currentGroup.start}`,
+                    class: 'suggestion-hover-menu-wrapper',
+                  }
+                )
+              );
+
+              // Start new group
+              currentGroup = {
+                start: pos,
+                end: pos + node.nodeSize,
+                username: suggestionMark.attrs.username,
+                type,
+                marks: [suggestionMark],
+              };
+            }
           }
         });
+
+        // Handle the last group if it exists
+        if (currentGroup) {
+          decos.push(
+            Decoration.inline(currentGroup.start, currentGroup.end, {
+              class: `suggestion-${currentGroup.type}`,
+            })
+          );
+
+          decos.push(
+            Decoration.widget(
+              currentGroup.start,
+              (view) => {
+                return renderHoverMenu(
+                  currentGroup.marks,
+                  view,
+                  currentGroup.start
+                );
+              },
+              {
+                side: 1,
+                key: `suggestion-${currentGroup.type}-hover-menu-${currentGroup.start}`,
+                class: 'suggestion-hover-menu-wrapper',
+              }
+            )
+          );
+        }
 
         return DecorationSet.create(state.doc, decos);
       },

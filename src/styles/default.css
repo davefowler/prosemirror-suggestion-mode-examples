@@ -1,23 +1,24 @@
-/* Individual suggestion mark styles */
-.suggestion-add {
-    color: green;
-    text-decoration: underline;
-}
-.suggestion-delete {
-    text-decoration: line-through;
-    color: red;
-}
-
 /* Group wrapper styles */
 .suggestion-group {
     position: relative;
     display: inline;
 }
 
-/* Hover menu wrapper */
+/* Individual suggestion mark styles */
+.suggestion-add {
+    color: green;
+    text-decoration: underline;
+}
+
+.suggestion-delete {
+    text-decoration: line-through;
+    color: red;
+}
+
+/* Hover menu styles */
 .suggestion-hover-menu-wrapper {
     position: relative;
-    display: inline-block;
+    display: inline;
 }
 
 .suggestion-hover-menu {
@@ -38,7 +39,8 @@
 }
 
 /* Show hover menu when hovering over the group */
-.suggestion-group:hover .suggestion-hover-menu {
+.suggestion-group:hover ~ .suggestion-hover-menu-wrapper .suggestion-hover-menu,
+.suggestion-hover-menu:hover {
     display: block;
 }
 

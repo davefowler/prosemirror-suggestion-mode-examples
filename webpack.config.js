@@ -5,8 +5,8 @@ module.exports = {
     entry: {
         'examples/simple/simple': './examples/simple/simple.ts',
         'examples/suggestEdit/suggestEditDemo': './examples/suggestEdit/suggestEditDemo.ts',
-        'examples/inkAndSwitch/inkAndSwitch': './examples/inkAndSwitch/inkAndSwitch.ts',
-        'examples/advanced/advanced': './examples/advanced/advanced.ts'
+        // 'examples/inkAndSwitch/inkAndSwitch': './examples/inkAndSwitch/inkAndSwitch.ts',
+        'examples/basic/basic': './examples/basic/basic.ts'
     },
     output: {
         filename: '[name].js',

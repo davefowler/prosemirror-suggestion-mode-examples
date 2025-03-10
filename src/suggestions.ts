@@ -10,7 +10,7 @@ import { Decoration, DecorationSet } from 'prosemirror-view';
 import { SuggestionModePluginState, suggestionModePluginKey } from './key';
 import {
   SuggestionHoverMenuRenderer,
-  createSuggestionHoverMenu,
+  hoverMenuFactory,
   SuggestionHoverMenuOptions,
 } from './hoverMenu';
 
@@ -24,20 +24,44 @@ export interface SuggestionModePluginOptions {
   hoverMenuOptions?: SuggestionHoverMenuOptions;
 }
 
+function decorateSuggestion(
+  decos: Decoration[],
+  start: number,
+  end: number,
+  attrs: Record<string, any>,
+  renderHoverMenu: SuggestionHoverMenuRenderer
+) {
+  // Add a wrapper decoration that goes BEFORE the marks
+  decos.push(
+    Decoration.inline(start, end, {
+      class: 'suggestion-group',
+      nodeName: 'span', // Explicitly create a span
+    })
+  );
+
+  decos.push(
+    Decoration.widget(
+      start,
+      (view) =>
+        renderHoverMenu(start, end, attrs, {
+          dispatch: (command) => command(view.state, view.dispatch),
+        }),
+      {
+        key: `hover-${start}`,
+        side: -1,
+      }
+    )
+  );
+}
+
 // Create the suggestions plugin
 export const suggestionModePlugin = (
   options: SuggestionModePluginOptions = {}
 ) => {
   // If custom options but no renderer is provided, use default renderer with custom options
-  let renderHoverMenu = options.hoverMenuRenderer;
-
-  if (!renderHoverMenu && options.hoverMenuOptions) {
-    renderHoverMenu = (mark, view, pos) =>
-      createSuggestionHoverMenu(mark, view, pos, options.hoverMenuOptions);
-  }
-
-  // Fall back to default renderer
-  renderHoverMenu = renderHoverMenu || createSuggestionHoverMenu;
+  const renderHoverMenu =
+    options.hoverMenuRenderer ||
+    hoverMenuFactory(options?.hoverMenuOptions || {});
 
   return new Plugin({
     key: suggestionModePluginKey,
@@ -198,98 +222,80 @@ export const suggestionModePlugin = (
 
     props: {
       decorations(state: EditorState) {
-        const pluginState = this.getState(state);
-        if (!pluginState) return DecorationSet.empty;
-
         const decos: Decoration[] = [];
-        let currentGroup: {
-          start: number;
-          end: number;
-          username: string;
-          marks: Mark[];
-        } | null = null;
+        let groupStart: number | null = null;
+        let groupEnd: number | null = null;
+        let currentUsername: string | null = null;
+        let currentAttrs: Record<string, any> | null = null;
 
-        // First pass: collect all marks and their ranges
-        state.doc.descendants((node: Node, pos: number) => {
+        state.doc.descendants((node, pos, parent, index) => {
           const suggestionMark = node.marks.find(
             (m) =>
               m.type.name === 'suggestion_add' ||
               m.type.name === 'suggestion_delete'
           );
 
-          if (suggestionMark) {
-            if (!currentGroup) {
-              // Start a new group
-              currentGroup = {
-                start: pos,
-                end: pos + node.nodeSize,
-                username: suggestionMark.attrs.username,
-                marks: [suggestionMark],
-              };
-            } else if (
-              currentGroup.username === suggestionMark.attrs.username
-            ) {
-              // Extend current group
-              currentGroup.end = pos + node.nodeSize;
-              currentGroup.marks.push(suggestionMark);
-            } else {
-              // Add decorations for the completed group
-              addGroupDecorations(decos, currentGroup, renderHoverMenu);
+          // Quick return if no suggestion and no active group
+          if (!suggestionMark && !groupStart) return;
 
-              // Start new group
-              currentGroup = {
-                start: pos,
-                end: pos + node.nodeSize,
-                username: suggestionMark.attrs.username,
-                marks: [suggestionMark],
-              };
+          // End current group if username changes or no suggestion
+          if (
+            (suggestionMark &&
+              currentUsername !== suggestionMark.attrs.username) ||
+            !suggestionMark
+          ) {
+            if (
+              groupStart !== null &&
+              groupEnd !== null &&
+              currentAttrs !== null
+            ) {
+              decorateSuggestion(
+                decos,
+                groupStart,
+                groupEnd,
+                currentAttrs,
+                renderHoverMenu
+              );
             }
-          } else if (currentGroup) {
-            // No suggestion mark found, finish current group if it exists
-            addGroupDecorations(decos, currentGroup, renderHoverMenu);
-            currentGroup = null;
+            groupStart = null;
+            groupEnd = null;
+            currentUsername = null;
+            currentAttrs = null;
+          }
+
+          // Start new group if we have a suggestion
+          if (suggestionMark) {
+            if (!groupStart) {
+              groupStart = pos;
+              currentUsername = suggestionMark.attrs.username;
+              currentAttrs = suggestionMark.attrs;
+            }
+            groupEnd = pos + node.nodeSize;
+          }
+
+          // If it's the last node and we have an active group, close it
+          const isLastNode = index === parent.childCount - 1;
+          if (
+            isLastNode &&
+            groupStart !== null &&
+            groupEnd !== null &&
+            currentAttrs !== null
+          ) {
+            decorateSuggestion(
+              decos,
+              groupStart,
+              groupEnd,
+              currentAttrs,
+              renderHoverMenu
+            );
           }
         });
-
-        // Handle the last group if it exists
-        if (currentGroup) {
-          addGroupDecorations(decos, currentGroup, renderHoverMenu);
-        }
 
         return DecorationSet.create(state.doc, decos);
       },
     },
   });
 };
-
-// Helper function to add decorations for a group
-function addGroupDecorations(
-  decos: Decoration[],
-  group: { start: number; end: number; username: string; marks: Mark[] },
-  renderHoverMenu: SuggestionHoverMenuRenderer
-) {
-  // Add the group wrapper decoration first
-  decos.push(
-    Decoration.widget(
-      group.start,
-      (view) => {
-        return renderHoverMenu(group.marks, view, group.start);
-      },
-      {
-        side: -1,
-        key: `suggestion-hover-menu-${group.start}`,
-        class: 'suggestion-hover-menu-wrapper',
-      }
-    )
-  );
-
-  // Then add the group decoration that wraps everything
-  decos.push(
-    Decoration.inline(group.start, group.end, {
-      class: 'suggestion-group',
-    })
-  );
-}
 
 // Function to find if a position is inside a mark and return its range
 export const findMarkRange = (

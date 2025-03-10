@@ -2,42 +2,58 @@ import { EditorView } from 'prosemirror-view';
 import { Mark } from 'prosemirror-model';
 import { suggestionModePluginKey } from '../key';
 import { EditorState, Transaction } from 'prosemirror-state';
+import { Command } from 'prosemirror-state';
 
-// Helper function to find mark boundaries
-const findMarkBoundaries = (
-  doc: EditorState['doc'],
-  mark: Mark,
-  pos: number
-) => {
-  let from = pos;
-  let to = pos;
+interface MarkedRange {
+  mark: Mark;
+  from: number;
+  to: number;
+}
 
-  doc.nodesBetween(0, doc.content.size, (node, nodePos) => {
-    if (node.marks.some((m) => m.eq(mark))) {
-      from = Math.min(from, nodePos);
-      to = Math.max(to, nodePos + node.nodeSize);
-    }
+// Helper to find all suggestion marks and their boundaries in a range
+const findSuggestionsInRange = (
+  state: EditorState,
+  from: number,
+  to: number
+): MarkedRange[] => {
+  const markRanges = new Map<Mark, { from: number; to: number }>();
+
+  state.doc.nodesBetween(from, to, (node, pos) => {
+    node.marks.forEach((mark) => {
+      if (
+        mark.type.name === 'suggestion_add' ||
+        mark.type.name === 'suggestion_delete'
+      ) {
+        const range = markRanges.get(mark) || { from: pos, to: pos };
+        range.from = Math.min(range.from, pos);
+        range.to = Math.max(range.to, pos + node.nodeSize);
+        markRanges.set(mark, range);
+      }
+    });
   });
 
-  return { from, to };
+  return Array.from(markRanges.entries()).map(([mark, range]) => ({
+    mark,
+    from: range.from,
+    to: range.to,
+  }));
 };
 
-// Command to accept multiple suggestions in a single transaction
-export const acceptSuggestionsCommand = (marks: Mark[], pos: number) => {
+export const acceptSuggestionsInRange = (from: number, to: number): Command => {
   return (state: EditorState, dispatch?: (tr: Transaction) => void) => {
-    if (!dispatch) return true;
+    const suggestions = findSuggestionsInRange(state, from, to);
+    if (!suggestions.length || !dispatch) return false;
 
     const tr = state.tr;
     tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
 
-    // Process all marks in a single transaction
-    marks.forEach((mark) => {
-      const { from, to } = findMarkBoundaries(state.doc, mark, pos);
+    // Process all marks in the range
+    suggestions.forEach(({ mark, from, to }) => {
       if (mark.type.name === 'suggestion_add') {
-        // For added text, we keep the text but remove the mark
+        // Keep the text, remove the mark
         tr.removeMark(from, to, mark.type);
       } else if (mark.type.name === 'suggestion_delete') {
-        // For deleted text, we remove both the text and the mark
+        // Remove both text and mark
         tr.delete(from, to);
       }
     });
@@ -47,22 +63,21 @@ export const acceptSuggestionsCommand = (marks: Mark[], pos: number) => {
   };
 };
 
-// Command to reject multiple suggestions in a single transaction
-export const rejectSuggestionsCommand = (marks: Mark[], pos: number) => {
+export const rejectSuggestionsInRange = (from: number, to: number): Command => {
   return (state: EditorState, dispatch?: (tr: Transaction) => void) => {
-    if (!dispatch) return true;
+    const suggestions = findSuggestionsInRange(state, from, to);
+    if (!suggestions.length || !dispatch) return false;
 
     const tr = state.tr;
     tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
 
-    // Process all marks in a single transaction
-    marks.forEach((mark) => {
-      const { from, to } = findMarkBoundaries(state.doc, mark, pos);
+    // Process all marks in the range
+    suggestions.forEach(({ mark, from, to }) => {
       if (mark.type.name === 'suggestion_add') {
-        // For added text, we remove both the text and the mark
+        // Remove both text and mark
         tr.delete(from, to);
       } else if (mark.type.name === 'suggestion_delete') {
-        // For deleted text, we keep the text but remove the mark
+        // Keep the text, remove the mark
         tr.removeMark(from, to, mark.type);
       }
     });
@@ -72,71 +87,11 @@ export const rejectSuggestionsCommand = (marks: Mark[], pos: number) => {
   };
 };
 
-// Single mark commands for backward compatibility
-export const acceptSuggestionCommand = (mark: Mark, pos: number) => {
-  return acceptSuggestionsCommand([mark], pos);
+// For accepting/rejecting all suggestions in the document
+export const acceptAllSuggestions: Command = (state, dispatch) => {
+  return acceptSuggestionsInRange(0, state.doc.content.size)(state, dispatch);
 };
 
-export const rejectSuggestionCommand = (mark: Mark, pos: number) => {
-  return rejectSuggestionsCommand([mark], pos);
-};
-
-// Wrapper functions for backward compatibility
-export const acceptSuggestion = (view: EditorView, mark: Mark, pos: number) => {
-  acceptSuggestionCommand(mark, pos)(view.state, view.dispatch);
-};
-
-export const rejectSuggestion = (view: EditorView, mark: Mark, pos: number) => {
-  rejectSuggestionCommand(mark, pos)(view.state, view.dispatch);
-};
-
-// Command to handle all suggestions
-const handleAllSuggestionsCommand = (acceptOrReject: 'accept' | 'reject') => {
-  return (state: EditorState, dispatch?: (tr: Transaction) => void) => {
-    if (!dispatch) return true;
-
-    // Collect all suggestion marks
-    const marks: { mark: Mark; pos: number }[] = [];
-    state.doc.descendants((node, pos) => {
-      const suggestionMark = node.marks.find(
-        (m) =>
-          m.type.name === 'suggestion_add' ||
-          m.type.name === 'suggestion_delete'
-      );
-      if (suggestionMark) {
-        marks.push({ mark: suggestionMark, pos });
-      }
-    });
-
-    if (marks.length === 0) return false;
-
-    // Handle all marks in a single transaction
-    const command =
-      acceptOrReject === 'accept'
-        ? acceptSuggestionsCommand(
-            marks.map((m) => m.mark),
-            marks[0].pos
-          )
-        : rejectSuggestionsCommand(
-            marks.map((m) => m.mark),
-            marks[0].pos
-          );
-
-    return command(state, dispatch);
-  };
-};
-
-// Export commands for accepting/rejecting all suggestions
-export const acceptAllSuggestionsCommand =
-  handleAllSuggestionsCommand('accept');
-export const rejectAllSuggestionsCommand =
-  handleAllSuggestionsCommand('reject');
-
-// Wrapper functions for backward compatibility
-export const acceptAllSuggestions = (view: EditorView) => {
-  acceptAllSuggestionsCommand(view.state, view.dispatch);
-};
-
-export const rejectAllSuggestions = (view: EditorView) => {
-  rejectAllSuggestionsCommand(view.state, view.dispatch);
+export const rejectAllSuggestions: Command = (state, dispatch) => {
+  return rejectSuggestionsInRange(0, state.doc.content.size)(state, dispatch);
 };

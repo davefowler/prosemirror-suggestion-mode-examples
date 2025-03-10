@@ -114,11 +114,11 @@ export const suggestionModePlugin = (
           const from = step.from;
           const to = step.to;
 
-          const removedSlice = oldState.doc.slice(from, to, false); // TODO - last boolean is includeParents.  Needed?
+          const removedSlice = oldState.doc.slice(from, to, false);
+          // in all but the ReplaceStep, the removedSlice is the same size as the addedSlice
+          // so we can use it as the addedSlice, as we're just adding a mark over that range
           const addedSlice =
-            step instanceof AddMarkStep || step instanceof RemoveMarkStep
-              ? removedSlice
-              : step.slice;
+            step instanceof ReplaceStep ? step.slice : removedSlice;
 
           // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
           tr.setMeta(suggestionModePluginKey, {
@@ -133,6 +133,17 @@ export const suggestionModePlugin = (
             (m) =>
               m.type.name === 'suggestion_add' ||
               m.type.name === 'suggestion_delete'
+          );
+
+          console.log(
+            'step type',
+            typeof step,
+            step,
+            to,
+            from,
+            suggestionMark,
+            addedSlice.content,
+            removedSlice.content
           );
           if (suggestionMark) {
             if (addedSlice.content.size > 1) {
@@ -162,14 +173,32 @@ export const suggestionModePlugin = (
           }
 
           if (addedSlice.content.size > 0) {
-            // ADD - some content was added.
-            // we need to mark it with a suggestion_add
-            // The insert already happend
-            // but we've just inserted the removedSlice infront of it so we need to adjust the pos
-            const addedFrom = from + removedSlice.content.size;
+            // Some content was added.  We need to mark it with a suggestion_add
+            // // For ReplaceAround, we need to mark not just the content but the wrapper structure
+            // // The actual content position starts after the opening wrapper nodes
+            // const structureStart = from + removedSlice.content.size;
+            // const structureEnd = step.to + removedSlice.content.size;
+            // console.log(
+            //   'adding suggestion_add to structure',
+            //   structureStart,
+            //   structureEnd
+            // );
+            // tr.addMark(
+            //   structureStart,
+            //   structureEnd,
+            //   newState.schema.marks.suggestion_add.create({
+            //     username: pluginState.username,
+            //     data: { ...pluginState.data, ...(meta?.data || {}) },
+            //   })
+            // );
+            // changed = true;
+
+            // Original logic for regular replacements
+            const addedFrom = step.from + removedSlice.content.size;
+            const addedTo = addedFrom + addedSlice.content.size;
             tr.addMark(
               addedFrom,
-              addedFrom + addedSlice.content.size,
+              addedTo,
               newState.schema.marks.suggestion_add.create({
                 username: pluginState.username,
                 data: { ...pluginState.data, ...(meta?.data || {}) },

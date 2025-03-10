@@ -12,7 +12,7 @@ import {
   SuggestionHoverMenuRenderer,
   hoverMenuFactory,
   SuggestionHoverMenuOptions,
-} from './hoverMenu';
+} from './menus/hoverMenu';
 
 type AnyStep = ReplaceStep | AddMarkStep | RemoveMarkStep | ReplaceAroundStep;
 // Plugin options interface

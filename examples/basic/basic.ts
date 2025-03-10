@@ -1,15 +1,9 @@
 console.log('Advanced example script loading...');
 import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { baseKeymap, toggleMark, setBlockType } from 'prosemirror-commands';
-import { keymap } from 'prosemirror-keymap';
-import { history, undo, redo } from 'prosemirror-history';
 import {
   suggestionModePlugin,
-  acceptAllSuggestions,
-  rejectAllSuggestions,
-  toggleSuggestionMode,
-  suggestionModePluginKey,
+  getSuggestionMenuItems,
 } from 'prosemirror-suggestion-mode';
 import { addSuggestionMarks } from 'prosemirror-suggestion-mode/schema';
 import { DOMParser } from 'prosemirror-model';
@@ -32,39 +26,7 @@ const mySchema = new Schema({
 });
 
 // Create suggestion mode menu items
-const suggestionMenuItems = [
-  new MenuItem({
-    title: 'Toggle Suggestion Mode',
-    label: '✏️ Toggle Suggestion Mode',
-    enable: (state) => true,
-    active(state) {
-      const pluginState = suggestionModePluginKey.getState(state);
-      return pluginState?.inSuggestionMode || false;
-    },
-    run(state, dispatch) {
-      toggleSuggestionMode(state, dispatch);
-      return true;
-    },
-  }),
-  new MenuItem({
-    title: 'Accept All Suggestions',
-    label: '✅ Accept All Suggestions',
-    enable: (state) => true,
-    run(state, dispatch) {
-      acceptAllSuggestions(state, dispatch);
-      return true;
-    },
-  }),
-  new MenuItem({
-    title: 'Reject All Suggestions',
-    label: '❌ Reject All Suggestions',
-    enable: (state) => true,
-    run(state, dispatch) {
-      rejectAllSuggestions(state, dispatch);
-      return true;
-    },
-  }),
-];
+const suggestionMenuItems = getSuggestionMenuItems();
 
 // Initialize the editor
 document.addEventListener('DOMContentLoaded', () => {

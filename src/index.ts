@@ -7,3 +7,4 @@ export type { SuggestionModePluginState } from './key';
 export { addSuggestionMarks } from './schema';
 
 export { suggestEdit, TextSuggestion } from './commands';
+export { getSuggestionMenuItems } from './menus/menuBar';

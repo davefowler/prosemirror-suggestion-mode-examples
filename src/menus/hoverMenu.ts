@@ -3,7 +3,7 @@ import { EditorView } from 'prosemirror-view';
 import {
   acceptSuggestionsInRange,
   rejectSuggestionsInRange,
-} from './commands/accept-reject';
+} from '../commands/accept-reject';
 import { Command } from 'prosemirror-state';
 
 // Options for creating the hover menu

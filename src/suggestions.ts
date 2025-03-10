@@ -261,11 +261,7 @@ export const suggestionModePlugin = (
               currentUsername !== suggestionMark.attrs.username) ||
             !suggestionMark
           ) {
-            if (
-              groupStart !== null &&
-              groupEnd !== null &&
-              currentAttrs !== null
-            ) {
+            if (groupStart !== null) {
               decorateSuggestion(
                 decos,
                 groupStart,
@@ -287,17 +283,13 @@ export const suggestionModePlugin = (
               currentUsername = suggestionMark.attrs.username;
               currentAttrs = suggestionMark.attrs;
             }
+            // always set a group end, it will be incremented if the next node part of the same group
             groupEnd = pos + node.nodeSize;
           }
 
           // If it's the last node and we have an active group, close it
           const isLastNode = index === parent.childCount - 1;
-          if (
-            isLastNode &&
-            groupStart !== null &&
-            groupEnd !== null &&
-            currentAttrs !== null
-          ) {
+          if (isLastNode && groupStart !== null) {
             decorateSuggestion(
               decos,
               groupStart,

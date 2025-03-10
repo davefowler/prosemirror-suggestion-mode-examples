@@ -3,7 +3,7 @@ import { EditorView } from 'prosemirror-view';
 import {
   acceptSuggestionsInRange,
   rejectSuggestionsInRange,
-} from './tools/accept-reject';
+} from './commands/accept-reject';
 import { Command } from 'prosemirror-state';
 
 // Options for creating the hover menu
@@ -44,8 +44,16 @@ export const defaultComponents = {
   // Creates the info section showing who made the change and when
   createInfoComponent(attrs: Record<string, any>): MenuComponent {
     const infoText = document.createElement('div');
-    infoText.className = 'suggestion-info';
-    infoText.textContent = `edited by: ${attrs.username}`;
+
+    // Create text node for the first part
+    infoText.appendChild(document.createTextNode('edited by '));
+
+    // Create username span
+    const usernameSpan = document.createElement('span');
+    usernameSpan.className = 'username';
+    usernameSpan.textContent = attrs.username;
+    infoText.appendChild(usernameSpan);
+
     return { dom: infoText };
   },
 

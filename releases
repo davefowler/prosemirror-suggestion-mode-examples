@@ -1,5 +1,22 @@
 # Release Notes
 
+
+## 1.0.20
+
+Big rewrite here as the previous versions only supported the ReplaceStep and only for plain text.
+
+Overall this release enables a lot more functionality while increasing simplicity, mostly by following better (more elegant) prosemirror practices
+
+ - support all transaction step types - ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
+ - replacing slices, not textContent - maintaing any markup in changes
+ - all helper functions moved to be prosemirror commands
+ - test cases for new step types and edge cases
+ - 'basic' example using the prosemirror-example-setup with a toolbar, undo/redo and many formatting options
+ - more proper use of prosemirror mark properties and functions like inclusive and 
+ - simplified the hover menu to a single decorator widget
+ - integrated add/reject buttons into toolbar
+  
+
 ## 1.0.16
 
 - Updated peer dependencies to match ProseMirror 1.x

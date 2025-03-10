@@ -20,57 +20,63 @@
             margin-right: auto;
         }
 
+        #editor {
+            background: white;
+            color: black;
+            background-clip: padding-box;
+            border-radius: 4px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            padding: 5px 0;
+            margin-bottom: 23px;        
+        }
+
         .ProseMirror {
             white-space: pre-wrap;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin: 20px auto;
             max-width: 800px;
             min-height: 200px;
             padding: 10px;
             text-align: left;
         }
-        .controls {
-            max-width: 800px;
-            margin: 20px auto;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
+
+        /* Add some spacing between menu items */
+        .ProseMirror-menubar {
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            position: relative;
+            min-height: 1em;
+            color: #666;
+            padding: 1px 6px;
+            top: 0;
+            left: 0;
+            right: 0;
+            border-bottom: 1px solid silver;
+            background: white;
+            z-index: 10;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            overflow: visible;
         }
-        .editor-toolbar {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-            padding: 5px;
-            background: #f8f8f8;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+
+        .ProseMirror-menu-dropdown, .ProseMirror-menu-dropdown-menu {
+            font-size: 90%;
+            white-space: nowrap;
         }
-        .editor-toolbar button {
-            padding: 5px 10px;
-            background: #f1f1f1;
-            border: 1px solid #ccc;
-            border-radius: 3px;
+
+        .ProseMirror-menu-dropdown {
             cursor: pointer;
-            min-width: 30px;
+            position: relative;
+            padding-right: 15px !important;
         }
-        .editor-toolbar button:hover {
-            background: #e1e1e1;
+
+        .ProseMirror-menu-dropdown-wrap {
+            padding: 1px 0 1px 4px;
+            display: inline-block;
+            position: relative;
         }
-        .editor-toolbar button.active {
-            background: #ddd;
-            font-weight: bold;
-        }
-        .separator {
-            margin: 0 5px;
-            color: #ccc;
-        }
-        .suggestion-controls {
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-            margin-top: 10px;
+
+        .ProseMirror-menu {
+            margin: 0 -4px;
+            line-height: 1;
         }
     </style>
 </head>
@@ -78,30 +84,8 @@
     <div class="container">
         <h1>Basic Prosemirror Suggestion Mode Example</h1>
         
-        <p>This example shows suggestions on the <a href="https://prosemirror.net/examples/basic/">basic prosemirror example editor</a> which will have markup, a button bar, and undo/redo functionality</p>
+        <p>This example shows suggestions on the <a href="https://prosemirror.net/examples/basic/">basic prosemirror example editor</a> using the official example-setup package.</p>
 
-        <div class="editor-toolbar">
-            <button id="bold" title="Bold (Ctrl+B)"><strong>B</strong></button>
-            <button id="italic" title="Italic (Ctrl+I)"><em>I</em></button>
-            <button id="h1" title="Heading 1 (Shift+Ctrl+1)">H1</button>
-            <button id="h2" title="Heading 2 (Shift+Ctrl+2)">H2</button>
-            <button id="h3" title="Heading 3 (Shift+Ctrl+3)">H3</button>
-            <span class="separator">|</span>
-            <button id="undo" title="Undo (Ctrl+Z)">↩️</button>
-            <button id="redo" title="Redo (Ctrl+Y)">↪️</button>
-        </div>
-        
-        <div class="suggestion-controls">
-            <label>
-                <input type="checkbox" id="toggleSuggestionMode" checked> Suggest/edit mode
-            </label>
-            
-            <!-- Buttons to accept/reject all suggestions -->
-            <button id="acceptAllSuggestions" class="suggestion-accept">Accept All</button>
-            <button id="rejectAllSuggestions" class="suggestion-reject">Reject All</button>
-            <span id="modeIndicator"></span>
-        </div>
-        
         <div id="editor" class="editor">
             <!-- Editor will be initialized here -->
         </div>

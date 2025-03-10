@@ -83,6 +83,11 @@ export const suggestionModePlugin = (
   return new Plugin({
     key: suggestionModePluginKey,
 
+    // After a transaction is applied we add our suggestion marks to it
+    // This will not impact undo/redo as ProseMirror's history plugin
+    // automatically combines related transactions that happen close together in time
+    // this is chosen over wrapping dispatchTransaction because it will keep a clean set of steps
+    // and be less likely to interfere with other plugins.
     appendTransaction(
       transactions: readonly Transaction[],
       oldState: EditorState,
@@ -102,25 +107,10 @@ export const suggestionModePlugin = (
           return;
         }
 
+        // Process each step in the transaction
+        // This works for all 4 types of steps: ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
         transaction.steps.forEach((step: AnyStep) => {
-          //  1 ReplaceStep: Created when text is inserted, deleted, or replaced. This is the most common step type, triggered by:
-          //     • Typing text
-          //     • Deleting text (backspace/delete)
-          //     • Pasting content
-          //     • Cutting content
-          //  2 AddMarkStep: Created when adding a mark to existing content, triggered by:
-          //     • Applying formatting (bold, italic, etc.)
-          //     • Using formatting keyboard shortcuts (Ctrl+B, Ctrl+I)
-          //     • Using formatting buttons in the toolbar
-          //  3 RemoveMarkStep: Created when removing a mark from content, triggered by:
-          //     • Removing formatting
-          //     • Toggling off a mark that was previously applied
-          //  4 ReplaceAroundStep: Created for more complex replacements that preserve some content, triggered by:
-          //     • Wrapping content in a node (e.g., turning text into a list item)
-          //     • Unwrapping content from a node
-
-          //step instanceof ReplaceStep) { // TODO - remove if unecessry
-          console.log('transaction step is of type ', typeof step, step);
+          // TODO write better tests for ReplaceStep
           const from = step.from;
           const to = step.to;
 
@@ -137,10 +127,6 @@ export const suggestionModePlugin = (
           });
 
           // Check if we're inside an existing suggestion mark
-          // This needs a more robust check
-          // TODO - i could just check if the slice has a mark applied?
-
-          console.log('checking mark at position:', from);
           const $pos = oldState.doc.resolve(from);
           const marksAtPos = $pos.marks();
           const suggestionMark = marksAtPos.find(
@@ -150,25 +136,19 @@ export const suggestionModePlugin = (
           );
           if (suggestionMark) {
             if (addedSlice.content.size > 1) {
-              console.log(
-                'inserting new text and adding mark',
-                addedSlice.content,
-                from,
-                suggestionMark
-              );
-              // need to handle a paste in the middle of a suggestion mark
+              // a paste has happened in the middle of a suggestion mark
               // insert the new text and add the wrapping mark to it
-              console.log('adding mark', suggestionMark.type.name);
               tr.addMark(from, from + addedSlice.content.size, suggestionMark);
               // seems to automatically get rid of other suggestion marks
               changed = true;
             }
-            // We are already inside a suggestion mark, don't process further
+            // We are already inside a suggestion mark, no additional processing needed
             return;
           }
 
           if (removedSlice.content.size > 0) {
-            // content was removed.  We need to put it back and add a suggestion_delete to it
+            // content was removed.
+            // We need to put it back with a suggestion_delete mark on it
             tr.insert(from, removedSlice.content);
             tr.addMark(
               from,
@@ -182,11 +162,11 @@ export const suggestionModePlugin = (
           }
 
           if (addedSlice.content.size > 0) {
-            // ADD - mark the new text with a suggestion_add
+            // ADD - some content was added.
+            // we need to mark it with a suggestion_add
             // The insert already happend
-            // but we've just inserted the removedSlice infront of it so we need to adjust
+            // but we've just inserted the removedSlice infront of it so we need to adjust the pos
             const addedFrom = from + removedSlice.content.size;
-
             tr.addMark(
               addedFrom,
               addedFrom + addedSlice.content.size,
@@ -198,8 +178,9 @@ export const suggestionModePlugin = (
             changed = true;
           }
 
-          // if it's only a deletion, move the cursor to the start of the deleted text
           if (addedSlice.content.size === 0) {
+            // They hit backspace and then we added the removedSlice back in
+            // we need to move the cursor to the start (from the end) of the text we put back in
             const newCursorPos = from;
             const Selection = newState.selection.constructor as any;
             tr.setSelection(Selection.create(tr.doc, newCursorPos));

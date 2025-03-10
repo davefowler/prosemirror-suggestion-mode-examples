@@ -1,4 +1,3 @@
-console.log('Advanced example script loading...');
 import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import {

@@ -1,6 +1,11 @@
+/* Remove or comment out the ProseMirror positioning */
+/* .ProseMirror {
+    position: relative;
+} */
+
 /* Group wrapper styles */
 .suggestion-group {
-    position: relative;
+    position: relative;  /* This becomes the positioning context */
     display: inline;
 }
 
@@ -10,16 +15,20 @@
     text-decoration: underline;
 }
 
+.suggestion-add:hover {
+    background-color: rgb(0, 255, 0, .2);
+}
+
 .suggestion-delete {
     text-decoration: line-through;
     color: red;
 }
 
-/* Hover menu styles */
-.suggestion-hover-menu-wrapper {
-    position: relative;
-    display: inline;
+.suggestion-delete:hover {
+    background-color: rgb(255, 0, 0, .2);
 }
+
+/* Hover menu styles */
 
 .suggestion-hover-menu {
     display: none;
@@ -29,18 +38,21 @@
     border-radius: 4px;
     font-size: 12px;
     z-index: 10;
-    bottom: 100%;
     left: 0;
-    margin-bottom: 5px;
+    bottom: 100%;
+    margin-bottom: 0px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     min-width: 150px;
     white-space: nowrap;
     color: black;
 }
 
-/* Show hover menu when hovering over the group */
-.suggestion-group:hover ~ .suggestion-hover-menu-wrapper .suggestion-hover-menu,
-.suggestion-hover-menu:hover {
+/* More general hover selector that works with nested elements */
+.suggestion-menu-wrapper:has(~ .suggestion-add:hover) .suggestion-hover-menu,
+.suggestion-menu-wrapper:has(~ .suggestion-delete:hover) .suggestion-hover-menu,
+.suggestion-menu-wrapper:has(~ * .suggestion-add:hover) .suggestion-hover-menu,
+.suggestion-menu-wrapper:has(~ * .suggestion-delete:hover) .suggestion-hover-menu,
+.suggestion-menu-wrapper:hover .suggestion-hover-menu {
     display: block;
 }
 
@@ -80,3 +92,4 @@
 .suggestion-info {
     margin-bottom: 5px;
 }
+

@@ -24,6 +24,8 @@ export interface SuggestionModePluginOptions {
   hoverMenuOptions?: SuggestionHoverMenuOptions;
 }
 
+let groupId = 1;
+
 function decorateSuggestion(
   decos: Decoration[],
   start: number,
@@ -31,21 +33,36 @@ function decorateSuggestion(
   attrs: Record<string, any>,
   renderHoverMenu: SuggestionHoverMenuRenderer
 ) {
-  // Add a wrapper decoration that goes BEFORE the marks
+  groupId++;
+
+  // Add the group decoration with the ID
   decos.push(
     Decoration.inline(start, end, {
       class: 'suggestion-group',
-      nodeName: 'span', // Explicitly create a span
+      'data-group-id': `group-${groupId}`,
     })
   );
 
+  // Add the hover menu with the same ID
   decos.push(
     Decoration.widget(
       start,
-      (view) =>
-        renderHoverMenu(start, end, attrs, {
+      (view) => {
+        const wrapper = document.createElement('span');
+        wrapper.className = 'suggestion-menu-wrapper';
+        wrapper.style.position = 'relative';
+        wrapper.style.display = 'inline-block';
+        wrapper.style.verticalAlign = 'text-top'; // Align with top of text
+        wrapper.style.height = '0';
+        wrapper.style.width = '0';
+        wrapper.style.overflow = 'visible';
+
+        const menu = renderHoverMenu(start, end, attrs, {
           dispatch: (command) => command(view.state, view.dispatch),
-        }),
+        });
+        wrapper.appendChild(menu);
+        return wrapper;
+      },
       {
         key: `hover-${start}`,
         side: -1,

@@ -1,7 +1,7 @@
 import { EditorState, Selection, TextSelection } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { Schema, DOMParser, Mark } from 'prosemirror-model';
-import { suggestionModePlugin } from '../../src/suggestions';
+import { suggestionModePlugin } from '../../src/plugin';
 import { suggestionModePluginKey } from '../../src/key';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { keymap } from 'prosemirror-keymap';

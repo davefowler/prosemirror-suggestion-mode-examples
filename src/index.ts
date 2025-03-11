@@ -1,5 +1,5 @@
 // Export all public API components
-export { suggestionModePlugin } from './suggestions';
+export { suggestionModePlugin } from './plugin';
 export { acceptAllSuggestions, rejectAllSuggestions } from './commands';
 export { setSuggestionMode, toggleSuggestionMode } from './commands';
 export { suggestionModePluginKey } from './key';

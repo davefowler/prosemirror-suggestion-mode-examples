@@ -236,6 +236,8 @@ describe('suggestionsPlugin integration', () => {
 
       // First, add text to create a suggestion_add mark
       const position = 7;
+      const len = 'awesome '.length;
+      const to = position + len;
       view.dispatch(
         view.state.tr.setSelection(
           Selection.near(view.state.doc.resolve(position))
@@ -246,34 +248,23 @@ describe('suggestionsPlugin integration', () => {
       // The document now has "Hello awesome world" with "awesome " as a suggestion_add
 
       // Position cursor one character to the right of the suggestion mark (after "awesome ")
-      const positionAfterMark = position + 'awesome '.length;
       view.dispatch(
-        view.state.tr.setSelection(
-          Selection.near(view.state.doc.resolve(positionAfterMark))
-        )
+        view.state.tr.setSelection(Selection.near(view.state.doc.resolve(to)))
       );
 
       // Delete the character at cursor (should be 'w' from "world")
-      view.dispatch(
-        view.state.tr.delete(positionAfterMark, positionAfterMark + 1)
-      );
+      view.dispatch(view.state.tr.delete(to, to + 1));
 
-      // Document should now have "Helloawesome  orld" with the deleted 'w' marked as suggestion_delete
-      expect(view.state.doc.textContent).toBe('Hello awesome orld');
+      // Document should now have "Hello awesome world" with the deleted 'w' marked as suggestion_delete
+      expect(view.state.doc.textContent).toBe('Hello awesome world');
 
       // Check that the deleted 'w' has a suggestion_delete mark
       let hasDeleteMark = false;
-      view.state.doc.nodesBetween(
-        positionAfterMark,
-        positionAfterMark + 1,
-        (node) => {
-          if (
-            node.marks.some((mark) => mark.type.name === 'suggestion_delete')
-          ) {
-            hasDeleteMark = true;
-          }
+      view.state.doc.nodesBetween(to, to + 1, (node) => {
+        if (node.marks.some((mark) => mark.type.name === 'suggestion_delete')) {
+          hasDeleteMark = true;
         }
-      );
+      });
 
       expect(hasDeleteMark).toBe(true);
 

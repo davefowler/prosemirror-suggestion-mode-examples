@@ -7,7 +7,7 @@ export const suggestionMarks = {
       username: { default: 'Anonymous' },
       data: { default: null },
     },
-    inclusive: true,
+    inclusive: false,
     excludes: 'suggestion_delete',
     spanning: true, // allow the add mark to span multiple nodes and more agressively merge
     eq: (a: Mark, b: Mark) => a.attrs.username === b.attrs.username, // merge if usernames are the same

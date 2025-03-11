@@ -136,20 +136,20 @@ export const suggestionModePlugin = (
             const extraInsertChars =
               step instanceof ReplaceAroundStep ? step.insert : 0;
 
-            // Calculate the actual text content size, ignoring node structure overhead
-            let actualContentSize = addedSlice.content.size;
-
             // In the case of pasted content with newlines, we need to subtract 2 for node tokens
             // This adjustment specifically targets pasted content in ReplaceSteps
-            if (
+            const paragraphAdjustment =
               step instanceof ReplaceStep &&
               addedSlice.openStart === 1 &&
               addedSlice.openEnd === 1
-            ) {
-              actualContentSize -= 2;
-            }
+                ? -2
+                : 0;
 
-            const addedTo = addedFrom + actualContentSize + extraInsertChars;
+            const addedTo =
+              addedFrom +
+              addedSlice.content.size +
+              extraInsertChars +
+              paragraphAdjustment;
 
             console.log(
               'suggestion_add',

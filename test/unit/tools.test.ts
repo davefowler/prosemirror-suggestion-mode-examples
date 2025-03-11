@@ -1,14 +1,14 @@
-import { suggestEdit, TextSuggestion } from "../../src/tools";
-import { EditorView } from "prosemirror-view";
-import { EditorState, Plugin, Transaction } from "prosemirror-state";
-import { Schema } from "prosemirror-model";
-import { PluginKey } from "prosemirror-state";
+import { suggestEdit, TextSuggestion } from '../../src/commands';
+import { EditorView } from 'prosemirror-view';
+import { EditorState, Plugin, Transaction } from 'prosemirror-state';
+import { Schema } from 'prosemirror-model';
+import { PluginKey } from 'prosemirror-state';
 
 // Create a real plugin key instead of mocking
-const suggestionsKey = new PluginKey("suggestions");
+const suggestionsKey = new PluginKey('suggestions');
 
 // No mocks at all - use the real thing
-describe("suggestEdit", () => {
+describe('suggestEdit', () => {
   let view: EditorView;
   let schema: Schema;
   let state: EditorState;
@@ -18,33 +18,33 @@ describe("suggestEdit", () => {
     schema = new Schema({
       nodes: {
         doc: {
-          content: "block+",
-          toDOM: () => ["div", 0],
+          content: 'block+',
+          toDOM: () => ['div', 0],
         },
         paragraph: {
-          group: "block",
-          content: "inline*",
-          toDOM: () => ["p", 0],
+          group: 'block',
+          content: 'inline*',
+          toDOM: () => ['p', 0],
         },
         text: {
-          group: "inline",
-          toDOM: (node) => node.text || "",
+          group: 'inline',
+          toDOM: (node) => node.text || '',
         },
       },
       marks: {
         strong: {
-          toDOM: () => ["strong", 0],
+          toDOM: () => ['strong', 0],
         },
         em: {
-          toDOM: () => ["em", 0],
+          toDOM: () => ['em', 0],
         },
       },
     });
 
     // Create a document
-    const doc = schema.node("doc", {}, [
-      schema.node("paragraph", {}, [
-        schema.text("This is a test document with some text to replace."),
+    const doc = schema.node('doc', {}, [
+      schema.node('paragraph', {}, [
+        schema.text('This is a test document with some text to replace.'),
       ]),
     ]);
 
@@ -53,7 +53,7 @@ describe("suggestEdit", () => {
       key: suggestionsKey,
       state: {
         init: () => ({
-          username: "user",
+          username: 'user',
           inSuggestionMode: false,
           data: {},
         }),
@@ -74,7 +74,7 @@ describe("suggestEdit", () => {
     });
 
     // Create a real view with proper DOM element
-    const place = document.createElement("div");
+    const place = document.createElement('div');
     document.body.appendChild(place);
 
     view = new EditorView(place, {
@@ -93,21 +93,21 @@ describe("suggestEdit", () => {
     }
   });
 
-  test("should handle empty suggestions array", () => {
-    const result = suggestEdit(view, [], "testUser");
+  test('should handle empty suggestions array', () => {
+    const result = suggestEdit(view, [], 'testUser');
     expect(result).toBe(0);
   });
 
-  test("should handle suggestions with empty textToReplace", () => {
+  test('should handle suggestions with empty textToReplace', () => {
     const suggestions: TextSuggestion[] = [
       {
-        textToReplace: "",
-        textReplacement: "new text",
-        reason: "test reason",
+        textToReplace: '',
+        textReplacement: 'new text',
+        reason: 'test reason',
       },
     ];
 
-    const result = suggestEdit(view, suggestions, "testUser");
+    const result = suggestEdit(view, suggestions, 'testUser');
     expect(result).toBe(0); // Should not replace anything if textToReplace is empty
   });
 });

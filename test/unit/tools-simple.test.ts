@@ -1,20 +1,20 @@
-import { suggestEdit, TextSuggestion } from "../../src/tools";
-import { EditorView } from "prosemirror-view";
-import { EditorState } from "prosemirror-state";
-import { Schema, DOMParser } from "prosemirror-model";
-import { schema } from "prosemirror-schema-basic";
+import { suggestEdit, TextSuggestion } from '../../src/commands';
+import { EditorView } from 'prosemirror-view';
+import { EditorState } from 'prosemirror-state';
+import { Schema, DOMParser } from 'prosemirror-model';
+import { schema } from 'prosemirror-schema-basic';
 
 // Create a minimal test that doesn't use complex mocks
-describe("suggestEdit simple tests", () => {
+describe('suggestEdit simple tests', () => {
   // Create a simple schema
   const testSchema = new Schema({
     nodes: schema.spec.nodes,
-    marks: schema.spec.marks
+    marks: schema.spec.marks,
   });
 
   // Create a simple document
   const createDoc = (content: string) => {
-    const el = document.createElement("div");
+    const el = document.createElement('div');
     el.innerHTML = content;
     return DOMParser.fromSchema(testSchema).parse(el);
   };
@@ -23,31 +23,31 @@ describe("suggestEdit simple tests", () => {
   const createView = (content: string) => {
     const state = EditorState.create({
       doc: createDoc(content),
-      schema: testSchema
+      schema: testSchema,
     });
-    
+
     // Use a simple mock for the view
     return {
       state,
-      dispatch: jest.fn()
+      dispatch: jest.fn(),
     } as unknown as EditorView;
   };
 
-  test("basic functionality without complex mocks", () => {
+  test('basic functionality without complex mocks', () => {
     // Create a simple view with basic content
-    const view = createView("<p>This is a test document</p>");
-    
+    const view = createView('<p>This is a test document</p>');
+
     // Create a simple suggestion
     const suggestions: TextSuggestion[] = [
       {
-        textToReplace: "test",
-        textReplacement: "sample"
-      }
+        textToReplace: 'test',
+        textReplacement: 'sample',
+      },
     ];
-    
+
     // Just verify the function doesn't crash
     expect(() => {
-      suggestEdit(view, suggestions, "testUser");
+      suggestEdit(view, suggestions, 'testUser');
     }).not.toThrow();
   });
 });

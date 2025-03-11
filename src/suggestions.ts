@@ -13,6 +13,7 @@ import {
   hoverMenuFactory,
   SuggestionHoverMenuOptions,
 } from './menus/hoverMenu';
+import { createDecorations } from './decorations';
 
 type AnyStep = ReplaceStep | AddMarkStep | RemoveMarkStep | ReplaceAroundStep;
 // Plugin options interface
@@ -22,53 +23,6 @@ export interface SuggestionModePluginOptions {
   data?: Record<string, any>;
   hoverMenuRenderer?: SuggestionHoverMenuRenderer;
   hoverMenuOptions?: SuggestionHoverMenuOptions;
-}
-
-let groupId = 1;
-
-function decorateSuggestion(
-  decos: Decoration[],
-  start: number,
-  end: number,
-  attrs: Record<string, any>,
-  renderHoverMenu: SuggestionHoverMenuRenderer
-) {
-  groupId++;
-
-  // Add the group decoration with the ID
-  decos.push(
-    Decoration.inline(start, end, {
-      class: 'suggestion-group',
-      'data-group-id': `group-${groupId}`,
-    })
-  );
-
-  // Add the hover menu with the same ID
-  decos.push(
-    Decoration.widget(
-      start,
-      (view) => {
-        const wrapper = document.createElement('span');
-        wrapper.className = 'suggestion-menu-wrapper';
-        wrapper.style.position = 'relative';
-        wrapper.style.display = 'inline-block';
-        wrapper.style.verticalAlign = 'text-top'; // Align with top of text
-        wrapper.style.height = '0';
-        wrapper.style.width = '0';
-        wrapper.style.overflow = 'visible';
-
-        const menu = renderHoverMenu(start, end, attrs, {
-          dispatch: (command) => command(view.state, view.dispatch),
-        });
-        wrapper.appendChild(menu);
-        return wrapper;
-      },
-      {
-        key: `hover-${start}`,
-        side: -1,
-      }
-    )
-  );
 }
 
 // Create the suggestions plugin
@@ -148,8 +102,8 @@ export const suggestionModePlugin = (
           }
 
           if (removedSlice.content.size > 0) {
-            // content was removed.
-            // We need to put it back with a suggestion_delete mark on it
+            // DELETE - content was removed.
+            // We need to put it back and add a suggestion_delete mark on it
             tr.insert(from, removedSlice.content);
             tr.addMark(
               from,
@@ -163,8 +117,8 @@ export const suggestionModePlugin = (
           }
 
           if (addedSlice.content.size > 0) {
-            // Original logic for regular replacements
-            const addedFrom = step.from + removedSlice.content.size;
+            // For pasting, we want to insert at the original position
+            const addedFrom = from;
             // ReplaceAroundStep has an insert property that is the number of extra characters inserted
             // for things like numbers in a list item
             const extraInsertChars =
@@ -225,68 +179,7 @@ export const suggestionModePlugin = (
 
     props: {
       decorations(state: EditorState) {
-        const decos: Decoration[] = [];
-        let groupStart: number | null = null;
-        let groupEnd: number | null = null;
-        let currentUsername: string | null = null;
-        let currentAttrs: Record<string, any> | null = null;
-
-        state.doc.descendants((node, pos, parent, index) => {
-          const suggestionMark = node.marks.find(
-            (m) =>
-              m.type.name === 'suggestion_add' ||
-              m.type.name === 'suggestion_delete'
-          );
-
-          // Quick return if no suggestion and no active group
-          if (!suggestionMark && !groupStart) return;
-
-          // End current group if username changes or no suggestion
-          if (
-            (suggestionMark &&
-              currentUsername !== suggestionMark.attrs.username) ||
-            !suggestionMark
-          ) {
-            if (groupStart !== null) {
-              decorateSuggestion(
-                decos,
-                groupStart,
-                groupEnd,
-                currentAttrs,
-                renderHoverMenu
-              );
-            }
-            groupStart = null;
-            groupEnd = null;
-            currentUsername = null;
-            currentAttrs = null;
-          }
-
-          // Start new group if we have a suggestion
-          if (suggestionMark) {
-            if (!groupStart) {
-              groupStart = pos;
-              currentUsername = suggestionMark.attrs.username;
-              currentAttrs = suggestionMark.attrs;
-            }
-            // always set a group end, it will be incremented if the next node part of the same group
-            groupEnd = pos + node.nodeSize;
-          }
-
-          // If it's the last node and we have an active group, close it
-          const isLastNode = index === parent.childCount - 1;
-          if (isLastNode && groupStart !== null) {
-            decorateSuggestion(
-              decos,
-              groupStart,
-              groupEnd,
-              currentAttrs,
-              renderHoverMenu
-            );
-          }
-        });
-
-        return DecorationSet.create(state.doc, decos);
+        return createDecorations(state, renderHoverMenu);
       },
     },
   });

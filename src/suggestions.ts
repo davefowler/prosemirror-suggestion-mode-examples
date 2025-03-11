@@ -67,11 +67,24 @@ export const suggestionModePlugin = (
           const to = step.to;
 
           const removedSlice = oldState.doc.slice(from, to, false);
+          console.log(
+            'removedSlice old',
+            from,
+            to,
+            removedSlice,
+            removedSlice.content.size
+          );
           // in all but the ReplaceStep, the removedSlice is the same size as the addedSlice
           // so we can use it as the addedSlice, as we're just adding a mark over that range
           const addedSlice =
             step instanceof ReplaceStep ? step.slice : removedSlice;
 
+          console.log(
+            'addedSlice',
+            addedSlice,
+            addedSlice.content.size,
+            addedSlice.content.firstChild?.text
+          );
           // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
           tr.setMeta(suggestionModePluginKey, {
             suggestionOperation: true,
@@ -87,6 +100,7 @@ export const suggestionModePlugin = (
               m.type.name === 'suggestion_delete'
           );
 
+          console.log('step', step, to, from, removedSlice, addedSlice);
           if (suggestionMark) {
             if (addedSlice.content.size > 1) {
               // a paste has happened in the middle of a suggestion mark
@@ -116,12 +130,36 @@ export const suggestionModePlugin = (
           if (addedSlice.content.size > 0) {
             // For pasting, we want to insert at the original position
             const addedFrom = from + removedSlice.content.size;
+
             // ReplaceAroundStep has an insert property that is the number of extra characters inserted
             // for things like numbers in a list item
             const extraInsertChars =
               step instanceof ReplaceAroundStep ? step.insert : 0;
-            const addedTo =
-              addedFrom + addedSlice.content.size + extraInsertChars;
+
+            // Calculate the actual text content size, ignoring node structure overhead
+            let actualContentSize = addedSlice.content.size;
+
+            // In the case of pasted content with newlines, we need to subtract 2 for node tokens
+            // This adjustment specifically targets pasted content in ReplaceSteps
+            if (
+              step instanceof ReplaceStep &&
+              addedSlice.openStart === 1 &&
+              addedSlice.openEnd === 1
+            ) {
+              actualContentSize -= 2;
+            }
+
+            const addedTo = addedFrom + actualContentSize + extraInsertChars;
+
+            console.log(
+              'suggestion_add',
+              step,
+              addedFrom,
+              addedTo,
+              extraInsertChars,
+              addedSlice.content
+            );
+
             tr.addMark(
               addedFrom,
               addedTo,

@@ -16,7 +16,11 @@ Overall this release enables a lot more functionality while increasing simplicit
  - simplified the hover menu to a single decorator widget
  - integrated add/reject buttons into toolbar
   
-TODO - make suggestEdit a command
+TODO 
+  - make suggestEdit a command
+  - line breaks don't repair well when rejected
+  - reject all doesn't work for all 
+
 
 ## 1.0.16
 

@@ -226,6 +226,88 @@ describe('accept-reject functions', () => {
     });
   });
 
+  describe('multiple suggestions with position adjustments', () => {
+    test('should correctly adjust positions when multiple add suggestions are rejected', () => {
+      // Setup multiple suggestions in sequence
+      const mockMultipleAddMarks = [
+        { pos: 10, size: 5, mark: { ...mockAddMark } },
+        { pos: 20, size: 3, mark: { ...mockAddMark } },
+        { pos: 30, size: 7, mark: { ...mockAddMark } },
+      ];
+
+      // Override the nodesBetween method to simulate multiple suggestions
+      mockDoc.nodesBetween = jest.fn((from, to, callback) => {
+        mockMultipleAddMarks.forEach((item) => {
+          callback(
+            {
+              marks: [item.mark],
+              nodeSize: item.size,
+            },
+            item.pos
+          );
+        });
+      });
+
+      // Call reject on all suggestions
+      rejectSuggestionsInRange(0, 100)(mockState, mockView.dispatch);
+
+      // Should have called delete with correct adjusted positions
+      expect(mockTr.delete.mock.calls.length).toBe(3);
+
+      // First call should use original position
+      expect(mockTr.delete.mock.calls[0][0]).toBe(10);
+      expect(mockTr.delete.mock.calls[0][1]).toBe(15);
+
+      // Second call should adjust for first deletion (5 chars removed)
+      expect(mockTr.delete.mock.calls[1][0]).toBe(15); // 20 - 5
+      expect(mockTr.delete.mock.calls[1][1]).toBe(18); // 23 - 5
+
+      // Third call should adjust for both previous deletions (5 + 3 = 8 chars removed)
+      expect(mockTr.delete.mock.calls[2][0]).toBe(22); // 30 - 8
+      expect(mockTr.delete.mock.calls[2][1]).toBe(29); // 37 - 8
+    });
+
+    test('should correctly adjust positions when multiple delete suggestions are accepted', () => {
+      // Setup multiple suggestions in sequence
+      const mockMultipleDeleteMarks = [
+        { pos: 10, size: 5, mark: { ...mockDeleteMark } },
+        { pos: 20, size: 3, mark: { ...mockDeleteMark } },
+        { pos: 30, size: 7, mark: { ...mockDeleteMark } },
+      ];
+
+      // Override the nodesBetween method to simulate multiple suggestions
+      mockDoc.nodesBetween = jest.fn((from, to, callback) => {
+        mockMultipleDeleteMarks.forEach((item) => {
+          callback(
+            {
+              marks: [item.mark],
+              nodeSize: item.size,
+            },
+            item.pos
+          );
+        });
+      });
+
+      // Call accept on all suggestions
+      acceptSuggestionsInRange(0, 100)(mockState, mockView.dispatch);
+
+      // Should have called delete with correct adjusted positions
+      expect(mockTr.delete.mock.calls.length).toBe(3);
+
+      // First call should use original position
+      expect(mockTr.delete.mock.calls[0][0]).toBe(10);
+      expect(mockTr.delete.mock.calls[0][1]).toBe(15);
+
+      // Second call should adjust for first deletion (5 chars removed)
+      expect(mockTr.delete.mock.calls[1][0]).toBe(15); // 20 - 5
+      expect(mockTr.delete.mock.calls[1][1]).toBe(18); // 23 - 5
+
+      // Third call should adjust for both previous deletions (5 + 3 = 8 chars removed)
+      expect(mockTr.delete.mock.calls[2][0]).toBe(22); // 30 - 8
+      expect(mockTr.delete.mock.calls[2][1]).toBe(29); // 37 - 8
+    });
+  });
+
   describe('error handling', () => {
     test('should handle errors in acceptSuggestionsInRange', () => {
       // Force an error by making nodesBetween throw

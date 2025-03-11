@@ -370,4 +370,181 @@ describe('suggestion mode edge cases', () => {
       expect(hasDeleteMark).toBe(true);
     });
   });
+
+  describe('pasting with different openStart/openEnd scenarios', () => {
+    test('should handle pasting multi-paragraph content', () => {
+      createEditor('<p>Hello world</p>');
+
+      // Position cursor after "Hello "
+      const position = 6;
+      view.dispatch(
+        view.state.tr.setSelection(
+          Selection.near(view.state.doc.resolve(position))
+        )
+      );
+
+      // Simulate pasting multi-paragraph content
+      const pastedText = '<p>first</p><p>second</p>';
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = pastedText;
+      const pastedFragment =
+        DOMParser.fromSchema(schema).parse(tempDiv).content;
+
+      view.dispatch(
+        view.state.tr.replaceWith(position, position, pastedFragment)
+      );
+
+      // Check content - note that ProseMirror will insert the paragraphs
+      expect(view.state.doc.textContent).toBe('Hello firstsecond world');
+
+      // Verify the suggestion_add mark is correctly applied to both paragraphs
+      let hasAddMarkOnFirst = false;
+      let hasAddMarkOnSecond = false;
+
+      // Check "first" - should have suggestion_add mark
+      view.state.doc.nodesBetween(
+        position,
+        position + 'first'.length,
+        (node) => {
+          if (node.marks.some((mark) => mark.type.name === 'suggestion_add')) {
+            hasAddMarkOnFirst = true;
+          }
+        }
+      );
+
+      // Check "second" - should have suggestion_add mark
+      const secondPos = position + 'first'.length;
+      view.state.doc.nodesBetween(
+        secondPos,
+        secondPos + 'second'.length,
+        (node) => {
+          if (node.marks.some((mark) => mark.type.name === 'suggestion_add')) {
+            hasAddMarkOnSecond = true;
+          }
+        }
+      );
+
+      expect(hasAddMarkOnFirst).toBe(true);
+      expect(hasAddMarkOnSecond).toBe(true);
+    });
+
+    test('should handle pasting into a list item', () => {
+      createEditor('<ul><li>First item</li><li>Second item</li></ul>');
+
+      // Select position in the first list item after "First "
+      const position = 7;
+      view.dispatch(
+        view.state.tr.setSelection(
+          Selection.near(view.state.doc.resolve(position))
+        )
+      );
+
+      // Paste text
+      view.dispatch(view.state.tr.insertText('inserted '));
+
+      // Check content
+      expect(view.state.doc.textContent).toBe('First inserted itemSecond item');
+
+      // Verify the suggestion_add mark is correctly applied
+      let hasAddMark = false;
+      view.state.doc.nodesBetween(
+        position,
+        position + 'inserted '.length,
+        (node) => {
+          if (node.marks.some((mark) => mark.type.name === 'suggestion_add')) {
+            hasAddMark = true;
+          }
+        }
+      );
+
+      expect(hasAddMark).toBe(true);
+    });
+
+    test('should handle pasting text with openStart=1, openEnd=0', () => {
+      createEditor('<p>Start</p><p>Middle</p><p>End</p>');
+
+      // Position cursor at the end of "Start"
+      const position = 6; // After "Start"
+      view.dispatch(
+        view.state.tr.setSelection(
+          Selection.near(view.state.doc.resolve(position))
+        )
+      );
+
+      // Create a slice with openStart=1, openEnd=0 by extracting partial text
+      // This would be text that starts in the middle of a paragraph and ends at a paragraph boundary
+      const sliceContent = view.state.doc.slice(3, 12, false); // From middle of "Start" to end of "Middle"
+
+      // Slice should have openStart=1, openEnd=0
+      view.dispatch(
+        view.state.tr.replaceWith(position, position, sliceContent.content)
+      );
+
+      // Verify the suggestion_add mark is correctly applied without extending too far
+      let markedTextLength = 0;
+      view.state.doc.nodesBetween(
+        position,
+        position + sliceContent.content.size,
+        (node, pos) => {
+          if (
+            node.isText &&
+            node.marks.some((mark) => mark.type.name === 'suggestion_add')
+          ) {
+            markedTextLength += node.text!.length;
+          }
+        }
+      );
+
+      // The marked text should be accurate without including node structure tokens
+      const expectedTextLength = 'rtMiddle'.length;
+      expect(markedTextLength).toBe(expectedTextLength);
+    });
+
+    test('should handle complex nested structure pasting', () => {
+      createEditor('<p>Hello world</p>');
+
+      // Position cursor after "Hello "
+      const position = 6;
+      view.dispatch(
+        view.state.tr.setSelection(
+          Selection.near(view.state.doc.resolve(position))
+        )
+      );
+
+      // Simulate pasting a table with content
+      const pastedHTML = `
+        <table>
+          <tr>
+            <td>Cell 1</td>
+            <td>Cell 2</td>
+          </tr>
+        </table>
+      `;
+
+      // Since we're using basic schema, table won't be rendered as a table
+      // but the text content will still be pasted
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = pastedHTML;
+      const pastedFragment =
+        DOMParser.fromSchema(schema).parse(tempDiv).content;
+
+      view.dispatch(
+        view.state.tr.replaceWith(position, position, pastedFragment)
+      );
+
+      // Check that all pasted text has suggestion_add mark without overextending
+      view.state.doc.nodesBetween(
+        position,
+        view.state.doc.nodeSize - 2, // exclude the final closing token
+        (node, pos) => {
+          if (node.isText && node.text?.includes('Cell')) {
+            const hasAddMark = node.marks.some(
+              (mark) => mark.type.name === 'suggestion_add'
+            );
+            expect(hasAddMark).toBe(true);
+          }
+        }
+      );
+    });
+  });
 });

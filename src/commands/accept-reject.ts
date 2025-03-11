@@ -47,16 +47,32 @@ export const acceptSuggestionsInRange = (from: number, to: number): Command => {
     const tr = state.tr;
     tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
 
+    // Sort suggestions by their starting position in ascending order
+    // This ensures we process them from left to right, making position adjustments easier
+    const sortedSuggestions = [...suggestions].sort((a, b) => a.from - b.from);
+
+    // Track position adjustment as we make changes to the document
+    let offset = 0;
+
     // Process all marks in the range
-    suggestions.forEach(({ mark, from, to }) => {
-      if (mark.type.name === 'suggestion_add') {
-        // Keep the text, remove the mark
-        tr.removeMark(from, to, mark.type);
-      } else if (mark.type.name === 'suggestion_delete') {
-        // Remove both text and mark
-        tr.delete(from, to);
+    sortedSuggestions.forEach(
+      ({ mark, from: originalFrom, to: originalTo }) => {
+        // Adjust positions based on previous changes
+        const adjustedFrom = originalFrom + offset;
+        const adjustedTo = originalTo + offset;
+
+        if (mark.type.name === 'suggestion_add') {
+          // Keep the text, remove the mark
+          tr.removeMark(adjustedFrom, adjustedTo, mark.type);
+          // No offset change when just removing marks
+        } else if (mark.type.name === 'suggestion_delete') {
+          // Remove both text and mark
+          tr.delete(adjustedFrom, adjustedTo);
+          // Update offset: deleting text reduces subsequent positions
+          offset -= adjustedTo - adjustedFrom;
+        }
       }
-    });
+    );
 
     dispatch(tr);
     return true;
@@ -71,16 +87,32 @@ export const rejectSuggestionsInRange = (from: number, to: number): Command => {
     const tr = state.tr;
     tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
 
+    // Sort suggestions by their starting position in ascending order
+    // This ensures we process them from left to right, making position adjustments easier
+    const sortedSuggestions = [...suggestions].sort((a, b) => a.from - b.from);
+
+    // Track position adjustment as we make changes to the document
+    let offset = 0;
+
     // Process all marks in the range
-    suggestions.forEach(({ mark, from, to }) => {
-      if (mark.type.name === 'suggestion_add') {
-        // Remove both text and mark
-        tr.delete(from, to);
-      } else if (mark.type.name === 'suggestion_delete') {
-        // Keep the text, remove the mark
-        tr.removeMark(from, to, mark.type);
+    sortedSuggestions.forEach(
+      ({ mark, from: originalFrom, to: originalTo }) => {
+        // Adjust positions based on previous changes
+        const adjustedFrom = originalFrom + offset;
+        const adjustedTo = originalTo + offset;
+
+        if (mark.type.name === 'suggestion_add') {
+          // Remove both text and mark
+          tr.delete(adjustedFrom, adjustedTo);
+          // Update offset: deleting text reduces subsequent positions
+          offset -= adjustedTo - adjustedFrom;
+        } else if (mark.type.name === 'suggestion_delete') {
+          // Keep the text, remove the mark
+          tr.removeMark(adjustedFrom, adjustedTo, mark.type);
+          // No offset change when just removing marks
+        }
       }
-    });
+    );
 
     dispatch(tr);
     return true;

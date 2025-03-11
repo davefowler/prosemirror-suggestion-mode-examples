@@ -48,14 +48,27 @@ export const suggestionModePlugin = (
     ) {
       // handle when a selection is deleted
       const pluginState = this.getState(oldState);
-      if (!pluginState?.inSuggestionMode) return null;
+
+      console.log(
+        'appendTransaction with state',
+        pluginState,
+        'inSuggestionMode?',
+        pluginState?.inSuggestionMode
+      );
+      // if (!pluginState?.inSuggestionMode) return null;
 
       let tr = newState.tr;
       let changed = false;
 
       transactions.forEach((transaction) => {
-        // Skip if this is an internal operation
         const meta = transaction.getMeta(suggestionModePluginKey);
+        const forceSuggestion = transaction.getMeta('forceSuggestion');
+        console.log(
+          'force suggestion?',
+          forceSuggestion,
+          meta?.inSuggestionMode
+        );
+        if (meta && !meta?.inSuggestionMode && !forceSuggestion) return null;
         if (meta && meta.suggestionOperation) {
           return;
         }
@@ -136,12 +149,20 @@ export const suggestionModePlugin = (
             // this is because of the way prosemirror handles openStart and openEnd
             // When we insert back in, we need to cut the paragraph tokens off the slice
             tr.insert(from, removedSlice.content);
+            const newData = {
+              ...pluginState.data,
+              ...(meta?.data || {}),
+              ...(forceSuggestion ? forceSuggestion.data : {}),
+            };
+
+            console.log('newData', newData);
+
             tr.addMark(
               from,
               from + removedSlice.content.size,
               newState.schema.marks.suggestion_delete.create({
-                username: pluginState.username,
-                data: { ...pluginState.data, ...(meta?.data || {}) },
+                username: forceSuggestion?.username || pluginState.username,
+                data: newData,
               })
             );
             changed = true;

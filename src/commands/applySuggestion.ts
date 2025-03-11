@@ -19,31 +19,16 @@ const applySuggestionToRange = (
   suggestion: TextSuggestion,
   username: string
 ) => {
-  const startingState = suggestionModePluginKey.getState(state);
-  if (!startingState) return false;
+  const newData: Record<string, any> = {};
+  if (suggestion.reason?.length > 0) newData.reason = suggestion.reason;
 
-  const newData =
-    suggestion.reason.length > 0
-      ? { ...startingState.data, reason: suggestion?.reason || '' }
-      : startingState.data;
-
-  const tr = state.tr.setMeta(suggestionModePluginKey, {
-    ...startingState,
+  const tr = state.tr.setMeta('forceSuggestion', {
     data: newData,
     username,
-    inSuggestionMode: true,
   });
   tr.replaceWith(from, to, state.schema.text(suggestion.textReplacement));
-  // dispatch(tr);
-
-  // now restore the original state
-  tr.setMeta(suggestionModePluginKey, {
-    ...suggestionModePluginKey.getState(state),
-    username: startingState.username,
-    data: startingState.data,
-    inSuggestionMode: startingState.inSuggestionMode,
-  });
   dispatch(tr);
+  return true;
 };
 
 /**
@@ -172,6 +157,9 @@ export const createApplySuggestionCommand = (
 /**
  * Find the actual document positions that correspond to positions in the text content
  * This handles formatted text correctly by mapping text content positions to document positions
+ * TODO -  the document range always seems to be a few characters behind the text range.
+ * This is likely due to paragaraphs/blocks and it could probably be more manually calculated
+ * or at the very least started from a closer position.
  */
 function findDocumentRange(
   doc: Node,
@@ -186,6 +174,7 @@ function findDocumentRange(
       let endPos: number | null = null;
 
       // Walk through all text nodes in the document
+      // TODO - we could probably start from the textStart and work our way forward
       doc.nodesBetween(0, doc.nodeSize - 2, (node, pos) => {
         if (startPos !== null && endPos !== null) return false; // Stop if we've found both positions
 

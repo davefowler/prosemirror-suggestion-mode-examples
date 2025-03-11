@@ -42,6 +42,7 @@ const findSuggestionsInRange = (
 export const acceptSuggestionsInRange = (from: number, to: number): Command => {
   return (state: EditorState, dispatch?: (tr: Transaction) => void) => {
     const suggestions = findSuggestionsInRange(state, from, to);
+    console.log('acceptSuggestionsInRange', suggestions, from, to);
     if (!suggestions.length || !dispatch) return false;
 
     const tr = state.tr;

@@ -47,15 +47,6 @@
     color: black;
 }
 
-/* More general hover selector that works with nested elements */
-.suggestion-menu-wrapper:has(~ .suggestion-add:hover) .suggestion-hover-menu,
-.suggestion-menu-wrapper:has(~ .suggestion-delete:hover) .suggestion-hover-menu,
-.suggestion-menu-wrapper:has(~ * .suggestion-add:hover) .suggestion-hover-menu,
-.suggestion-menu-wrapper:has(~ * .suggestion-delete:hover) .suggestion-hover-menu,
-.suggestion-menu-wrapper:hover .suggestion-hover-menu {
-    display: block;
-}
-
 /* Button styles remain the same */
 .suggestion-buttons {
     display: flex;

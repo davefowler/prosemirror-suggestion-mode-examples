@@ -21,6 +21,7 @@ export interface SuggestionHoverMenuOptions {
     ) => MenuComponent;
     // Add more component types as needed
   };
+  disabled?: boolean;
   // CSS classes
   menuClass?: string;
 }

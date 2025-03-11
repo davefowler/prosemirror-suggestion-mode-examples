@@ -12,7 +12,7 @@ import {
   SuggestionHoverMenuOptions,
 } from './menus/hoverMenu';
 import { createDecorations } from './decorations';
-import { Slice } from 'prosemirror-model';
+import { initSuggestionHoverListeners } from './menus/hoverHandlers';
 
 type AnyStep = ReplaceStep | AddMarkStep | RemoveMarkStep | ReplaceAroundStep;
 // Plugin options interface
@@ -32,6 +32,9 @@ export const suggestionModePlugin = (
   const renderHoverMenu =
     options.hoverMenuRenderer ||
     hoverMenuFactory(options?.hoverMenuOptions || {});
+
+  // Store listeners for cleanup
+  let currentListeners: WeakMap<HTMLElement, any> | null = null;
 
   return new Plugin({
     key: suggestionModePluginKey,
@@ -247,8 +250,32 @@ export const suggestionModePlugin = (
 
     props: {
       decorations(state: EditorState) {
+        if (options.hoverMenuOptions?.disabled) return null;
         return createDecorations(state, renderHoverMenu);
       },
+    },
+
+    view(view) {
+      if (options.hoverMenuOptions?.disabled) return null;
+      // Initialize listeners when the view is created
+      setTimeout(() => {
+        currentListeners = initSuggestionHoverListeners(view);
+      }, 0);
+
+      return {
+        update(view, prevState) {
+          // Re-initialize listeners when the decorations might have changed
+          if (view.state.doc !== prevState.doc) {
+            setTimeout(() => {
+              currentListeners = initSuggestionHoverListeners(view);
+            }, 0);
+          }
+        },
+        destroy() {
+          // Cleanup would happen automatically with WeakMap
+          currentListeners = null;
+        },
+      };
     },
   });
 };

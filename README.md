@@ -84,6 +84,7 @@ suggestionModePlugin({
     createInfoComponent?: (mark: Mark, view: EditorView, pos: number) => HTMLElement; // override to create a custom info component above the buttons
     createButtonsComponent?: (mark: Mark, view: EditorView, pos: number) => HTMLElement; // override to create a custom buttons component below the info component
   };
+  disabled?: false // disable hover menu and listeners (off by default)
   menuClass?: string; // class to apply to the hover menu
 };  
 ```

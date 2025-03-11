@@ -8,7 +8,8 @@
  - find and handle isntances where openStart=1 openEnd=0 or reveersed? is that a thing?
  - handle multiple user suggestions overlapping
  - applySuggestion only works for text matching - a more advanced way would be great.
- - Hover 
+ - improved hover menus
+ - Option to disable hover menus
 
 
 ## 1.0.20

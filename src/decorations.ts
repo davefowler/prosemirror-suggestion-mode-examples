@@ -4,14 +4,14 @@ import { SuggestionHoverMenuRenderer } from './menus/hoverMenu';
 
 export function decorateSuggestion(
   decos: Decoration[],
-  start: number,
-  end: number,
+  from: number,
+  to: number,
   attrs: Record<string, any>,
   renderHoverMenu: SuggestionHoverMenuRenderer
 ) {
   decos.push(
     Decoration.widget(
-      start,
+      from,
       (view) => {
         const wrapper = document.createElement('span');
         wrapper.className = 'suggestion-menu-wrapper';
@@ -22,14 +22,14 @@ export function decorateSuggestion(
         wrapper.style.width = '0';
         wrapper.style.overflow = 'visible';
 
-        const menu = renderHoverMenu(start, end, attrs, {
+        const menu = renderHoverMenu(from, to, attrs, {
           dispatch: (command) => command(view.state, view.dispatch),
         });
         wrapper.appendChild(menu);
         return wrapper;
       },
       {
-        key: `hover-${start}`,
+        key: `hover-${from}`,
         side: -1,
       }
     )

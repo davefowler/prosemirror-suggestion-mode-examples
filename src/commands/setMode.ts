@@ -1,33 +1,53 @@
 import { Command, EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { suggestionModePluginKey } from '../key';
+import { Transaction } from 'prosemirror-state';
 
-export const toggleSuggestionMode: Command = (state: EditorState, dispatch) => {
+/**
+ * Set the suggestion mode state
+ * @param enabled Whether suggestion mode should be enabled or disabled
+ */
+export const setSuggestionModeCommand = (enabled: boolean): Command => {
+  return (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+    const pluginState = suggestionModePluginKey.getState(state);
+    if (!pluginState) return false;
+
+    if (dispatch) {
+      dispatch(
+        state.tr.setMeta(suggestionModePluginKey, {
+          ...pluginState,
+          inSuggestionMode: enabled,
+        })
+      );
+    }
+    return true;
+  };
+};
+
+/**
+ * Toggle the suggestion mode on or off
+ */
+export const toggleSuggestionMode: Command = (
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+) => {
   const pluginState = suggestionModePluginKey.getState(state);
   if (!pluginState) return false;
 
-  if (dispatch) {
-    dispatch(
-      state.tr.setMeta(suggestionModePluginKey, {
-        ...pluginState,
-        inSuggestionMode: !pluginState.inSuggestionMode,
-      })
-    );
-  }
-  return true;
+  // Use setSuggestionModeCommand to toggle the current state
+  return setSuggestionModeCommand(!pluginState.inSuggestionMode)(
+    state,
+    dispatch
+  );
 };
 
-// Keep the old function for backward compatibility
+/**
+ * Helper function to set suggestion mode (non-command version for direct view manipulation)
+ */
 export const setSuggestionMode = (
   view: EditorView,
-  isSuggestionMode: boolean
-) => {
-  const state = suggestionModePluginKey.getState(view.state);
-  if (!state) return;
-  view.dispatch(
-    view.state.tr.setMeta(suggestionModePluginKey, {
-      ...state,
-      inSuggestionMode: isSuggestionMode,
-    })
-  );
+  enabled: boolean
+): boolean => {
+  const command = setSuggestionModeCommand(enabled);
+  return command(view.state, view.dispatch);
 };

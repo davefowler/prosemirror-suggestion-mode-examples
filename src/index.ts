@@ -1,10 +1,23 @@
 // Export all public API components
+
+// Plugin core
 export { suggestionModePlugin } from './plugin';
-export { acceptAllSuggestions, rejectAllSuggestions } from './commands';
-export { setSuggestionMode, toggleSuggestionMode } from './commands';
 export { suggestionModePluginKey } from './key';
 export type { SuggestionModePluginState } from './key';
+
+// Commands
+export {
+  acceptAllSuggestions,
+  rejectAllSuggestions,
+  setSuggestionMode,
+  toggleSuggestionMode,
+  createApplySuggestionCommand,
+  applySuggestion,
+} from './commands';
+export type { TextSuggestion } from './commands';
+
+// Schema
 export { addSuggestionMarks } from './schema';
 
-export { suggestEdit, TextSuggestion } from './commands';
+// UI components
 export { getSuggestionMenuItems } from './menus/menuBar';

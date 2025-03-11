@@ -3,10 +3,12 @@
 
 ## TODO's yet [see issues for more](https://github.com/davefowler/prosemirror-suggestion-mode/issues)
 
- - multiple user suggestion overlap.
  - deleting across blocks puts in in their own block
  - make suggestEdit a command
- - find and handle isntances where openStart=1 openEnd=0 or reveersed? 
+ - find and handle isntances where openStart=1 openEnd=0 or reveersed? is that a thing?
+ - handle multiple user suggestions overlapping
+ - applySuggestion only works for text matching - a more advanced way would be great.
+
 
 ## 1.0.20
 
@@ -23,6 +25,7 @@ Overall this release enables a lot more functionality while increasing simplicit
  - simplified the hover menu to a single decorator widget
  - integrated add/reject buttons into toolbar
  - paragraph pastes working
+ - accept and reject suggestion commands are now range based
   
 
 ## 1.0.16

@@ -21,7 +21,7 @@ Check out the [live demos](https://prosemirror-suggestion-mode.netlify.app)
 - Accept/reject individual suggestions
 - Does not conflict with formatting or undo/redo
 - Clean, minimal UI
-- text search/replace helpers for AI generated suggestions
+- Text search/replace helpers for AI generated suggestions
 
 ## Installation
 
@@ -55,23 +55,23 @@ const exampleSchema = new Schema({
 Then add the plugin to your plugins array with the *suggestionModePlugin* plugin factory function when you create the editor
 
 ```javascript
-  import { suggestionModePlugin } from 'prosemirror-suggestion-mode'
-  const state = EditorState.create({
-    schema: exampleSchema,
-    doc,
-    plugins: [
-      keymap(baseKeymap), // basic keymap for the editor 
-      // suggestion mode plugin factory function with init values
-      suggestionModePlugin({ 
-        username: "example user", 
-        data: { // put any custom ata here that you want added as attrs to the hover tooltip
-            exampleattr: "these get added to the attrs of the the hover tooltip" 
-          } 
-      })],
-  });
+import { suggestionModePlugin } from 'prosemirror-suggestion-mode'
+const state = EditorState.create({
+  schema: exampleSchema,
+  doc,
+  plugins: [
+    keymap(baseKeymap), // basic keymap for the editor 
+    // suggestion mode plugin factory function with init values
+    suggestionModePlugin({ 
+      username: "example user", 
+      data: { // put any custom data here that you want added as attrs to the hover tooltip
+          exampleattr: "these get added to the attrs of the the hover tooltip" 
+        } 
+    })],
+});
 ```
 
-the init options for the plugin are:
+The init options for the plugin are:
 
 ```javascript
 suggestionModePlugin({
@@ -88,18 +88,79 @@ suggestionModePlugin({
 };  
 ```
 
+## Commands and Helper Functions
 
-### Toggle Suggestion Mode 
+The plugin provides various commands and helper functions to control its behavior.
 
-
-There are a few helpers for common tasks like:
-
-Setting the suggestion mode on/off
+### Suggestion Mode Controls
 
 ```javascript
-import { setSuggestionMode } from 'prosemirror-suggestion-mode'
+import { 
+  setSuggestionMode, 
+  setSuggestionModeCommand,
+  toggleSuggestionMode 
+} from 'prosemirror-suggestion-mode'
+
+// Helper function to set suggestion mode on/off
 setSuggestionMode(view, true); // enable suggestion mode
 setSuggestionMode(view, false); // disable suggestion mode
+
+// Command to set suggestion mode (for use with menus or keymaps)
+const enableSuggestionMode = setSuggestionModeCommand(true);
+view.dispatch(enableSuggestionMode(view.state, view.dispatch));
+
+// Command to toggle suggestion mode
+view.dispatch(toggleSuggestionMode(view.state, view.dispatch));
+```
+
+### Applying AI or Text-Based Suggestions
+
+```javascript
+import { applySuggestion, createApplySuggestionCommand } from 'prosemirror-suggestion-mode'
+
+// Apply a single suggestion using the helper function
+applySuggestion(view, {
+  textToReplace: "Moon",
+  textReplacement: "moon",
+  reason: "Consistent lowercase for celestial bodies",
+  textBefore: "We choose to go to the ",
+  textAfter: " in this decade and do"
+}, "AI Assistant");
+
+// Apply multiple suggestions by looping through them
+mySuggestions.forEach(suggestion => {
+  applySuggestion(view, suggestion, "AI Assistant");
+});
+
+// Create a command for a suggestion (for use with menus or keymaps)
+const command = createApplySuggestionCommand({
+  textToReplace: "pre-eminence",
+  textReplacement: "leadership position",
+  reason: "Using more common terminology",
+  textBefore: "only if the United States occupies a position of ",
+  textAfter: " can we help decide"
+}, "AI Assistant");
+
+command(view.state, view.dispatch, view);
+```
+
+### Accept/Reject Suggestions
+
+```javascript
+import { 
+  acceptSuggestionsInRange, 
+  rejectSuggestionsInRange, 
+  acceptAllSuggestions, 
+  rejectAllSuggestions 
+} from 'prosemirror-suggestion-mode'
+
+// Accept or reject suggestions within a specific range
+acceptSuggestionsInRange(10, 20)(view.state, view.dispatch);
+rejectSuggestionsInRange(10, 20)(view.state, view.dispatch);
+
+// Accept or reject all suggestions in the document
+acceptAllSuggestions(view.state, view.dispatch);
+rejectAllSuggestions(view.state, view.dispatch);
 ```
 
 ### Change the username or data
@@ -119,26 +180,6 @@ view.dispatch(view.state.tr.setMeta(suggestionModePlugin, {
 
 The `data` attribute can contain any JSON-serializable object. This data will be stored with the suggestion mark and displayed in the tooltip by default.
 
-
-### Accept/Reject Suggestions
-
-Here are the helper functions for accepting and rejecting suggestions individually or in bulk.
-
-```javascript
-import { acceptSuggestion, rejectSuggestion, acceptAllSuggestions, rejectAllSuggestions } from 'prosemirror-suggestion-mode'
-// Accept a suggestion at the given mark and position
-acceptSuggestion(view, mark, pos)
-
-// Reject a suggestion at the given mark and position
-rejectSuggestion(view, mark, pos)
-
-// Accept all suggestions
-acceptAllSuggestions(view)
-
-// Reject all suggestions
-rejectAllSuggestions(view)
-```
-
 ### Customizing the Hover Menu
 
 You can customize the content and appearance of suggestion hover menu by either overwritting a component of the default hover menu, or by providing your own full hover menu renderer.
@@ -148,7 +189,7 @@ See the examples for more details:
  - [Ink & Switch Example ](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/examples/inkAndSwitch/inkAndSwitch.ts) - hides the deletes and shows what was deleted only on hover [demo](https://prosemirror-suggestion-mode.netlify.app/examples/inkandswitch/) 
 
 
-#### 2. CSS Styling
+#### CSS Styling
 
 For basic styling you can simply import the [default styles](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/src/styles/default.css) 
 
@@ -178,12 +219,6 @@ This will:
 The development server will be available at:
 http://localhost:8080
 
-
-## Implementation choices
-
-For simplicity this is not really a diffing capability where you can input two different versions and see the changes.  Instead if a user makes changes with a suggestion mode enabled, the changes are stored as extra markup on the document.  It's not really version control, it's just a way to make suggestions.
-
-I had gone down the route of using prosemirror-changeset as some had suggested for this, but accepting or rejecting individual suggestions out of order was quite complex in changeset, so I went back to this method of keeping the suggestions in the document.  If you'd like to see where I went with that work you can see the [changeset branch here](https://github.com/davefowler/prosemirror-suggestion-mode/tree/changeset).
 
 ## License
 

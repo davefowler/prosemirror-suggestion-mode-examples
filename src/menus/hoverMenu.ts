@@ -1,10 +1,14 @@
-import { Mark } from 'prosemirror-model';
-import { EditorView } from 'prosemirror-view';
 import {
   acceptSuggestionsInRange,
   rejectSuggestionsInRange,
 } from '../commands/accept-reject';
 import { Command } from 'prosemirror-state';
+
+// Menu item interface
+export interface MenuComponent {
+  dom: HTMLElement;
+  update?: (attrs: Record<string, any>) => void;
+}
 
 // Options for creating the hover menu
 export interface SuggestionHoverMenuOptions {
@@ -32,12 +36,6 @@ export type SuggestionHoverMenuRenderer = (
   attrs: Record<string, any>,
   handler: CommandHandler
 ) => HTMLElement;
-
-// Menu item interface
-export interface MenuComponent {
-  dom: HTMLElement;
-  update?: (attrs: Record<string, any>) => void;
-}
 
 // Default components builders
 export const defaultComponents = {

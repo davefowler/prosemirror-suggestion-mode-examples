@@ -8,10 +8,9 @@ import {
   suggestionModePlugin,
   acceptAllSuggestions,
   rejectAllSuggestions,
-  setSuggestionMode,
-  suggestEdit,
   TextSuggestion,
   addSuggestionMarks,
+  applySuggestion,
 } from 'prosemirror-suggestion-mode';
 import { DOMParser } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';
@@ -70,7 +69,7 @@ window.addEventListener('load', () => {
       keymap(baseKeymap),
       suggestionModePlugin({
         username: 'example user',
-        inSuggestionMode: true, // start in suggestion mode - toggled below
+        inSuggestionMode: false, // This isn't demoing user-triggered suggestion mode, just suggestions using applySuggestion.
         // Add hover menu options to show suggestion reasons
         hoverMenuOptions: {
           components: {
@@ -83,13 +82,6 @@ window.addEventListener('load', () => {
 
   // Create the editor view
   const view = new EditorView(document.querySelector('#editor'), { state });
-
-  // Add event listeners for the controls
-  document
-    .querySelector('#toggleSuggestionMode')
-    ?.addEventListener('change', (e) => {
-      setSuggestionMode(view, (e.target as HTMLInputElement).checked);
-    });
 
   document
     .querySelector('#acceptAllSuggestions')
@@ -115,7 +107,7 @@ window.addEventListener('load', () => {
     },
     {
       textToReplace: '',
-      textReplacement: '\n\nWe want to see if the moon is made of cheese.',
+      textReplacement: 'We want to see if the moon is made of cheese.',
       reason: 'Added new paragraph about cheese moon theory',
       textBefore: 'others, too.',
       textAfter: 'We set sail',
@@ -149,8 +141,9 @@ window.addEventListener('load', () => {
     },
   ];
 
+  // Apply suggestions one by one
   exampleSuggestions.forEach((suggestion) => {
-    suggestEdit(view, [suggestion], 'somebody');
+    applySuggestion(view, suggestion, 'somebody');
   });
 
   const suggestionsDiv = document.querySelector('#suggestions');

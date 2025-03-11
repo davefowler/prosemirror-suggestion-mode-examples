@@ -1,6 +1,7 @@
-import { EditorView } from "prosemirror-view";
-import { suggestionModePluginKey } from "../key";
-import { Node } from "prosemirror-model";
+import { EditorView } from 'prosemirror-view';
+import { suggestionModePluginKey } from '../key';
+import { Node } from 'prosemirror-model';
+import { Command, EditorState, Transaction } from 'prosemirror-state';
 
 export type TextSuggestion = {
   textToReplace: string;
@@ -10,90 +11,101 @@ export type TextSuggestion = {
   textAfter?: string;
 };
 
-// internal function to replace text in prosemirror
-const replaceInProsemirror = (
-  view: EditorView,
+const applySuggestionToRange = (
+  state: EditorState,
+  dispatch: (tr: Transaction) => void,
   from: number,
   to: number,
-  suggestion: TextSuggestion
+  suggestion: TextSuggestion,
+  username: string
 ) => {
-  const tr = view.state.tr;
+  const startingState = suggestionModePluginKey.getState(state);
+  if (!startingState) return false;
 
-  // Store reason in metadata if available
-  if (suggestion.reason) {
-    tr.setMeta(suggestionModePluginKey, {
-      data: { reason: suggestion.reason },
-    });
-  }
+  const newData =
+    suggestion.reason.length > 0
+      ? { ...startingState.data, reason: suggestion?.reason || '' }
+      : startingState.data;
 
-  // Replace the text
-  tr.replaceWith(from, to, view.state.schema.text(suggestion.textReplacement));
-  view.dispatch(tr);
+  const tr = state.tr.setMeta(suggestionModePluginKey, {
+    ...startingState,
+    data: newData,
+    username,
+    inSuggestionMode: true,
+  });
+  tr.replaceWith(from, to, state.schema.text(suggestion.textReplacement));
+  // dispatch(tr);
+
+  // now restore the original state
+  tr.setMeta(suggestionModePluginKey, {
+    ...suggestionModePluginKey.getState(state),
+    username: startingState.username,
+    data: startingState.data,
+    inSuggestionMode: startingState.inSuggestionMode,
+  });
+  dispatch(tr);
 };
 
 /**
- * Apply text based search replace helpful for AI suggestions
- * @param view The editor view
- * @param suggestions Array of suggested edits with context
- * @param username Name to attribute suggestions to
- * @returns Number of applied suggestions
+ * Create a ProseMirror command to apply a single text-based suggestion
+ * @param suggestion The suggested edit with context
+ * @param username Name to attribute suggestion to
+ * @returns A ProseMirror command
  *
  * See examples/suggestEdit/ for an example
  */
-export const suggestEdit = (
-  view: EditorView,
-  suggestions: Array<TextSuggestion>,
+export const createApplySuggestionCommand = (
+  suggestion: TextSuggestion,
   username: string
-) => {
-  // Store current state
-  const startingState = suggestionModePluginKey.getState(view.state);
-  if (!startingState) return 0;
+): Command => {
+  return (
+    state: EditorState,
+    dispatch?: (tr: Transaction) => void,
+    view?: EditorView
+  ) => {
+    if (!view || !dispatch) return false;
 
-  view.dispatch(
-    view.state.tr.setMeta(suggestionModePluginKey, {
-      ...startingState,
-      username,
-      inSuggestionMode: true,
-    })
-  );
-
-  const docText = view.state.doc.textContent;
-  let replacementCount = 0;
-
-  // Apply each suggestion with context matching
-  suggestions.forEach((suggestion) => {
     // Skip suggestions with empty textToReplace
-    if (!suggestion.textToReplace) {
-      console.warn("Skipping suggestion with empty textToReplace");
-      return;
+    if (
+      !suggestion.textToReplace &&
+      !suggestion.textBefore &&
+      !suggestion.textAfter
+    ) {
+      return false;
     }
 
     // Find matches with or without context
-    const textBefore = suggestion.textBefore || "";
-    const textAfter = suggestion.textAfter || "";
+    const textBefore = suggestion.textBefore || '';
+    const textAfter = suggestion.textAfter || '';
 
     // Create the complete search pattern
     const searchText = textBefore + suggestion.textToReplace + textAfter;
     if (!searchText) {
       // There is no text to replace, or text before or after.
       // We're adding text into an empty doc
-      replaceInProsemirror(view, 0, 0, suggestion);
-      replacementCount++;
-      return; // go to next suggestion
+
+      return applySuggestionToRange(
+        state,
+        dispatch,
+        0,
+        0,
+        suggestion,
+        username
+      );
     }
 
     const pattern = escapeRegExp(searchText);
-    const regex = new RegExp(pattern, "g");
+    const regex = new RegExp(pattern, 'g');
 
     // Find matches in the text content
     let match;
     let matches: { index: number; length: number }[] = [];
     let matchCount = 0;
     const MAX_MATCHES = 1000; // Safety limit to prevent infinite loops
+    const docText = state.doc.textContent;
 
     while ((match = regex.exec(docText)) !== null) {
       // Prevent infinite loops on zero-length matches
-      console.log("match", match);
       if (match.index === regex.lastIndex) {
         regex.lastIndex++;
       }
@@ -102,7 +114,7 @@ export const suggestEdit = (
       matchCount++;
       if (matchCount > MAX_MATCHES) {
         console.warn(
-          "Too many matches found, stopping to prevent memory issues"
+          'Too many matches found, stopping to prevent memory issues'
         );
         break;
       }
@@ -114,50 +126,60 @@ export const suggestEdit = (
       });
     }
 
-    // For each match, find the actual document positions
-    matches.forEach(({ index, length }) => {
+    let replacementCount = 0;
+
+    if (matches.length > 0) {
+      // We ignore multiple matches on purpose.  only do the first if multiple
+      if (matches.length > 1) {
+        console.warn(
+          'Multiple matches found, only applying the first',
+          matches
+        );
+      }
+      const applyingMatch = matches[0];
       // Calculate the position of just the 'textToReplace' part in the text content
-      const textMatchStart = index + textBefore.length;
+      const textMatchStart = applyingMatch.index + textBefore.length;
       const textMatchEnd = textMatchStart + suggestion.textToReplace.length;
 
       // Find the actual document positions that correspond to these text positions
-      const docPositions = findDocumentPositions(
-        view.state.doc,
+      const docRange = findDocumentRange(
+        state.doc,
         textMatchStart,
         textMatchEnd
       );
-
-      const { from, to } = docPositions;
-
-      replaceInProsemirror(view, from, to, suggestion);
-      replacementCount++;
-    });
-  });
-
-  // Restore original username
-  view.dispatch(
-    view.state.tr.setMeta(suggestionModePluginKey, {
-      ...suggestionModePluginKey.getState(view.state),
-      username: startingState.username,
-      data: startingState.data,
-      inSuggestionMode: startingState.inSuggestionMode,
-    })
-  );
-
-  return replacementCount;
+      console.log(
+        'textMatchStart',
+        textMatchStart,
+        'textMatchEnd',
+        textMatchEnd,
+        'docRange',
+        docRange.from,
+        docRange.to
+      );
+      applySuggestionToRange(
+        state,
+        dispatch,
+        docRange.from,
+        docRange.to,
+        suggestion,
+        username
+      );
+    }
+    return false;
+  };
 };
 
 /**
  * Find the actual document positions that correspond to positions in the text content
  * This handles formatted text correctly by mapping text content positions to document positions
  */
-function findDocumentPositions(
+function findDocumentRange(
   doc: Node,
   textStart: number,
   textEnd: number
 ): { from: number; to: number } {
   // Check if this is a real ProseMirror document with nodesBetween method
-  if (doc.nodesBetween && typeof doc.nodesBetween === "function") {
+  if (doc.nodesBetween && typeof doc.nodesBetween === 'function') {
     try {
       let currentTextPos = 0;
       let startPos: number | null = null;
@@ -214,7 +236,7 @@ function findDocumentPositions(
     } catch (e) {
       // If there's an error in the nodesBetween approach, fall back to simple positions
       console.log(
-        "Error in nodesBetween, falling back to simple positions:",
+        'Error in nodesBetween, falling back to simple positions:',
         e
       );
     }
@@ -228,5 +250,23 @@ function findDocumentPositions(
  * Helper to escape special characters in a string for use in a regex
  */
 function escapeRegExp(string: string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+/**
+ * Simplified helper function to apply a single text suggestion to an editor
+ * This operates on a single suggestion for predictable behavior
+ *
+ * @param view The editor view
+ * @param suggestion A single suggested edit with context
+ * @param username Name to attribute suggestion to
+ * @returns Boolean indicating if suggestion was applied successfully
+ */
+export const applySuggestion = (
+  view: EditorView,
+  suggestion: TextSuggestion,
+  username: string
+): boolean => {
+  const command = createApplySuggestionCommand(suggestion, username);
+  return command(view.state, view.dispatch, view);
+};

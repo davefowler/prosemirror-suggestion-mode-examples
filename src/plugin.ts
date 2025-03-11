@@ -12,6 +12,7 @@ import {
   SuggestionHoverMenuOptions,
 } from './menus/hoverMenu';
 import { createDecorations } from './decorations';
+import { Slice } from 'prosemirror-model';
 
 type AnyStep = ReplaceStep | AddMarkStep | RemoveMarkStep | ReplaceAroundStep;
 // Plugin options interface

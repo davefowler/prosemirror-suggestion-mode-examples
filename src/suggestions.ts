@@ -5,8 +5,6 @@ import {
   RemoveMarkStep,
   ReplaceAroundStep,
 } from 'prosemirror-transform';
-import { Mark, Node } from 'prosemirror-model';
-import { Decoration, DecorationSet } from 'prosemirror-view';
 import { SuggestionModePluginState, suggestionModePluginKey } from './key';
 import {
   SuggestionHoverMenuRenderer,
@@ -183,46 +181,4 @@ export const suggestionModePlugin = (
       },
     },
   });
-};
-
-// Function to find if a position is inside a mark and return its range
-export const findMarkRange = (
-  state: EditorState,
-  pos: number,
-  markName: string
-): { from: number; to: number; mark: Mark } | null => {
-  const $pos = state.doc.resolve(pos);
-
-  // Check if the position has the mark
-  const nodeAtPos = $pos.nodeAfter || $pos.nodeBefore;
-  if (!nodeAtPos) return null;
-
-  const mark = nodeAtPos.marks.find((m) => m.type.name === markName);
-  if (!mark) return null;
-
-  // Find the range of the mark
-  let from = pos;
-  let to = pos;
-
-  // Find the start of the mark
-  while (from > 0) {
-    const $from = state.doc.resolve(from - 1);
-    const nodeBefore = $from.nodeAfter;
-    if (!nodeBefore || !nodeBefore.marks.some((m) => m.eq(mark))) {
-      break;
-    }
-    from--;
-  }
-
-  // Find the end of the mark
-  while (to < state.doc.content.size) {
-    const $to = state.doc.resolve(to);
-    const nodeAfter = $to.nodeAfter;
-    if (!nodeAfter || !nodeAfter.marks.some((m) => m.eq(mark))) {
-      break;
-    }
-    to += nodeAfter.nodeSize;
-  }
-
-  return { from, to, mark };
 };

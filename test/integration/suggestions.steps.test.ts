@@ -8,6 +8,7 @@ import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
 import { addSuggestionMarks } from '../../src/schema';
 import { toggleMark } from 'prosemirror-commands';
+import { acceptAllSuggestions } from '../../src/commands/accept-reject';
 
 describe('suggestion mode edge cases', () => {
   let view: EditorView;
@@ -86,12 +87,10 @@ describe('suggestion mode edge cases', () => {
           Selection.near(view.state.doc.resolve(pastePosition))
         )
       );
-      // check what's selected
-      expect(view.state.selection.content()).toBe('awesome ');
       view.dispatch(view.state.tr.insertText('PASTED'));
 
       // Check the content
-      expect(view.state.doc.textContent).toBe('HelloawePASTEDsome world');
+      expect(view.state.doc.textContent).toBe('Hello awePASTEDsome world');
 
       // Verify that the entire new content is marked as suggestion_add
       let hasAddMark = false;
@@ -111,7 +110,7 @@ describe('suggestion mode edge cases', () => {
       createEditor('<p>Hello awesome world</p>');
 
       // First create a deletion
-      const from = 6;
+      const from = 7;
       const to = from + 'awesome'.length; // Deletes "awesome"
       view.dispatch(
         view.state.tr.setSelection(
@@ -120,6 +119,8 @@ describe('suggestion mode edge cases', () => {
       );
       view.dispatch(view.state.tr.deleteSelection());
 
+      // awesome is still there but should be marked as deleted
+      expect(view.state.doc.textContent).toBe('Hello awesome world');
       // Now paste text at the deletion point
       view.dispatch(
         view.state.tr.setSelection(Selection.near(view.state.doc.resolve(from)))
@@ -127,7 +128,7 @@ describe('suggestion mode edge cases', () => {
       view.dispatch(view.state.tr.insertText('PASTED'));
 
       // Check content and marks
-      expect(view.state.doc.textContent).toBe('Hello awesome PASTED world');
+      expect(view.state.doc.textContent).toBe('Hello PASTEDawesome world');
 
       // Verify we have both delete and add marks
       let hasDeleteMark = false;
@@ -152,7 +153,7 @@ describe('suggestion mode edge cases', () => {
       createEditor('<p>Hello awesome world</p>');
 
       // Delete "awesome "
-      const from = 6;
+      const from = 7;
       const to = 13;
       view.dispatch(
         view.state.tr.setSelection(
@@ -165,10 +166,10 @@ describe('suggestion mode edge cases', () => {
       view.dispatch(
         view.state.tr.setSelection(Selection.near(view.state.doc.resolve(from)))
       );
-      view.dispatch(view.state.tr.insertText('wonderful'));
+      view.dispatch(view.state.tr.insertText('wonderful '));
 
       // Check content
-      expect(view.state.doc.textContent).toBe('Hello awesome wonderful world');
+      expect(view.state.doc.textContent).toBe('Hello wonderful awesome world');
 
       // Verify we have both marks
       let hasDeleteMark = false;
@@ -229,7 +230,7 @@ describe('suggestion mode edge cases', () => {
       createEditor('<p>Hello <strong>formatted</strong> world</p>');
 
       // Position cursor after "Hello "
-      const position = 6;
+      const position = 7;
       view.dispatch(
         view.state.tr.setSelection(
           Selection.near(view.state.doc.resolve(position))
@@ -237,7 +238,7 @@ describe('suggestion mode edge cases', () => {
       );
 
       // Simulate pasting formatted text
-      const pastedText = '<strong>pasted</strong>';
+      const pastedText = '<strong>pasted</strong> ';
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = pastedText;
       const pastedFragment =
@@ -284,10 +285,6 @@ describe('suggestion mode edge cases', () => {
       // Remove strong mark
       view.dispatch(view.state.tr.removeMark(from, to, schema.marks.strong));
 
-      // Add underline mark
-      const underlineMark = schema.marks.em.create();
-      view.dispatch(view.state.tr.addMark(from, to, underlineMark));
-
       // Verify marks
       let hasDeleteMark = false;
       let hasAddMark = false;
@@ -307,6 +304,10 @@ describe('suggestion mode edge cases', () => {
       expect(hasAddMark).toBe(true);
       expect(hasEmMark).toBe(true);
       expect(hasStrongMark).toBe(false);
+
+      // now accept the suggestion and check the marks again
+      acceptAllSuggestions(view.state, view.dispatch);
+      expect(view.state.doc.textContent).toBe('Hello <em>styled</em> world');
     });
   });
 

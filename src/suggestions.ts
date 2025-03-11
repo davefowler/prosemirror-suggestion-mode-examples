@@ -98,7 +98,6 @@ export const suggestionModePlugin = (
             // We are already inside a suggestion mark, no additional processing needed
             return;
           }
-
           if (removedSlice.content.size > 0) {
             // DELETE - content was removed.
             // We need to put it back and add a suggestion_delete mark on it
@@ -116,14 +115,13 @@ export const suggestionModePlugin = (
 
           if (addedSlice.content.size > 0) {
             // For pasting, we want to insert at the original position
-            const addedFrom = from;
+            const addedFrom = from + removedSlice.content.size;
             // ReplaceAroundStep has an insert property that is the number of extra characters inserted
             // for things like numbers in a list item
             const extraInsertChars =
               step instanceof ReplaceAroundStep ? step.insert : 0;
             const addedTo =
               addedFrom + addedSlice.content.size + extraInsertChars;
-
             tr.addMark(
               addedFrom,
               addedTo,

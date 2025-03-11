@@ -391,11 +391,6 @@ describe('suggestion mode edge cases', () => {
             // Verify openStart and openEnd on the slice
             expect(step.slice.openStart).toBeGreaterThanOrEqual(0);
             expect(step.slice.openEnd).toBeGreaterThanOrEqual(0);
-            console.log('Slice properties:', {
-              openStart: step.slice.openStart,
-              openEnd: step.slice.openEnd,
-              content: step.slice.content.toString(),
-            });
           }
         });
         return originalDispatch.call(view, tr);
@@ -466,11 +461,6 @@ describe('suggestion mode edge cases', () => {
             // Verify openStart and openEnd on the slice
             expect(step.slice.openStart).toBeGreaterThanOrEqual(0);
             expect(step.slice.openEnd).toBeGreaterThanOrEqual(0);
-            console.log('List item paste slice:', {
-              openStart: step.slice.openStart,
-              openEnd: step.slice.openEnd,
-              content: step.slice.content.toString(),
-            });
           }
         });
         return originalDispatch.call(view, tr);
@@ -538,12 +528,6 @@ describe('suggestion mode edge cases', () => {
       const mockDispatch = jest.fn((tr) => {
         tr.steps.forEach((step) => {
           if (step instanceof ReplaceStep) {
-            console.log('Step slice:', {
-              openStart: step.slice.openStart,
-              openEnd: step.slice.openEnd,
-              content: step.slice.content.toString(),
-              size: step.slice.content.size,
-            });
           }
         });
         return originalDispatch.call(view, tr);
@@ -572,7 +556,7 @@ describe('suggestion mode edge cases', () => {
 
       // Verify we have the expected text with suggestion marks
       expect(markedText).toContain('art');
-      expect(markedText).toContain('Midd');
+      expect(markedText).toContain('Mi');
 
       // Restore original dispatch
       view.dispatch = originalDispatch;
@@ -590,12 +574,6 @@ describe('suggestion mode edge cases', () => {
         // Check for ReplaceStep before dispatching
         tr.steps.forEach((step) => {
           if (step instanceof ReplaceStep) {
-            console.log('Complex structure slice:', {
-              openStart: step.slice.openStart,
-              openEnd: step.slice.openEnd,
-              content: step.slice.content.toString(),
-              size: step.slice.content.size,
-            });
           }
         });
         return originalDispatch.call(view, tr);

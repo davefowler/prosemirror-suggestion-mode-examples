@@ -32,7 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const content = `
     <h1>ProseMirror Suggestion Mode Example</h1>
     <p>This is an example of <strong>ProseMirror</strong> with suggestion mode enabled by default.  It uses the <a href="https://github.com/ProseMirror/prosemirror-example-setup">prosemirror-example-setup</a> package to provide a toolbar and undo/redo functionality.</p>
-    <p>Try making some edits with suggestion mode enabled to see how they appear as suggestions.  Note that it can even handle suggestions over <em>formatted text</em>!</p>
+
+<p>Prosemirror suggestion works across many features:</p>
+    <ol>
+    <li><em>formatted text</em></li>
+    <li><strong>lists</strong></li>
+    <li>deleting and pasting across blocks</li>
+    <li>auto grouping adjacent delete/paste suggestions</li>
+    <li>multiple-user suggestions</li>
   `;
 
   const parser = DOMParser.fromSchema(mySchema);

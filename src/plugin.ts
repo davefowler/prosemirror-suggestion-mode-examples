@@ -100,7 +100,16 @@ export const suggestionModePlugin = (
               m.type.name === 'suggestion_delete'
           );
 
-          console.log('step', step, to, from, removedSlice, addedSlice);
+          console.log(
+            'step',
+            step,
+            to,
+            from,
+            'removed',
+            removedSlice,
+            'added',
+            addedSlice
+          );
           if (suggestionMark) {
             if (addedSlice.content.size > 1) {
               // a paste has happened in the middle of a suggestion mark
@@ -115,6 +124,16 @@ export const suggestionModePlugin = (
           if (removedSlice.content.size > 0) {
             // DELETE - content was removed.
             // We need to put it back and add a suggestion_delete mark on it
+            console.log(
+              'inserting removedSlice',
+              removedSlice.openStart,
+              removedSlice.openEnd,
+              removedSlice.content.size,
+              removedSlice
+            );
+            // TODO - when openStart and openEnd are 1, to-from is 2 less than slice.content.size
+            // this is because of the way prosemirror handles openStart and openEnd
+            // When we insert back in, we need to cut the paragraph tokens off the slice
             tr.insert(from, removedSlice.content);
             tr.addMark(
               from,

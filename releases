@@ -1,6 +1,13 @@
 # Release Notes
 
 
+## TODO's yet [see issues for more](https://github.com/davefowler/prosemirror-suggestion-mode/issues)
+
+ - multiple user suggestion overlap.
+ - deleting across blocks puts in in their own block
+ - make suggestEdit a command
+ - find and handle isntances where openStart=1 openEnd=0 or reveersed? 
+
 ## 1.0.20
 
 Big rewrite here as the previous versions only supported the ReplaceStep and only for plain text.
@@ -17,11 +24,6 @@ Overall this release enables a lot more functionality while increasing simplicit
  - integrated add/reject buttons into toolbar
  - paragraph pastes working
   
-TODO 
-  - make suggestEdit a command
-  - line breaks don't repair well when rejected
-  - deleting multi-line is odd
-
 
 ## 1.0.16
 

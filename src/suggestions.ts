@@ -135,16 +135,6 @@ export const suggestionModePlugin = (
               m.type.name === 'suggestion_delete'
           );
 
-          console.log(
-            'step type',
-            typeof step,
-            step,
-            to,
-            from,
-            suggestionMark,
-            addedSlice.content,
-            removedSlice.content
-          );
           if (suggestionMark) {
             if (addedSlice.content.size > 1) {
               // a paste has happened in the middle of a suggestion mark
@@ -173,29 +163,15 @@ export const suggestionModePlugin = (
           }
 
           if (addedSlice.content.size > 0) {
-            // Some content was added.  We need to mark it with a suggestion_add
-            // // For ReplaceAround, we need to mark not just the content but the wrapper structure
-            // // The actual content position starts after the opening wrapper nodes
-            // const structureStart = from + removedSlice.content.size;
-            // const structureEnd = step.to + removedSlice.content.size;
-            // console.log(
-            //   'adding suggestion_add to structure',
-            //   structureStart,
-            //   structureEnd
-            // );
-            // tr.addMark(
-            //   structureStart,
-            //   structureEnd,
-            //   newState.schema.marks.suggestion_add.create({
-            //     username: pluginState.username,
-            //     data: { ...pluginState.data, ...(meta?.data || {}) },
-            //   })
-            // );
-            // changed = true;
-
             // Original logic for regular replacements
             const addedFrom = step.from + removedSlice.content.size;
-            const addedTo = addedFrom + addedSlice.content.size;
+            // ReplaceAroundStep has an insert property that is the number of extra characters inserted
+            // for things like numbers in a list item
+            const extraInsertChars =
+              step instanceof ReplaceAroundStep ? step.insert : 0;
+            const addedTo =
+              addedFrom + addedSlice.content.size + extraInsertChars;
+
             tr.addMark(
               addedFrom,
               addedTo,

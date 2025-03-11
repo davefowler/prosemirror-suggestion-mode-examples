@@ -76,7 +76,6 @@ export const suggestionModePlugin = (
         // Process each step in the transaction
         // This works for all 4 types of steps: ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
         transaction.steps.forEach((step: AnyStep) => {
-          // TODO write better tests for ReplaceStep
           const from = step.from;
           const to = step.to;
 
@@ -135,33 +134,27 @@ export const suggestionModePlugin = (
             // We are already inside a suggestion mark, no additional processing needed
             return;
           }
+          const newData = {
+            ...pluginState.data,
+            ...(meta?.data || {}),
+            ...(forceSuggestion ? forceSuggestion.data : {}),
+          };
+          const username = forceSuggestion?.username || pluginState.username;
+
           if (removedSlice.content.size > 0) {
             // DELETE - content was removed.
             // We need to put it back and add a suggestion_delete mark on it
-            console.log(
-              'inserting removedSlice',
-              removedSlice.openStart,
-              removedSlice.openEnd,
-              removedSlice.content.size,
-              removedSlice
-            );
+
             // TODO - when openStart and openEnd are 1, to-from is 2 less than slice.content.size
             // this is because of the way prosemirror handles openStart and openEnd
             // When we insert back in, we need to cut the paragraph tokens off the slice
             tr.insert(from, removedSlice.content);
-            const newData = {
-              ...pluginState.data,
-              ...(meta?.data || {}),
-              ...(forceSuggestion ? forceSuggestion.data : {}),
-            };
-
-            console.log('newData', newData);
 
             tr.addMark(
               from,
               from + removedSlice.content.size,
               newState.schema.marks.suggestion_delete.create({
-                username: forceSuggestion?.username || pluginState.username,
+                username,
                 data: newData,
               })
             );
@@ -205,8 +198,8 @@ export const suggestionModePlugin = (
               addedFrom,
               addedTo,
               newState.schema.marks.suggestion_add.create({
-                username: pluginState.username,
-                data: { ...pluginState.data, ...(meta?.data || {}) },
+                username,
+                data: newData,
               })
             );
             changed = true;

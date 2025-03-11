@@ -34,12 +34,13 @@ const createSuggestionReasonComponent = (
   const reasonDiv = document.createElement('div');
   reasonDiv.className = 'suggestion-reason';
   const reason = attrs.reason;
+  console.log('attrs', attrs);
   if (reason) {
     const reasonLabel = document.createElement('strong');
     reasonLabel.textContent = 'Reason: ';
 
     const reasonText = document.createElement('span');
-    reasonText.textContent = reason;
+    reasonText.textContent = 'reason';
     reasonText.className = 'reason-content';
 
     reasonDiv.appendChild(reasonLabel);
@@ -143,7 +144,7 @@ window.addEventListener('load', () => {
 
   // Apply suggestions one by one
   exampleSuggestions.forEach((suggestion) => {
-    applySuggestion(view, suggestion, 'somebody');
+    applySuggestion(view, suggestion, 'some suggester');
   });
 
   const suggestionsDiv = document.querySelector('#suggestions');

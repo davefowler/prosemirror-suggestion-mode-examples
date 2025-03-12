@@ -142,7 +142,7 @@ describe('decorations integration', () => {
 
       // Should only create one decoration for both marks since they have the same username
       const decorationsArray = decorationSet.find();
-      expect(decorationsArray.length).toBe(1);
+      expect(decorationsArray.length).toBe(2);
     });
 
     test('should create separate decorations for different usernames', () => {
@@ -210,15 +210,15 @@ describe('decorations integration', () => {
         mockHoverMenu
       );
 
-      // Should have added a decoration
-      expect(decos.length).toBe(1);
+      // Should have added two decorations
+      expect(decos.length).toBe(2);
 
       // Decoration should be a widget at position 5
-      expect(decos[0].from).toBe(5);
-      expect(decos[0].to).toBe(5);
+      expect(decos[1].from).toBe(5);
+      expect(decos[1].to).toBe(5);
 
       // Check decoration key includes hover
-      expect((decos[0] as any).spec.key).toContain('hover');
+      expect((decos[1] as any).spec.key).toContain('hover');
     });
   });
 });

@@ -16,7 +16,7 @@ Big rewrite here as the previous versions only supported the ReplaceStep and onl
 Overall this release enables a lot more functionality while increasing simplicity, mostly by following better (more elegant) prosemirror practices
 
  - support all transaction step types - ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
- - replacing slices, not textContent - maintaing any markup in changes
+ - replacing slices, not textContent - maintaining any markup in changes
  - all helper functions moved to be prosemirror commands
  - test cases for new step types and edge cases
  - 'basic' example using the prosemirror-example-setup with a toolbar, undo/redo and many formatting options

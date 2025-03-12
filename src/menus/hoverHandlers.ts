@@ -19,7 +19,6 @@ export function initSuggestionHoverListeners(view: EditorView) {
       `#suggestion-menu-wrapper-${from}`
     ) as HTMLElement;
 
-    console.log('menuWrapper', menuWrapper, 'for from key', from);
     if (!menuWrapper) return;
 
     const menu = menuWrapper.querySelector(

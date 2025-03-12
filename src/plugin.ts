@@ -56,15 +56,21 @@ export const suggestionModePlugin = (
       let changed = false;
 
       transactions.forEach((transaction) => {
+        // username and data are gotten from the transaction overwritting any pluginState defaults
         const meta = transaction.getMeta(suggestionModePluginKey);
 
         const inSuggestionMode =
           pluginState.inSuggestionMode || meta?.inSuggestionMode;
         // If we're not in suggestion mode do nothing
         if (!inSuggestionMode) return;
-
-        // if this is a transaction we made already, ignore it
+        // if this is a transaction that we created in this plugin, ignore it
         if (meta && meta.suggestionOperation) return;
+
+        const newData = {
+          ...pluginState.data,
+          ...(meta?.data || {}),
+        };
+        const username = meta?.username || pluginState.username;
 
         // Process each step in the transaction
         // This works for all 4 types of steps: ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
@@ -72,16 +78,19 @@ export const suggestionModePlugin = (
           const from = step.from;
           const to = step.to;
 
+          // Each transaction has two optional parts:
+          //   1. removedSlice - content that should be marked as suggestion_delete
+          //   2. addedSlice - content that should be marked as suggestion_add
           const removedSlice = oldState.doc.slice(from, to, false);
-
           // in all but the ReplaceStep, the removedSlice is the same size as the addedSlice
-          // so we can use it as the addedSlice, as we're just adding a mark over that range
+          // since we don't actually re-insert the addedSlice (we just need its size)
+          // we can use removedSlice as a stand in
           const addedSlice =
             step instanceof ReplaceStep ? step.slice : removedSlice;
+
           // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
           tr.setMeta(suggestionModePluginKey, {
             suggestionOperation: true,
-            handled: true, // Add this flag to indicate this input has been handled
           });
 
           // Check if we're inside an existing suggestion mark
@@ -101,19 +110,13 @@ export const suggestionModePlugin = (
               // seems to automatically get rid of other suggestion marks
               changed = true;
             }
-            // We are already inside a suggestion mark, no additional processing needed
+            // We are already inside a suggestion mark so we don't need to do anything
             return;
           }
-          const newData = {
-            ...pluginState.data,
-            ...(meta?.data || {}),
-          };
-          const username = meta?.username || pluginState.username;
 
           if (removedSlice.content.size > 0) {
             // DELETE - content was removed.
             // We need to put it back and add a suggestion_delete mark on it
-
             // TODO - when openStart and openEnd are 1, to-from is 2 less than slice.content.size
             // this is because of the way prosemirror handles openStart and openEnd
             // When we insert back in, we need to cut the paragraph tokens off the slice
@@ -141,6 +144,7 @@ export const suggestionModePlugin = (
 
             // In the case of pasted content with newlines, we need to subtract 2 for node tokens
             // This adjustment specifically targets pasted content in ReplaceSteps
+            // TODO - we may want to just mapke this adjustment = -addedSlice.openStart - addedSlice.openEnd
             const paragraphAdjustment =
               step instanceof ReplaceStep &&
               addedSlice.openStart === 1 &&
@@ -154,6 +158,7 @@ export const suggestionModePlugin = (
               extraInsertChars +
               paragraphAdjustment;
 
+            // just mark it, it was already inserted before appendTransaction
             tr.addMark(
               addedFrom,
               addedTo,

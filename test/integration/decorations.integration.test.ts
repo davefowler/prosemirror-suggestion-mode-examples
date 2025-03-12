@@ -7,7 +7,10 @@ import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
 import { addSuggestionMarks } from '../../src/schema';
-import { createDecorations, decorateSuggestion } from '../../src/decorations';
+import {
+  createDecorations,
+  decorateSuggestionGroup,
+} from '../../src/decorations';
 import {
   hoverMenuFactory,
   SuggestionHoverMenuRenderer,
@@ -199,7 +202,13 @@ describe('decorations integration', () => {
       });
 
       // Call decorateSuggestion
-      decorateSuggestion(decos, 5, 10, { username: 'testUser' }, mockHoverMenu);
+      decorateSuggestionGroup(
+        decos,
+        5,
+        10,
+        { username: 'testUser' },
+        mockHoverMenu
+      );
 
       // Should have added a decoration
       expect(decos.length).toBe(1);

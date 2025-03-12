@@ -11,7 +11,7 @@ Check out the [live demos](https://prosemirror-suggestion-mode.netlify.app)
  - [Text based suggestions (for AI) & Custom Hover Menu example ](https://prosemirror-suggestion-mode.netlify.app/examples/suggestedit/)
  - [Custom Hover Menu Advanced Example](https://prosemirror-suggestion-mode.netlify.app/examples/inkandswitch/)
 
-[![ProseMirror Suggestion Mode Demo](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/assets/prosemirror-suggestion-mode-demo.png?raw=true)](https://prosemirror-suggestion-mode.netlify.app/examples/simple/)
+[![ProseMirror Suggestion Mode Demo](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/assets/3-11-25%20prosemirror%20suggestions%20with%20markup.png)](https://prosemirror-suggestion-mode.netlify.app/examples/simple/)
 
 ## Features
 

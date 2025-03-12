@@ -2,7 +2,15 @@ import { EditorState } from 'prosemirror-state';
 import { Decoration, DecorationSet } from 'prosemirror-view';
 import { SuggestionHoverMenuRenderer } from './menus/hoverMenu';
 
-export function decorateSuggestion(
+/**
+ * Decorates a group of suggestions with a hover menu
+ * @param decos - The array of decorations to add to
+ * @param from - The start position of the group
+ * @param to - The end position of the group
+ * @param attrs - The attributes of the group
+ * @param renderHoverMenu - The function to render the hover menu
+ */
+export function decorateSuggestionGroup(
   decos: Decoration[],
   from: number,
   to: number,
@@ -36,6 +44,12 @@ export function decorateSuggestion(
   );
 }
 
+/**
+ * Creates a decoration set for a given editor state
+ * @param state - The editor state to create decorations for
+ * @param renderHoverMenu - The function to render the hover menu
+ * @returns A decoration set for the editor state
+ */
 export function createDecorations(
   state: EditorState,
   renderHoverMenu: SuggestionHoverMenuRenderer
@@ -59,7 +73,7 @@ export function createDecorations(
       !suggestionMark
     ) {
       if (groupStart !== null) {
-        decorateSuggestion(
+        decorateSuggestionGroup(
           decos,
           groupStart,
           groupEnd!,
@@ -84,7 +98,7 @@ export function createDecorations(
 
     const isLastNode = index === parent.childCount - 1;
     if (isLastNode && groupStart !== null) {
-      decorateSuggestion(
+      decorateSuggestionGroup(
         decos,
         groupStart,
         groupEnd!,

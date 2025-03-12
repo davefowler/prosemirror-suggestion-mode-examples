@@ -33,14 +33,14 @@ const createSuggestionReasonComponent = (
 ): MenuComponent => {
   const reasonDiv = document.createElement('div');
   reasonDiv.className = 'suggestion-reason';
-  const reason = attrs.reason;
+  const reason = attrs?.data?.reason;
   console.log('attrs', attrs);
   if (reason) {
     const reasonLabel = document.createElement('strong');
-    reasonLabel.textContent = 'Reason: ';
+    reasonLabel.textContent = `${attrs.username}: `;
 
     const reasonText = document.createElement('span');
-    reasonText.textContent = 'reason';
+    reasonText.textContent = reason;
     reasonText.className = 'reason-content';
 
     reasonDiv.appendChild(reasonLabel);

@@ -12,7 +12,7 @@ export type TextSuggestion = {
 };
 
 const applySuggestionToRange = (
-  state: EditorState,
+  view: EditorView,
   dispatch: (tr: Transaction) => void,
   from: number,
   to: number,
@@ -22,12 +22,23 @@ const applySuggestionToRange = (
   const newData: Record<string, any> = {};
   if (suggestion.reason?.length > 0) newData.reason = suggestion.reason;
 
-  const tr = state.tr.setMeta('forceSuggestion', {
+  const startingMeta = view.state.tr.getMeta(suggestionModePluginKey);
+
+  const tr = view.state.tr.setMeta(suggestionModePluginKey, {
+    inSuggestionMode: true,
     data: newData,
     username,
   });
-  tr.replaceWith(from, to, state.schema.text(suggestion.textReplacement));
+  tr.replaceWith(from, to, view.state.schema.text(suggestion.textReplacement));
   dispatch(tr);
+
+  if (!startingMeta?.inSuggestionMode) {
+    const tr2 = view.state.tr.setMeta(suggestionModePluginKey, {
+      suggestionOperation: true,
+      inSuggestionMode: false,
+    });
+    dispatch(tr2);
+  }
   return true;
 };
 
@@ -69,14 +80,7 @@ export const createApplySuggestionCommand = (
       // There is no text to replace, or text before or after.
       // We're adding text into an empty doc
 
-      return applySuggestionToRange(
-        state,
-        dispatch,
-        0,
-        0,
-        suggestion,
-        username
-      );
+      return applySuggestionToRange(view, dispatch, 0, 0, suggestion, username);
     }
 
     const pattern = escapeRegExp(searchText);
@@ -142,7 +146,7 @@ export const createApplySuggestionCommand = (
         docRange.to
       );
       applySuggestionToRange(
-        state,
+        view,
         dispatch,
         docRange.from,
         docRange.to,

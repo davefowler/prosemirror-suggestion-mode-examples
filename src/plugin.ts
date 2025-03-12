@@ -52,29 +52,26 @@ export const suggestionModePlugin = (
       // handle when a selection is deleted
       const pluginState = this.getState(oldState);
 
-      console.log(
-        'appendTransaction with state',
-        pluginState,
-        'inSuggestionMode?',
-        pluginState?.inSuggestionMode
-      );
-      // if (!pluginState?.inSuggestionMode) return null;
-
       let tr = newState.tr;
       let changed = false;
 
       transactions.forEach((transaction) => {
         const meta = transaction.getMeta(suggestionModePluginKey);
-        const forceSuggestion = transaction.getMeta('forceSuggestion');
+
+        const inSuggestionMode =
+          pluginState.inSuggestionMode || meta?.inSuggestionMode;
+        // forceSuggestion !== undefined;
         console.log(
-          'force suggestion?',
-          forceSuggestion,
-          meta?.inSuggestionMode
+          'in suggestion mode?',
+          inSuggestionMode,
+          meta?.inSuggestionMode,
+          pluginState.inSuggestionMode
         );
-        if (meta && !meta?.inSuggestionMode && !forceSuggestion) return null;
-        if (meta && meta.suggestionOperation) {
-          return;
-        }
+        // If we're not in suggestion mode do nothing
+        if (!inSuggestionMode) return;
+
+        // if this is a transaction we made already, ignore it
+        if (meta && meta.suggestionOperation) return;
 
         // Process each step in the transaction
         // This works for all 4 types of steps: ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
@@ -116,16 +113,6 @@ export const suggestionModePlugin = (
               m.type.name === 'suggestion_delete'
           );
 
-          console.log(
-            'step',
-            step,
-            to,
-            from,
-            'removed',
-            removedSlice,
-            'added',
-            addedSlice
-          );
           if (suggestionMark) {
             if (addedSlice.content.size > 1) {
               // a paste has happened in the middle of a suggestion mark
@@ -140,9 +127,8 @@ export const suggestionModePlugin = (
           const newData = {
             ...pluginState.data,
             ...(meta?.data || {}),
-            ...(forceSuggestion ? forceSuggestion.data : {}),
           };
-          const username = forceSuggestion?.username || pluginState.username;
+          const username = meta?.username || pluginState.username;
 
           if (removedSlice.content.size > 0) {
             // DELETE - content was removed.
@@ -187,15 +173,6 @@ export const suggestionModePlugin = (
               addedSlice.content.size +
               extraInsertChars +
               paragraphAdjustment;
-
-            console.log(
-              'suggestion_add',
-              step,
-              addedFrom,
-              addedTo,
-              extraInsertChars,
-              addedSlice.content
-            );
 
             tr.addMark(
               addedFrom,

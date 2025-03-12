@@ -4,6 +4,9 @@ import {
   AddMarkStep,
   RemoveMarkStep,
   ReplaceAroundStep,
+  Mapping,
+  StepMap,
+  Transform,
 } from 'prosemirror-transform';
 import { SuggestionModePluginState, suggestionModePluginKey } from './key';
 import {
@@ -55,6 +58,15 @@ export const suggestionModePlugin = (
       let tr = newState.tr;
       let changed = false;
 
+      const mapping = new Mapping();
+
+      // For the rare case where there are multiple transforming steps in this dispatch
+      // we need to keep track of the intermediate doc inbetween each step
+      // so we can get the correct slice
+      let intermediateTransform = new Transform(oldState.doc);
+      let lastStep: AnyStep | null = null;
+
+      // After transactions are applied, apply transactions needed for the suggestion marks
       transactions.forEach((transaction) => {
         // username and data are gotten from the transaction overwritting any pluginState defaults
         const meta = transaction.getMeta(suggestionModePluginKey);
@@ -75,18 +87,49 @@ export const suggestionModePlugin = (
         // Process each step in the transaction
         // This works for all 4 types of steps: ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
         transaction.steps.forEach((step: AnyStep) => {
-          const from = step.from;
-          const to = step.to;
+          // update intermediateState if there was a previous step
+          if (lastStep) {
+            console.log(
+              'transforming old doc from',
+              intermediateTransform.doc.textBetween(
+                0,
+                intermediateTransform.doc.content.size
+              )
+            );
+            intermediateTransform.step(lastStep);
+            console.log(
+              'transformedto',
+              intermediateTransform.doc.textBetween(
+                0,
+                intermediateTransform.doc.content.size
+              )
+            );
+          }
+          console.log('updating lastStep', lastStep);
+          lastStep = step;
 
           // Each transaction has two optional parts:
           //   1. removedSlice - content that should be marked as suggestion_delete
           //   2. addedSlice - content that should be marked as suggestion_add
-          const removedSlice = oldState.doc.slice(from, to, false);
+          const removedSlice = intermediateTransform.doc.slice(
+            step.from,
+            step.to,
+            false
+          );
+          console.log(
+            'removedSlice',
+            removedSlice.content.textBetween(0, removedSlice.content.size)
+          );
           // in all but the ReplaceStep, the removedSlice is the same size as the addedSlice
           // since we don't actually re-insert the addedSlice (we just need its size)
           // we can use removedSlice as a stand in
           const addedSlice =
             step instanceof ReplaceStep ? step.slice : removedSlice;
+
+          // if there are multiple transforming steps in this dispatch we need
+          // to adjust for our inserts with a mapping
+          const mappedFrom = mapping.map(step.from);
+          // const mappedTo = mapping.map(step.to); // mapped to is unused
 
           // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
           tr.setMeta(suggestionModePluginKey, {
@@ -94,7 +137,7 @@ export const suggestionModePlugin = (
           });
 
           // Check if we're inside an existing suggestion mark
-          const $pos = oldState.doc.resolve(from);
+          const $pos = oldState.doc.resolve(step.from);
           const marksAtPos = $pos.marks();
           const suggestionMark = marksAtPos.find(
             (m) =>
@@ -103,28 +146,48 @@ export const suggestionModePlugin = (
           );
 
           if (suggestionMark) {
-            if (addedSlice.content.size > 1) {
+            if (addedSlice.size > 1) {
               // a paste has happened in the middle of a suggestion mark
               // insert the new text and add the wrapping mark to it
-              tr.addMark(from, from + addedSlice.content.size, suggestionMark);
-              // seems to automatically get rid of other suggestion marks
+              tr.addMark(
+                mappedFrom,
+                mappedFrom + addedSlice.size,
+                suggestionMark
+              );
               changed = true;
             }
             // We are already inside a suggestion mark so we don't need to do anything
             return;
           }
 
-          if (removedSlice.content.size > 0) {
+          if (removedSlice.size > 0) {
             // DELETE - content was removed.
             // We need to put it back and add a suggestion_delete mark on it
-            // TODO - when openStart and openEnd are 1, to-from is 2 less than slice.content.size
-            // this is because of the way prosemirror handles openStart and openEnd
-            // When we insert back in, we need to cut the paragraph tokens off the slice
-            tr.insert(from, removedSlice.content);
-
+            tr.replace(mappedFrom, mappedFrom, removedSlice);
+            console.log(
+              'inserting back in',
+              removedSlice.content.textBetween(0, removedSlice.content.size),
+              'at',
+              mappedFrom
+            );
+            const stepMap = new StepMap([
+              mappedFrom, // start
+              0, // oldsize
+              removedSlice.size, // newsize
+            ]);
+            mapping.appendMap(stepMap);
+            console.log('Adding delete mark:', {
+              type: 'suggestion_delete',
+              from: mappedFrom,
+              to: mappedFrom + removedSlice.size,
+              content: removedSlice.content.textBetween(
+                0,
+                removedSlice.content.size
+              ),
+            });
             tr.addMark(
-              from,
-              from + removedSlice.content.size,
+              mappedFrom,
+              mappedFrom + removedSlice.size,
               newState.schema.marks.suggestion_delete.create({
                 username,
                 data: newData,
@@ -133,9 +196,9 @@ export const suggestionModePlugin = (
             changed = true;
           }
 
-          if (addedSlice.content.size > 0) {
+          if (addedSlice.size > 0) {
             // For pasting, we want to insert at the original position
-            const addedFrom = from + removedSlice.content.size;
+            const addedFrom = mappedFrom + removedSlice.size;
 
             // ReplaceAroundStep has an insert property that is the number of extra characters inserted
             // for things like numbers in a list item
@@ -145,18 +208,24 @@ export const suggestionModePlugin = (
             // In the case of pasted content with newlines, we need to subtract 2 for node tokens
             // This adjustment specifically targets pasted content in ReplaceSteps
             // TODO - we may want to just mapke this adjustment = -addedSlice.openStart - addedSlice.openEnd
-            const paragraphAdjustment =
-              step instanceof ReplaceStep &&
-              addedSlice.openStart === 1 &&
-              addedSlice.openEnd === 1
-                ? -2
-                : 0;
+            // const paragraphAdjustment =
+            //   step instanceof ReplaceStep &&
+            //   addedSlice.openStart === 1 &&
+            //   addedSlice.openEnd === 1
+            //     ? -2
+            //     : 0;
 
-            const addedTo =
-              addedFrom +
-              addedSlice.content.size +
-              extraInsertChars +
-              paragraphAdjustment;
+            const addedTo = addedFrom + addedSlice.size + extraInsertChars;
+
+            console.log('Adding add mark:', {
+              type: 'suggestion_add',
+              from: addedFrom,
+              to: addedTo,
+              content: addedSlice.content.textBetween(
+                0,
+                addedSlice.content.size
+              ),
+            });
 
             // just mark it, it was already inserted before appendTransaction
             tr.addMark(
@@ -170,10 +239,10 @@ export const suggestionModePlugin = (
             changed = true;
           }
 
-          if (addedSlice.content.size === 0) {
+          if (addedSlice.size === 0) {
             // They hit backspace and then we added the removedSlice back in
             // we need to move the cursor to the start (from the end) of the text we put back in
-            const newCursorPos = from;
+            const newCursorPos = mappedFrom;
             const Selection = newState.selection.constructor as any;
             tr.setSelection(Selection.create(tr.doc, newCursorPos));
           }

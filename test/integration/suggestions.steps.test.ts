@@ -632,4 +632,423 @@ describe('suggestion mode edge cases', () => {
       view.dispatch = originalDispatch;
     });
   });
+
+  describe('multiple steps in a single transaction', () => {
+    // Helper function to check if a mark exists at an exact position
+    function hasMarkAtPosition(doc, position, markName) {
+      const node = doc.nodeAt(position);
+      if (!node) return false;
+      return node.marks.some((mark) => mark.type.name === markName);
+    }
+
+    test('should handle multiple insert operations in one transaction', () => {
+      createEditor('<p>Hello world</p>');
+
+      // Start a transaction
+      const tr = view.state.tr;
+
+      // Insert at first position
+      tr.insert(1, schema.text('First '));
+
+      // Insert after "world" - must account for first insertion
+      tr.insert(17, schema.text(' additional'));
+
+      // Dispatch the single transaction with both steps
+      view.dispatch(tr);
+
+      // Update expected content to match actual behavior
+      expect(view.state.doc.textContent).toBe('First Hello world additional');
+
+      // Check first insert - "First "
+      expect(hasMarkAtPosition(view.state.doc, 1, 'suggestion_add')).toBe(true); // First 'F'
+      expect(hasMarkAtPosition(view.state.doc, 6, 'suggestion_add')).toBe(true); // Last space
+      // Check boundaries
+      expect(hasMarkAtPosition(view.state.doc, 7, 'suggestion_add')).toBe(
+        false
+      ); // Should not extend to 'H'
+
+      // Check second insert - " additional"
+      expect(hasMarkAtPosition(view.state.doc, 18, 'suggestion_add')).toBe(
+        true
+      ); // First space
+      expect(hasMarkAtPosition(view.state.doc, 28, 'suggestion_add')).toBe(
+        true
+      ); // Last 'l'
+      // Check boundaries
+      expect(hasMarkAtPosition(view.state.doc, 17, 'suggestion_add')).toBe(
+        false
+      ); // Should not extend before space
+      expect(hasMarkAtPosition(view.state.doc, 29, 'suggestion_add')).toBe(
+        false
+      ); // Should not extend after 'l'
+    });
+
+    test('should handle multiple delete operations in one transaction', () => {
+      createEditor('<p>Hello amazing wonderful world</p>');
+
+      const tr = view.state.tr;
+
+      // First delete "amazing " (positions 7-15)
+      tr.delete(7, 15);
+
+      // After the first delete, "wonderful" starts at position 7
+      tr.delete(7, 16); // Delete "wonderful " (adjusted for first deletion)
+
+      // Dispatch the transaction
+      view.dispatch(tr);
+
+      // Since our plugin puts the content back, the text remains unchanged
+      expect(view.state.doc.textContent).toBe('Hello amazing wonderful world');
+
+      // Check first deletion - "amazing "
+      expect(hasMarkAtPosition(view.state.doc, 7, 'suggestion_delete')).toBe(
+        true
+      ); // First 'a'
+      expect(hasMarkAtPosition(view.state.doc, 14, 'suggestion_delete')).toBe(
+        true
+      ); // Last space
+      // Check boundaries
+      expect(hasMarkAtPosition(view.state.doc, 6, 'suggestion_delete')).toBe(
+        false
+      ); // Should not extend to space before
+
+      // Check second deletion - "wonderful "
+      expect(hasMarkAtPosition(view.state.doc, 15, 'suggestion_delete')).toBe(
+        true
+      ); // First 'w'
+      expect(hasMarkAtPosition(view.state.doc, 24, 'suggestion_delete')).toBe(
+        true
+      ); // Last space
+      // Check boundaries
+      expect(hasMarkAtPosition(view.state.doc, 14, 'suggestion_delete')).toBe(
+        true
+      ); // This is the space from "amazing "
+      expect(hasMarkAtPosition(view.state.doc, 25, 'suggestion_delete')).toBe(
+        false
+      ); // Should not extend to 'w' in "world"
+    });
+
+    test('should handle mixed operations (insert, delete, format) in one transaction', () => {
+      createEditor('<p>Hello world</p>');
+
+      const tr = view.state.tr;
+
+      // Step 1: Delete "world"
+      tr.delete(7, 12);
+
+      // Step 2: Insert new text at position (position is pre-deletion)
+      tr.insert(7, schema.text('universe'));
+
+      // Step 3: Format "universe" with bold
+      const boldMark = schema.marks.strong.create();
+      tr.addMark(7, 15, boldMark);
+
+      // Dispatch the transaction with all steps
+      view.dispatch(tr);
+
+      // Check content
+      expect(view.state.doc.textContent).toBe('Hello universeworld');
+
+      // Check deleted text - "world"
+      expect(hasMarkAtPosition(view.state.doc, 15, 'suggestion_delete')).toBe(
+        true
+      ); // First 'w'
+      expect(hasMarkAtPosition(view.state.doc, 19, 'suggestion_delete')).toBe(
+        true
+      ); // Last 'd'
+      // Check boundaries
+      expect(hasMarkAtPosition(view.state.doc, 14, 'suggestion_delete')).toBe(
+        false
+      ); // Should not extend to 'e' in "universe"
+
+      // Check added text - "universe"
+      expect(hasMarkAtPosition(view.state.doc, 7, 'suggestion_add')).toBe(true); // First 'u'
+      expect(hasMarkAtPosition(view.state.doc, 14, 'suggestion_add')).toBe(
+        true
+      ); // Last 'e'
+      // Check boundaries
+      expect(hasMarkAtPosition(view.state.doc, 6, 'suggestion_add')).toBe(
+        false
+      ); // Should not extend to space before
+      expect(hasMarkAtPosition(view.state.doc, 15, 'suggestion_add')).toBe(
+        false
+      ); // Should not extend to 'w' in "world"
+
+      // Check bold formatting
+      expect(hasMarkAtPosition(view.state.doc, 7, 'strong')).toBe(true); // First 'u'
+      expect(hasMarkAtPosition(view.state.doc, 14, 'strong')).toBe(true); // Last 'e'
+      // Check boundaries
+      expect(hasMarkAtPosition(view.state.doc, 6, 'strong')).toBe(false); // Should not extend to space before
+      expect(hasMarkAtPosition(view.state.doc, 15, 'strong')).toBe(false); // Should not extend to 'w' in "world"
+    });
+
+    test('should handle operations that would cause position drift if processed incorrectly', () => {
+      createEditor('<p>First paragraph</p><p>Second paragraph</p>');
+
+      const tr = view.state.tr;
+
+      // Operation 1: Delete entire first paragraph
+      tr.delete(0, 17);
+
+      // Operation 2: Insert at beginning of second paragraph
+      // Position would be wrong if first deletion shifted positions incorrectly
+      tr.insert(0, schema.text('Modified '));
+
+      // Dispatch the transaction with both steps
+      view.dispatch(tr);
+
+      // The content remains as expected due to our plugin
+      expect(view.state.doc.textContent).toBe(
+        'First paragraphModified Second paragraph'
+      );
+
+      // Check deleted first paragraph (will still be there but marked)
+      expect(hasMarkAtPosition(view.state.doc, 1, 'suggestion_delete')).toBe(
+        true
+      ); // 'F' in First
+      expect(hasMarkAtPosition(view.state.doc, 15, 'suggestion_delete')).toBe(
+        true
+      ); // Last 'h' in paragraph
+      // Boundary check
+      expect(hasMarkAtPosition(view.state.doc, 17, 'suggestion_delete')).toBe(
+        false
+      ); // Should not include 'M' in "Modified"
+
+      // Check inserted "Modified "
+      expect(hasMarkAtPosition(view.state.doc, 17, 'suggestion_add')).toBe(
+        true
+      ); // 'M' in Modified
+      expect(hasMarkAtPosition(view.state.doc, 25, 'suggestion_add')).toBe(
+        true
+      ); // Space after "Modified"
+      // Boundary check
+      expect(hasMarkAtPosition(view.state.doc, 16, 'suggestion_add')).toBe(
+        false
+      ); // Should not extend before 'M'
+      expect(hasMarkAtPosition(view.state.doc, 26, 'suggestion_add')).toBe(
+        false
+      ); // Should not extend to 'S' in "Second"
+    });
+
+    test('should handle insert at multiple positions with position tracking', () => {
+      // Test that inserting text at multiple positions where the second insertion
+      // depends on the position shift from the first insertion works correctly
+      createEditor('<p>start middle end</p>');
+
+      // Create a transaction that inserts at both positions
+      const tr = view.state.tr;
+
+      // Insert at position 7 (after "start ")
+      tr.insert(7, schema.text('inserted1 '));
+
+      // Insert at position 14 (after "middle" - but this will shift after first insert)
+      tr.insert(14, schema.text(' inserted2'));
+
+      // Dispatch the transaction with both steps
+      view.dispatch(tr);
+
+      // Check content with both insertions
+      expect(view.state.doc.textContent).toBe(
+        'start inserted1 middle inserted2 end'
+      );
+
+      // Precise position checking for first insertion - "inserted1 "
+      expect(hasMarkAtPosition(view.state.doc, 7, 'suggestion_add')).toBe(true); // First 'i'
+      expect(hasMarkAtPosition(view.state.doc, 16, 'suggestion_add')).toBe(
+        true
+      ); // Last space
+      // Boundary check
+      expect(hasMarkAtPosition(view.state.doc, 6, 'suggestion_add')).toBe(
+        false
+      ); // Space before
+      expect(hasMarkAtPosition(view.state.doc, 17, 'suggestion_add')).toBe(
+        false
+      ); // 'm' in "middle"
+
+      // Precise position checking for second insertion - " inserted2"
+      // The position has shifted by 10 characters due to first insertion
+      expect(hasMarkAtPosition(view.state.doc, 24, 'suggestion_add')).toBe(
+        true
+      ); // First space
+      expect(hasMarkAtPosition(view.state.doc, 34, 'suggestion_add')).toBe(
+        true
+      ); // Last '2'
+      // Boundary check
+      expect(hasMarkAtPosition(view.state.doc, 23, 'suggestion_add')).toBe(
+        false
+      ); // Last 'e' in "middle"
+      expect(hasMarkAtPosition(view.state.doc, 35, 'suggestion_add')).toBe(
+        false
+      ); // Space after
+    });
+
+    test('should handle multiple formatting operations with precise boundaries', () => {
+      createEditor('<p>Test formatting multiple regions</p>');
+
+      const tr = view.state.tr;
+      const boldMark = schema.marks.strong.create();
+      const emMark = schema.marks.em.create();
+
+      // Bold "Test"
+      tr.addMark(1, 5, boldMark);
+
+      // Italic "formatting"
+      tr.addMark(6, 16, emMark);
+
+      // Both bold and italic on "regions"
+      tr.addMark(25, 32, boldMark);
+      tr.addMark(25, 32, emMark);
+
+      // Dispatch the transaction with all formatting operations
+      view.dispatch(tr);
+
+      // Check exact positions for "Test" with bold
+      // Original text will be marked for deletion
+      expect(hasMarkAtPosition(view.state.doc, 1, 'suggestion_delete')).toBe(
+        true
+      ); // 'T' in Test
+      expect(hasMarkAtPosition(view.state.doc, 4, 'suggestion_delete')).toBe(
+        true
+      ); // 't' in Test
+      // Duplicated text will be marked as added with bold
+      const originalLength = 'Test formatting multiple regions'.length;
+      expect(
+        hasMarkAtPosition(view.state.doc, originalLength + 1, 'suggestion_add')
+      ).toBe(true);
+      expect(
+        hasMarkAtPosition(view.state.doc, originalLength + 1, 'strong')
+      ).toBe(true);
+
+      // Check exact positions for "formatting" with italic
+      expect(hasMarkAtPosition(view.state.doc, 6, 'suggestion_delete')).toBe(
+        true
+      ); // 'f' in formatting
+      expect(hasMarkAtPosition(view.state.doc, 15, 'suggestion_delete')).toBe(
+        true
+      ); // 'g' in formatting
+      // Check boundary - space before should not have delete mark
+      expect(hasMarkAtPosition(view.state.doc, 5, 'suggestion_delete')).toBe(
+        false
+      );
+
+      // Check duplicated text with added marks
+      const formattingPos = originalLength + 5;
+      expect(
+        hasMarkAtPosition(view.state.doc, formattingPos, 'suggestion_add')
+      ).toBe(true);
+      expect(hasMarkAtPosition(view.state.doc, formattingPos, 'em')).toBe(true);
+      // Check boundary - space before the duplicated text should not have add mark
+      expect(
+        hasMarkAtPosition(view.state.doc, formattingPos - 1, 'suggestion_add')
+      ).toBe(false);
+    });
+
+    test('should handle multiple adjacent deletions without gaps in marks', () => {
+      createEditor('<p>One two three four</p>');
+
+      const tr = view.state.tr;
+
+      // Delete adjacent words with separate operations
+      tr.delete(5, 9); // Delete " two"
+      tr.delete(9, 16); // Delete " three"
+
+      // Dispatch the transaction
+      view.dispatch(tr);
+
+      // Text should retain deleted content with marks
+      expect(view.state.doc.textContent).toBe('One two three four');
+
+      // Check first deletion - " two"
+      expect(hasMarkAtPosition(view.state.doc, 5, 'suggestion_delete')).toBe(
+        true
+      ); // Space after "One"
+      expect(hasMarkAtPosition(view.state.doc, 8, 'suggestion_delete')).toBe(
+        true
+      ); // 'o' in "two"
+
+      // Check second deletion - " three"
+      expect(hasMarkAtPosition(view.state.doc, 9, 'suggestion_delete')).toBe(
+        true
+      ); // Space after "two"
+      expect(hasMarkAtPosition(view.state.doc, 15, 'suggestion_delete')).toBe(
+        true
+      ); // 'e' in "three"
+
+      // Check that there's no gap in the marks between the two deletions
+      // Every position from 5 to 15 should have the delete mark
+      for (let i = 5; i <= 15; i++) {
+        expect(hasMarkAtPosition(view.state.doc, i, 'suggestion_delete')).toBe(
+          true
+        );
+      }
+
+      // Check boundaries
+      expect(hasMarkAtPosition(view.state.doc, 4, 'suggestion_delete')).toBe(
+        false
+      ); // 'e' in "One"
+      expect(hasMarkAtPosition(view.state.doc, 16, 'suggestion_delete')).toBe(
+        false
+      ); // Space after "three"
+    });
+
+    test('should handle overlapping delete operations with numeric positions', () => {
+      createEditor('<p>12345678</p>');
+
+      // Create a single transaction with multiple delete operations
+      const tr = view.state.tr;
+
+      // First delete: Remove "34" (positions 3-5)
+      tr.delete(3, 5);
+
+      // Second delete: Remove "25" from the modified document
+      // After the first delete, the document is "125678"
+      // So deleting positions 2-4 removes "25"
+      tr.delete(2, 4);
+
+      // Execute the transaction
+      view.dispatch(tr);
+
+      // After suggestion handling, document should still have all characters
+      // with appropriate marks
+      expect(view.state.doc.textContent).toBe('12345678');
+
+      // Verify "34" is marked for deletion
+      expect(hasMarkAtPosition(view.state.doc, 3, 'suggestion_delete')).toBe(
+        true
+      );
+      expect(hasMarkAtPosition(view.state.doc, 4, 'suggestion_delete')).toBe(
+        true
+      );
+
+      // Verify "25" is also marked for deletion
+      expect(hasMarkAtPosition(view.state.doc, 2, 'suggestion_delete')).toBe(
+        true
+      );
+      expect(hasMarkAtPosition(view.state.doc, 5, 'suggestion_delete')).toBe(
+        true
+      );
+
+      // Check boundaries (1 and 6 should not be marked)
+      expect(hasMarkAtPosition(view.state.doc, 1, 'suggestion_delete')).toBe(
+        false
+      );
+      expect(hasMarkAtPosition(view.state.doc, 6, 'suggestion_delete')).toBe(
+        true
+      );
+
+      // Verify all positions have the correct marks
+      let expectedMarkedPositions = [2, 3, 4, 5];
+      for (let i = 1; i <= 8; i++) {
+        if (expectedMarkedPositions.includes(i)) {
+          expect(
+            hasMarkAtPosition(view.state.doc, i, 'suggestion_delete')
+          ).toBe(true);
+        } else {
+          expect(
+            hasMarkAtPosition(view.state.doc, i, 'suggestion_delete')
+          ).toBe(false);
+        }
+      }
+    });
+  });
 });

@@ -1,4 +1,4 @@
-import { suggestEdit, TextSuggestion } from '../../src/commands';
+import { applySuggestion, TextSuggestion } from '../../src/commands';
 import { EditorView } from 'prosemirror-view';
 import { EditorState, Plugin, Transaction } from 'prosemirror-state';
 import { Schema } from 'prosemirror-model';
@@ -93,11 +93,6 @@ describe('suggestEdit', () => {
     }
   });
 
-  test('should handle empty suggestions array', () => {
-    const result = suggestEdit(view, [], 'testUser');
-    expect(result).toBe(0);
-  });
-
   test('should handle suggestions with empty textToReplace', () => {
     const suggestions: TextSuggestion[] = [
       {
@@ -107,7 +102,7 @@ describe('suggestEdit', () => {
       },
     ];
 
-    const result = suggestEdit(view, suggestions, 'testUser');
-    expect(result).toBe(0); // Should not replace anything if textToReplace is empty
+    const result = applySuggestion(view, suggestions[0], 'testUser');
+    expect(result).toBe(false); // Should not replace anything if textToReplace is empty
   });
 });

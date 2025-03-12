@@ -1,4 +1,4 @@
-import { suggestEdit, TextSuggestion } from '../../src/commands';
+import { applySuggestion, TextSuggestion } from '../../src/commands';
 import { EditorView } from 'prosemirror-view';
 import { EditorState } from 'prosemirror-state';
 import { Schema, DOMParser } from 'prosemirror-model';
@@ -47,7 +47,7 @@ describe('suggestEdit simple tests', () => {
 
     // Just verify the function doesn't crash
     expect(() => {
-      suggestEdit(view, suggestions, 'testUser');
+      applySuggestion(view, suggestions[0], 'testUser');
     }).not.toThrow();
   });
 });

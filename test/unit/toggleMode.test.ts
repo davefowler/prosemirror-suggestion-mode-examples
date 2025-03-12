@@ -4,7 +4,6 @@ import {
   toggleSuggestionMode,
 } from '../../src/commands/setMode';
 import { suggestionModePluginKey } from '../../src/key';
-import { suggestionModePlugin } from '../../src/plugin';
 // Mock dependencies
 jest.mock('prosemirror-view');
 jest.mock('../../src/key', () => {
@@ -14,7 +13,7 @@ jest.mock('../../src/key', () => {
     },
   };
 });
-jest.mock('../../src/suggestions', () => ({
+jest.mock('../../src/plugin', () => ({
   suggestionModePlugin: {},
 }));
 

@@ -1,13 +1,7 @@
-import {
-  EditorState,
-  Plugin,
-  Selection,
-  TextSelection,
-} from 'prosemirror-state';
+import { EditorState, Plugin, TextSelection } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { Schema, DOMParser } from 'prosemirror-model';
-import { suggestionModePlugin } from '../../src/suggestions';
-import { suggestionModePluginKey } from '../../src/key';
+import { suggestionModePlugin } from '../../src/plugin';
 
 // Define a basic schema for testing
 export const testSchema = new Schema({

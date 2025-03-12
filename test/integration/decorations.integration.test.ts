@@ -1,7 +1,7 @@
-import { EditorState, Selection, TextSelection } from 'prosemirror-state';
-import { EditorView, DecorationSet, Decoration } from 'prosemirror-view';
-import { Schema, DOMParser, Mark } from 'prosemirror-model';
-import { suggestionModePlugin } from '../../src/suggestions';
+import { EditorState } from 'prosemirror-state';
+import { EditorView, Decoration } from 'prosemirror-view';
+import { Schema, DOMParser } from 'prosemirror-model';
+import { suggestionModePlugin } from '../../src/plugin';
 import { suggestionModePluginKey } from '../../src/key';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { keymap } from 'prosemirror-keymap';
@@ -12,12 +12,7 @@ import {
   hoverMenuFactory,
   SuggestionHoverMenuRenderer,
 } from '../../src/menus/hoverMenu';
-import {
-  createEditorState,
-  createEditorView,
-  testSchema,
-  setupDOMEnvironment,
-} from '../helpers/test-helpers';
+import { setupDOMEnvironment } from '../helpers/test-helpers';
 
 // Setup DOM environment for tests
 setupDOMEnvironment();
@@ -175,16 +170,6 @@ describe('decorations integration', () => {
 
       // Get all decorations
       const decorationsArray = decorationSet.find();
-
-      // Log decorations for debugging
-      console.log(
-        'Found decorations:',
-        decorationsArray.map((d) => ({
-          from: d.from,
-          to: d.to,
-          spec: (d as any).spec,
-        }))
-      );
 
       // Filter for widget decorations that have hover in their key
       // Widget decorations have from === to and a spec.key

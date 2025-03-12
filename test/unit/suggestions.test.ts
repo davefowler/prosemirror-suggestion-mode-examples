@@ -1,7 +1,7 @@
-import { EditorState, Plugin } from 'prosemirror-state';
+import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { Schema, Node, Mark } from 'prosemirror-model';
-import { suggestionModePlugin, findMarkRange } from '../../src/suggestions';
+import { Schema, Node } from 'prosemirror-model';
+import { suggestionModePlugin } from '../../src/plugin';
 import { suggestionModePluginKey } from '../../src/key';
 
 // Mock dependencies

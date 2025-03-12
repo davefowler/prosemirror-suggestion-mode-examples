@@ -220,7 +220,7 @@ function findDocumentRange(
       }
     } catch (e) {
       // If there's an error in the nodesBetween approach, fall back to simple positions
-      console.log(
+      console.warn(
         'Error in nodesBetween, falling back to simple positions:',
         e
       );

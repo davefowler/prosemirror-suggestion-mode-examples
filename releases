@@ -3,11 +3,14 @@
 
 ## TODO's yet [see issues for more](https://github.com/davefowler/prosemirror-suggestion-mode/issues)
 
- - deleting across blocks puts in in their a new block
- - find and handle isntances where openStart=1 openEnd=0 or reveersed? is that a thing?
  - handle multiple user suggestions overlapping
  - applySuggestion only works for text matching - a more advanced way would be great.
 
+
+## 1.0.3
+
+ - fixed issue with deletes across blocks (open ended)
+ - handles sequential transactions per dispatch
 
 ## 1.0.21
 

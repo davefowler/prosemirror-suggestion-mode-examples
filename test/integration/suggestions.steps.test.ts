@@ -1012,6 +1012,19 @@ describe('suggestion mode edge cases', () => {
       // with appropriate marks
       expect(view.state.doc.textContent).toBe('12345678');
 
+      const markedPos = [];
+      for (let i = 0; i < view.state.doc.content.size; i++) {
+        if (hasMarkAtPosition(view.state.doc, i, 'suggestion_delete')) {
+          // @ts-ignore
+          markedPos.push(i);
+        }
+      }
+      console.log(
+        'chars with mark suggestion_delete are at positions',
+        markedPos
+      );
+      expect(markedPos).toEqual([2, 3, 4, 5]);
+
       // Verify "34" is marked for deletion
       expect(hasMarkAtPosition(view.state.doc, 3, 'suggestion_delete')).toBe(
         true
@@ -1033,22 +1046,8 @@ describe('suggestion mode edge cases', () => {
         false
       );
       expect(hasMarkAtPosition(view.state.doc, 6, 'suggestion_delete')).toBe(
-        true
+        false
       );
-
-      // Verify all positions have the correct marks
-      let expectedMarkedPositions = [2, 3, 4, 5];
-      for (let i = 1; i <= 8; i++) {
-        if (expectedMarkedPositions.includes(i)) {
-          expect(
-            hasMarkAtPosition(view.state.doc, i, 'suggestion_delete')
-          ).toBe(true);
-        } else {
-          expect(
-            hasMarkAtPosition(view.state.doc, i, 'suggestion_delete')
-          ).toBe(false);
-        }
-      }
     });
   });
 });

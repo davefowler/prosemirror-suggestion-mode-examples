@@ -18,11 +18,18 @@ export function decorateSuggestionGroup(
   renderHoverMenu: SuggestionHoverMenuRenderer
 ) {
   decos.push(
+    Decoration.inline(from, to, {
+      class: 'suggestion-group',
+      key: `suggestion-group-${from}`,
+    })
+  );
+  decos.push(
     Decoration.widget(
       from,
       (view) => {
         const wrapper = document.createElement('span');
         wrapper.className = 'suggestion-menu-wrapper';
+        wrapper.id = `suggestion-menu-wrapper-${from}`;
         wrapper.style.position = 'relative';
         wrapper.style.display = 'inline-block';
         wrapper.style.verticalAlign = 'text-top';

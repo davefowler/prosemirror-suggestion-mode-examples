@@ -9,7 +9,7 @@
  - applySuggestion only works for text matching - a more advanced way would be great.
 
 
-## 1.0.20
+## 1.0.21
 
 Big rewrite here as the previous versions only supported the ReplaceStep and only for plain text.
 

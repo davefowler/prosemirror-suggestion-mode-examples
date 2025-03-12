@@ -73,29 +73,46 @@ export function initSuggestionHoverListeners(view: EditorView) {
 }
 
 /**
- * Find the menu wrapper that precedes a suggestion element
+ * Find the menu wrapper that belongs to a suggestion element
  */
 function findPrecedingMenuWrapper(element: HTMLElement): HTMLElement | null {
-  // Look for previous siblings first
+  // Look for immediate previous sibling first
   let sibling = element.previousElementSibling as HTMLElement | null;
-  while (sibling) {
-    if (sibling.classList.contains('suggestion-menu-wrapper')) {
-      return sibling;
-    }
-    sibling = sibling.previousElementSibling as HTMLElement | null;
+  if (sibling && sibling.classList.contains('suggestion-menu-wrapper')) {
+    return sibling;
   }
 
-  // If not found, go up the tree and look at previous siblings of parent
-  let parent = element.parentElement;
-  while (parent && !parent.classList.contains('ProseMirror')) {
-    sibling = parent.previousElementSibling as HTMLElement | null;
-    while (sibling) {
-      if (sibling.classList.contains('suggestion-menu-wrapper')) {
-        return sibling;
+  // If we're within a larger element (like a <strong>), we need to check
+  // if there's a menu wrapper right before our parent's child elements
+  const parent = element.parentElement;
+  if (parent) {
+    // Find the position of our element among its siblings
+    const allChildren = Array.from(parent.childNodes);
+    const index = allChildren.indexOf(element);
+
+    // Check if there's a menu wrapper right before our element
+    if (index > 0) {
+      const previousNode = allChildren[index - 1];
+      if (
+        previousNode.nodeType === Node.ELEMENT_NODE &&
+        (previousNode as HTMLElement).classList.contains(
+          'suggestion-menu-wrapper'
+        )
+      ) {
+        return previousNode as HTMLElement;
       }
-      sibling = sibling.previousElementSibling as HTMLElement | null;
     }
-    parent = parent.parentElement;
+  }
+
+  // If still not found and we're in a special case (like inside a formatted element)
+  // we need to look for menu wrappers that belong specifically to our suggestion context
+  // This is important for nested elements like <strong> with suggestions inside
+  let currentNode = element;
+  while (currentNode.previousElementSibling) {
+    currentNode = currentNode.previousElementSibling as HTMLElement;
+    if (currentNode.classList.contains('suggestion-menu-wrapper')) {
+      return currentNode;
+    }
   }
 
   return null;

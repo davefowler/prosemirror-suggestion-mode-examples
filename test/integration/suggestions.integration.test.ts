@@ -1,18 +1,14 @@
-import {
-  EditorState,
-  Selection,
-  TextSelection,
-} from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
-import { Schema, DOMParser, Mark } from "prosemirror-model";
-import { suggestionModePlugin } from "../../src/suggestions";
-import { suggestionModePluginKey } from "../../src/key";
-import { schema as basicSchema } from "prosemirror-schema-basic";
-import { keymap } from "prosemirror-keymap";
-import { baseKeymap } from "prosemirror-commands";
-import { addSuggestionMarks } from "../../src/schema";
+import { EditorState, Selection, TextSelection } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { Schema, DOMParser, Mark } from 'prosemirror-model';
+import { suggestionModePlugin } from '../../src/plugin';
+import { suggestionModePluginKey } from '../../src/key';
+import { schema as basicSchema } from 'prosemirror-schema-basic';
+import { keymap } from 'prosemirror-keymap';
+import { baseKeymap } from 'prosemirror-commands';
+import { addSuggestionMarks } from '../../src/schema';
 
-describe("suggestionsPlugin integration", () => {
+describe('suggestionsPlugin integration', () => {
   let view: EditorView;
   let state: EditorState;
   let container: HTMLElement;
@@ -25,15 +21,15 @@ describe("suggestionsPlugin integration", () => {
 
   // Helper to create a basic editor with our plugin
   function createEditor(
-    content: string = "<p>Hello world</p>",
+    content: string = '<p>Hello world</p>',
     pluginState = {}
   ) {
     // Create container for the editor
-    container = document.createElement("div");
+    container = document.createElement('div');
     document.body.appendChild(container);
 
     // Parse the content
-    const domNode = document.createElement("div");
+    const domNode = document.createElement('div');
     domNode.innerHTML = content;
     const doc = DOMParser.fromSchema(schema).parse(domNode);
 
@@ -41,7 +37,10 @@ describe("suggestionsPlugin integration", () => {
     state = EditorState.create({
       doc,
       schema,
-      plugins: [keymap(baseKeymap), suggestionModePlugin({ username: "integration test user" })],
+      plugins: [
+        keymap(baseKeymap),
+        suggestionModePlugin({ username: 'integration test user' }),
+      ],
     });
 
     // Create the editor view
@@ -51,8 +50,8 @@ describe("suggestionsPlugin integration", () => {
     view.dispatch(
       view.state.tr.setMeta(suggestionModePluginKey, {
         inSuggestionMode: true,
-        username: "testUser",
-        data: { "example-attr": "test value" },
+        username: 'testUser',
+        data: { 'example-attr': 'test value' },
         ...pluginState,
       })
     );
@@ -69,17 +68,17 @@ describe("suggestionsPlugin integration", () => {
     }
   });
 
-  describe("suggestion mode", () => {
-    test("should initialize with suggestion mode enabled", () => {
+  describe('suggestion mode', () => {
+    test('should initialize with suggestion mode enabled', () => {
       createEditor();
       const pluginState = suggestionModePluginKey.getState(view.state);
 
       expect(pluginState).toBeDefined();
       expect(pluginState!.inSuggestionMode).toBe(true);
-      expect(pluginState!.username).toBe("testUser");
+      expect(pluginState!.username).toBe('testUser');
     });
 
-    test("should toggle suggestion mode", () => {
+    test('should toggle suggestion mode', () => {
       createEditor();
 
       // Get initial state
@@ -113,9 +112,9 @@ describe("suggestionsPlugin integration", () => {
     });
   });
 
-  describe("text operations", () => {
-    test("should mark inserted text with suggestion_add", () => {
-      createEditor("<p>Hello world</p>");
+  describe('text operations', () => {
+    test('should mark inserted text with suggestion_add', () => {
+      createEditor('<p>Hello world</p>');
 
       // Position cursor after "Hello "
       const position = 7;
@@ -125,15 +124,15 @@ describe("suggestionsPlugin integration", () => {
       view.dispatch(tr);
 
       // Insert text with a space
-      view.dispatch(view.state.tr.insertText(" awesome "));
+      view.dispatch(view.state.tr.insertText(' awesome '));
 
       // Check that the document now contains the text
-      expect(view.state.doc.textContent).toBe("Hello  awesome world");
+      expect(view.state.doc.textContent).toBe('Hello  awesome world');
 
       // Check that there's a suggestion_add mark
       let foundMark = false;
       view.state.doc.nodesBetween(position, position + 8, (node) => {
-        if (node.marks.some((mark) => mark.type.name === "suggestion_add")) {
+        if (node.marks.some((mark) => mark.type.name === 'suggestion_add')) {
           foundMark = true;
         }
       });
@@ -141,8 +140,8 @@ describe("suggestionsPlugin integration", () => {
       expect(foundMark).toBe(true);
     });
 
-    test("should mark deleted text with suggestion_delete", () => {
-      createEditor("<p>Hello awesome world</p>");
+    test('should mark deleted text with suggestion_delete', () => {
+      createEditor('<p>Hello awesome world</p>');
 
       // Select " awesome "
       const from = 7;
@@ -156,12 +155,12 @@ describe("suggestionsPlugin integration", () => {
       view.dispatch(view.state.tr.deleteSelection());
 
       // Check that the document still contains"Hello  awesome world"
-      expect(view.state.doc.textContent).toBe("Hello awesome world");
+      expect(view.state.doc.textContent).toBe('Hello awesome world');
 
       // Check that there's a suggestion_delete mark
       let foundMark = false;
       view.state.doc.nodesBetween(from, from + 8, (node) => {
-        if (node.marks.some((mark) => mark.type.name === "suggestion_delete")) {
+        if (node.marks.some((mark) => mark.type.name === 'suggestion_delete')) {
           foundMark = true;
         }
       });
@@ -170,10 +169,10 @@ describe("suggestionsPlugin integration", () => {
     });
   });
 
-  describe("custom data", () => {
-    test("should pass custom data to suggestion marks", () => {
-      createEditor("<p>Hello world</p>", {
-        data: { exampleattr: "test value" },
+  describe('custom data', () => {
+    test('should pass custom data to suggestion marks', () => {
+      createEditor('<p>Hello world</p>', {
+        data: { exampleattr: 'test value' },
       });
 
       // Position cursor after "Hello "
@@ -184,29 +183,29 @@ describe("suggestionsPlugin integration", () => {
       view.dispatch(tr);
 
       // Insert text with a space
-      view.dispatch(view.state.tr.insertText(" awesome "));
+      view.dispatch(view.state.tr.insertText(' awesome '));
 
       // Check that the document now contains the text
-      expect(view.state.doc.textContent).toBe("Hello  awesome world");
+      expect(view.state.doc.textContent).toBe('Hello  awesome world');
 
       // Check that there's a suggestion_add mark with our custom data
       let markWithData: Mark | null = null;
       view.state.doc.nodesBetween(position, position + 8, (node) => {
         node.marks.forEach((mark) => {
-          if (mark.type.name === "suggestion_add") {
+          if (mark.type.name === 'suggestion_add') {
             markWithData = mark;
           }
         });
       });
 
       expect(markWithData).not.toBeNull();
-      expect(markWithData!.attrs.data).toEqual({ exampleattr: "test value" });
+      expect(markWithData!.attrs.data).toEqual({ exampleattr: 'test value' });
     });
   });
 
-  describe("decorations", () => {
-    test("should add decorations for suggestion marks", () => {
-      createEditor("<p>Hello world</p>");
+  describe('decorations', () => {
+    test('should add decorations for suggestion marks', () => {
+      createEditor('<p>Hello world</p>');
 
       // Position cursor after "Hello "
       const position = 6;
@@ -216,65 +215,56 @@ describe("suggestionsPlugin integration", () => {
       view.dispatch(tr);
 
       // Insert text
-      view.dispatch(view.state.tr.insertText("awesome "));
+      view.dispatch(view.state.tr.insertText('awesome '));
 
       // Force a DOM update
       view.updateState(view.state);
 
       // Check that there's a decoration with the suggestion-add class
-      const decorations = container.querySelectorAll(".suggestion-add");
+      const decorations = container.querySelectorAll('.suggestion-add');
       expect(decorations.length).toBeGreaterThan(0);
 
       // Check that there's a tooltip
-      const hoverMenu = container.querySelectorAll(".suggestion-hover-menu");
+      const hoverMenu = container.querySelectorAll('.suggestion-hover-menu');
       expect(hoverMenu.length).toBeGreaterThan(0);
     });
   });
 
-  describe("edge cases", () => {
-    test("should handle deleting adjacent to suggestion marks", () => {
-      createEditor("<p>Hello world</p>");
+  describe('edge cases', () => {
+    test('should handle deleting adjacent to suggestion marks', () => {
+      createEditor('<p>Hello world</p>');
 
       // First, add text to create a suggestion_add mark
-      const position = 6;
+      const position = 7;
+      const len = 'awesome '.length;
+      const to = position + len;
       view.dispatch(
         view.state.tr.setSelection(
           Selection.near(view.state.doc.resolve(position))
         )
       );
-      view.dispatch(view.state.tr.insertText("awesome "));
+      view.dispatch(view.state.tr.insertText('awesome '));
 
-      // The document now has "Helloawesome  world" with "awesome " as a suggestion_add
+      // The document now has "Hello awesome world" with "awesome " as a suggestion_add
 
       // Position cursor one character to the right of the suggestion mark (after "awesome ")
-      const positionAfterMark = position + "awesome ".length;
       view.dispatch(
-        view.state.tr.setSelection(
-          Selection.near(view.state.doc.resolve(positionAfterMark))
-        )
+        view.state.tr.setSelection(Selection.near(view.state.doc.resolve(to)))
       );
 
       // Delete the character at cursor (should be 'w' from "world")
-      view.dispatch(
-        view.state.tr.delete(positionAfterMark, positionAfterMark + 1)
-      );
+      view.dispatch(view.state.tr.delete(to, to + 1));
 
-      // Document should now have "Helloawesome  orld" with the deleted 'w' marked as suggestion_delete
-      expect(view.state.doc.textContent).toBe("Helloawesome  world");
+      // Document should now have "Hello awesome world" with the deleted 'w' marked as suggestion_delete
+      expect(view.state.doc.textContent).toBe('Hello awesome world');
 
       // Check that the deleted 'w' has a suggestion_delete mark
       let hasDeleteMark = false;
-      view.state.doc.nodesBetween(
-        positionAfterMark,
-        positionAfterMark + 1,
-        (node) => {
-          if (
-            node.marks.some((mark) => mark.type.name === "suggestion_delete")
-          ) {
-            hasDeleteMark = true;
-          }
+      view.state.doc.nodesBetween(to, to + 1, (node) => {
+        if (node.marks.some((mark) => mark.type.name === 'suggestion_delete')) {
+          hasDeleteMark = true;
         }
-      );
+      });
 
       expect(hasDeleteMark).toBe(true);
 
@@ -283,8 +273,8 @@ describe("suggestionsPlugin integration", () => {
       view.state.doc.nodesBetween(0, view.state.doc.content.size, (node) => {
         node.marks.forEach((mark) => {
           if (
-            mark.type.name === "suggestion_add" ||
-            mark.type.name === "suggestion_delete"
+            mark.type.name === 'suggestion_add' ||
+            mark.type.name === 'suggestion_delete'
           ) {
             allMarks.push(mark);
           }
@@ -295,8 +285,8 @@ describe("suggestionsPlugin integration", () => {
       expect(uniqueMarks.size).toBe(2); // Should have both add and delete marks
     });
 
-    test("should handle deleting character right after adding text", () => {
-      createEditor("<p>Hello world</p>");
+    test('should handle deleting character right after adding text', () => {
+      createEditor('<p>Hello world</p>');
 
       // Add text to create a suggestion mark
       const position = 7;
@@ -305,7 +295,7 @@ describe("suggestionsPlugin integration", () => {
           Selection.near(view.state.doc.resolve(position))
         )
       );
-      view.dispatch(view.state.tr.insertText("new "));
+      view.dispatch(view.state.tr.insertText('new '));
 
       let initialMarkRange;
       view.state.doc.nodesBetween(
@@ -313,14 +303,14 @@ describe("suggestionsPlugin integration", () => {
         view.state.doc.content.size,
         (node, pos) => {
           node.marks.forEach((mark) => {
-            if (mark.type.name === "suggestion_add") {
+            if (mark.type.name === 'suggestion_add') {
               initialMarkRange = { from: pos, to: pos + node.nodeSize };
             }
           });
         }
       );
       // Move cursor one character to the left (inside the suggestion mark)
-      const positionInsideMark = position + "new".length;
+      const positionInsideMark = position + 'new'.length;
 
       view.dispatch(
         view.state.tr.setSelection(
@@ -333,20 +323,23 @@ describe("suggestionsPlugin integration", () => {
         view.state.tr.delete(positionInsideMark, positionInsideMark + 1)
       );
       // The content after deletion should have no space between "new" and "world"
-      expect(view.state.doc.textContent).toBe("Hello newworld");
+      expect(view.state.doc.textContent).toBe('Hello newworld');
 
       // Check what suggestion marks we have after the operation
-      const suggestionMarkNames: ("suggestion_add" | "suggestion_delete")[] = [];
+      const suggestionMarkNames: ('suggestion_add' | 'suggestion_delete')[] =
+        [];
       view.state.doc.nodesBetween(
         0,
         view.state.doc.content.size,
         (node, pos) => {
           node.marks.forEach((mark) => {
             if (
-              mark.type.name === "suggestion_add" ||
-              mark.type.name === "suggestion_delete"
+              mark.type.name === 'suggestion_add' ||
+              mark.type.name === 'suggestion_delete'
             ) {
-              suggestionMarkNames.push(mark.type.name as "suggestion_add" | "suggestion_delete");
+              suggestionMarkNames.push(
+                mark.type.name as 'suggestion_add' | 'suggestion_delete'
+              );
             }
           });
         }
@@ -354,10 +347,10 @@ describe("suggestionsPlugin integration", () => {
 
       // We should have suggestion marks
       expect(suggestionMarkNames.length).toBeGreaterThan(0);
-      
+
       // The plugin appears to add a suggestion_delete mark when deleting the space
       // This behavior makes sense as it tracks both additions and deletions
-      const hasAddMarks = suggestionMarkNames.includes("suggestion_add");
+      const hasAddMarks = suggestionMarkNames.includes('suggestion_add');
       expect(hasAddMarks).toBe(true);
     });
   });

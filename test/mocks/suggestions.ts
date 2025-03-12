@@ -1,7 +1,7 @@
 export const suggestionsPluginKey = {
   getState: jest.fn(),
   get: jest.fn(),
-  key: "suggestions",
+  key: 'suggestions',
 };
 
 export const suggestionsPlugin = {

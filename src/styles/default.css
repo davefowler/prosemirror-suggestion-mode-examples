@@ -1,56 +1,53 @@
+/* Remove or comment out the ProseMirror positioning */
+/* .ProseMirror {
+    position: relative;
+} */
+
+/* Group wrapper styles */
+.suggestion-group {
+    position: relative;  /* This becomes the positioning context */
+    display: inline;
+}
+
+/* Individual suggestion mark styles */
 .suggestion-add {
     color: green;
     text-decoration: underline;
-    border-radius: 2px;
 }
+
+.suggestion-add:hover {
+    background-color: rgb(0, 255, 0, .2);
+}
+
 .suggestion-delete {
     text-decoration: line-through;
     color: red;
 }
+
+.suggestion-delete:hover {
+    background-color: rgb(255, 0, 0, .2);
+}
+
+/* Hover menu styles */
+
 .suggestion-hover-menu {
+    display: none;
+    position: absolute;
     background-color: #f0f0f0;
     padding: 5px;
     border-radius: 4px;
     font-size: 12px;
-    display: none; /* Hide by default */
-    position: absolute;
     z-index: 10;
-    bottom: 100%; /* Position above the text */
     left: 0;
-    margin-bottom: 0px; /* Add space between hover-menu and text */
+    bottom: 100%;
+    margin-bottom: 0px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     min-width: 150px;
     white-space: nowrap;
-    transition-delay: 0.1s;
-    transition-property: display;
     color: black;
 }
 
-/* Create a relative positioning context for the hover-menu */
-.suggestion-add, .suggestion-delete {
-    position: relative;
-}
-
-/* Add a pseudo-element to bridge the gap between suggestion and hover-menu */
-.suggestion-add::before, 
-.suggestion-delete::before {
-    content: '';
-    position: absolute;
-    height: 10px; /* Height of the invisible bridge */
-    width: 100%;
-    bottom: 100%;
-    left: 0;
-    z-index: 9; /* Below the hover-menu but still part of the hover path */
-}
-
-/* Show hover-menu when hovering over suggestion marks */
-.suggestion-delete:hover .suggestion-hover-menu,
-.suggestion-add:hover .suggestion-hover-menu,
-.suggestion-hover-menu:hover {
-    display: block;
-}
-
-/* Style for suggestion hover menu and but */
+/* Button styles remain the same */
 .suggestion-buttons {
     display: flex;
     gap: 5px;
@@ -86,3 +83,4 @@
 .suggestion-info {
     margin-bottom: 5px;
 }
+

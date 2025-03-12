@@ -1,71 +1,66 @@
-import {
-  EditorState,
-  Plugin,
-  Selection,
-  TextSelection,
-} from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
-import { Schema, DOMParser } from "prosemirror-model";
-import { suggestionModePlugin } from "../../src/suggestions";
-import { suggestionModePluginKey } from "../../src/key";
+import { EditorState, Plugin, TextSelection } from 'prosemirror-state';
+import { EditorView } from 'prosemirror-view';
+import { Schema, DOMParser } from 'prosemirror-model';
+import { suggestionModePlugin } from '../../src/plugin';
 
 // Define a basic schema for testing
 export const testSchema = new Schema({
   nodes: {
     doc: {
-      content: "paragraph+",
+      content: 'paragraph+',
     },
     paragraph: {
-      content: "text*",
+      content: 'text*',
       toDOM() {
-        return ["p", 0];
+        return ['p', 0];
       },
-      parseDOM: [{ tag: "p" }],
+      parseDOM: [{ tag: 'p' }],
     },
     text: {
-      group: "inline",
+      group: 'inline',
     },
   },
   marks: {
     suggestion_add: {
       attrs: {
-        username: { default: "" },
-        createdAt: { default: 0 },
+        username: { default: '' },
         data: { default: null },
       },
       toDOM() {
-        return ["span", { class: "suggestion-add" }, 0];
+        return ['span', { class: 'suggestion-add' }, 0];
       },
-      parseDOM: [{ tag: "span.suggestion-add" }],
+      parseDOM: [{ tag: 'span.suggestion-add' }],
     },
     suggestion_delete: {
       attrs: {
-        username: { default: "" },
-        createdAt: { default: 0 },
+        username: { default: '' },
         data: { default: null },
       },
       toDOM() {
-        return ["span", { class: "suggestion-delete" }, 0];
+        return ['span', { class: 'suggestion-delete' }, 0];
       },
-      parseDOM: [{ tag: "span.suggestion-delete" }],
+      parseDOM: [{ tag: 'span.suggestion-delete' }],
     },
   },
 });
 
 // Helper to create an editor state with our plugin
 export function createEditorState(doc: string, plugins: Plugin[] = []) {
-  const element = document.createElement("div");
+  const element = document.createElement('div');
   element.innerHTML = doc;
 
   return EditorState.create({
     doc: DOMParser.fromSchema(testSchema).parse(element),
-    plugins: [suggestionModePlugin({ username: "test", inSuggestionMode: true }), ...plugins],
+    plugins: [
+      suggestionModePlugin({ username: 'test', inSuggestionMode: true }),
+      ...plugins,
+    ],
   });
 }
 
 // Helper to create an editor view
 export function createEditorView(state: EditorState) {
-  const element = document.createElement("div");
+  const element = document.createElement('div');
   return new EditorView(element, { state });
 }
 
@@ -102,11 +97,11 @@ export function deleteText(view: EditorView, from: number, to: number) {
 
 // Setup DOM environment for tests
 export function setupDOMEnvironment() {
-  if (typeof document === "undefined") {
+  if (typeof document === 'undefined') {
     (global as any).document = {
       createElement: jest.fn().mockImplementation((tag) => {
         return {
-          innerHTML: "",
+          innerHTML: '',
           appendChild: jest.fn(),
           classList: {
             add: jest.fn(),

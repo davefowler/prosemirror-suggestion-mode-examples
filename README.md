@@ -7,30 +7,14 @@ A ProseMirror plugin that implements a "suggestion mode" method to track and sho
 
 Check out the [live demos](https://prosemirror-suggestion-mode.netlify.app) 
 
-<!-- Coppied from examples/index.html -->
-   <ul>
-            <li>
-                <a href="/examples/simple/">Simple</a>
-                <span class="code-link">
-                    [<a href="https://github.com/davefowler/prosemirror-suggestion-mode/tree/main/examples/simple">code</a>]
-                </span>
-                - The most basic example of how to use the library.
-            </li>
-            <li>
-                <a href="/examples/basic/">Basic Prosemirror Example Editor with Markdown</a>
-                <span class="code-link">
-                    [<a href="https://github.com/davefowler/prosemirror-suggestion-mode/tree/main/examples/basic">code</a>]
-                </span>
-                - The library connected to the <a href="https://prosemirror.net/examples/basic/">basic prosemirror example editor</a> with a markup menu bar and undo/redo functionality
-            </li>
-            <li>
-                <a href="/examples/applySuggestion/">Apply Suggestion</a>
-                <span class="code-link">
-                    [<a href="https://github.com/davefowler/prosemirror-suggestion-mode/tree/main/examples/applySuggestion">code</a>]
-                </span>
-                - Shows how to use the <code>applySuggestion</code> tool, which is a text based (find/replace) way of making suggestions, ideal for AI's
-            </li>
-        </ul>
+- [Simple](https://prosemirror-suggestion-mode.netlify.app/examples/simple/) - a bare bones example
+- [Basic Markdown](https://prosemirror-suggestion-mode.netlify.app/examples/basic/) - use with the prosemirror-example-setup handling formatted text
+- [Apply Suggestion Method] - showcasing the applySuggestion method for applying text based suggestions (handy for AI)
+   
+
+[![ProseMirror Suggestion Mode Demo](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/assets/3-11-25%20prosemirror%20suggestions%20with%20markup.png)](https://prosemirror-suggestion-mode.netlify.app/examples/basic/)
+
+
         
 ## Features
 

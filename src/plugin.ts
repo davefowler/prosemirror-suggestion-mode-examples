@@ -60,13 +60,6 @@ export const suggestionModePlugin = (
 
         const inSuggestionMode =
           pluginState.inSuggestionMode || meta?.inSuggestionMode;
-        // forceSuggestion !== undefined;
-        console.log(
-          'in suggestion mode?',
-          inSuggestionMode,
-          meta?.inSuggestionMode,
-          pluginState.inSuggestionMode
-        );
         // If we're not in suggestion mode do nothing
         if (!inSuggestionMode) return;
 
@@ -80,24 +73,11 @@ export const suggestionModePlugin = (
           const to = step.to;
 
           const removedSlice = oldState.doc.slice(from, to, false);
-          console.log(
-            'removedSlice old',
-            from,
-            to,
-            removedSlice,
-            removedSlice.content.size
-          );
+
           // in all but the ReplaceStep, the removedSlice is the same size as the addedSlice
           // so we can use it as the addedSlice, as we're just adding a mark over that range
           const addedSlice =
             step instanceof ReplaceStep ? step.slice : removedSlice;
-
-          console.log(
-            'addedSlice',
-            addedSlice,
-            addedSlice.content.size,
-            addedSlice.content.firstChild?.text
-          );
           // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
           tr.setMeta(suggestionModePluginKey, {
             suggestionOperation: true,

@@ -34,7 +34,6 @@ const createSuggestionReasonComponent = (
   const reasonDiv = document.createElement('div');
   reasonDiv.className = 'suggestion-reason';
   const reason = attrs?.data?.reason;
-  console.log('attrs', attrs);
   if (reason) {
     const reasonLabel = document.createElement('strong');
     reasonLabel.textContent = `${attrs.username}: `;

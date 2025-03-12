@@ -136,15 +136,6 @@ export const createApplySuggestionCommand = (
         textMatchStart,
         textMatchEnd
       );
-      console.log(
-        'textMatchStart',
-        textMatchStart,
-        'textMatchEnd',
-        textMatchEnd,
-        'docRange',
-        docRange.from,
-        docRange.to
-      );
       applySuggestionToRange(
         view,
         dispatch,
@@ -161,6 +152,7 @@ export const createApplySuggestionCommand = (
 /**
  * Find the actual document positions that correspond to positions in the text content
  * This handles formatted text correctly by mapping text content positions to document positions
+ *
  * TODO -  the document range always seems to be a few characters behind the text range.
  * This is likely due to paragaraphs/blocks and it could probably be more manually calculated
  * or at the very least started from a closer position.

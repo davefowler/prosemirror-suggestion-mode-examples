@@ -14,9 +14,6 @@ export function initSuggestionHoverListeners(view: EditorView) {
   // Store references to functions so they can be removed later
   const listeners = new WeakMap();
 
-  // Clean up any previous listeners first
-  // We'd need to maintain this map between calls
-
   // Add listeners to suggestion elements
   suggestionElements.forEach((element) => {
     const el = element as HTMLElement;
@@ -136,10 +133,7 @@ function handleSuggestionHover(
 ): boolean {
   // First check if a suggestion element is in the event path
   const suggestionElement = findSuggestionInPath(event);
-  console.log('suggestionElement? ', suggestionElement, event.composedPath());
-
   if (suggestionElement) {
-    console.log('Found suggestion in path:', suggestionElement);
     const menuWrapper = findPrecedingMenuWrapper(suggestionElement);
 
     if (menuWrapper) {

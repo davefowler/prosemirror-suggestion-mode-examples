@@ -9,7 +9,7 @@ Check out the [live demos](https://prosemirror-suggestion-mode.netlify.app)
 
 - [Simple](https://prosemirror-suggestion-mode.netlify.app/examples/simple/) - a bare bones example
 - [Basic Markdown](https://prosemirror-suggestion-mode.netlify.app/examples/basic/) - use with the prosemirror-example-setup handling formatted text
-- [Apply Suggestion Method] - showcasing the applySuggestion method for applying text based suggestions (handy for AI)
+- [Apply Suggestion Method](https://prosemirror-suggestion-mode.netlify.app/examples/applySuggestion/) - showcasing the applySuggestion method for applying text based suggestions (handy for AI)
    
 
 [![ProseMirror Suggestion Mode Demo](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/assets/3-11-25%20prosemirror%20suggestions%20with%20markup.png)](https://prosemirror-suggestion-mode.netlify.app/examples/basic/)

@@ -6,9 +6,11 @@
  - handle overlapping suggestions from multiple users
  - applySuggestion only works for text matching - a more advanced way would be great.
 
-## 1.0.31
+## 1.0.32
 
  - remove prosemirror-menu as a dependency
+ - fixed undo/redo 
+ - improved multi-transaction per dispatch handling
 
 ## 1.0.30
 

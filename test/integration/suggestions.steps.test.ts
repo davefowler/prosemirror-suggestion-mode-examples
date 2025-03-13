@@ -834,8 +834,7 @@ describe('suggestion mode edge cases', () => {
       view.dispatch(tr);
 
       // Text should retain deleted content with marks
-      // they are out of order, but this is okay for stacked deletes in a single dispatch
-      expect(view.state.doc.textContent).toBe('One three two four');
+      expect(view.state.doc.textContent).toBe('One two three four');
       expect(getMarkString(view.state.doc)).toBe('One ----------four');
     });
     test('should handle deletes and inserts with overlapping positions', () => {
@@ -866,7 +865,7 @@ describe('suggestion mode edge cases', () => {
       // with appropriate marks
       // Note, the order isn't perfect here as it puts the two deletes next to each other
       // this is fine for now - its a very rare case and expensive to optimize
-      expect(view.state.doc.textContent).toBe('9999991253467890');
+      expect(view.state.doc.textContent).toBe('9999991342567890');
 
       expect(getMarkString(view.state.doc)).toBe('++++++1----67890');
     });
@@ -896,7 +895,7 @@ describe('suggestion mode edge cases', () => {
       // with appropriate marks
       // Note, the order isn't perfect here as it puts the two deletes next to each other
       // this is fine for now - its a very rare case and expensive to optimize
-      expect(view.state.doc.textContent).toBe('12534678');
+      expect(view.state.doc.textContent).toBe('13425678');
 
       expect(getMarkString(view.state.doc)).toBe('1----678');
     });

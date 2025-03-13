@@ -18,6 +18,3 @@ export type { TextSuggestion } from './commands';
 
 // Schema
 export { addSuggestionMarks } from './schema';
-
-// UI components
-export { getSuggestionMenuItems } from './menus/menuBar';

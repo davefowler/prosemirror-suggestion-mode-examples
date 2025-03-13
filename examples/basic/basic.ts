@@ -1,9 +1,7 @@
 import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import {
-  suggestionModePlugin,
-  getSuggestionMenuItems,
-} from 'prosemirror-suggestion-mode';
+import { suggestionModePlugin } from 'prosemirror-suggestion-mode';
+import { getSuggestionMenuItems } from 'prosemirror-suggestion-mode/menus/menuBar';
 import { addSuggestionMarks } from 'prosemirror-suggestion-mode/schema';
 import { DOMParser } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';

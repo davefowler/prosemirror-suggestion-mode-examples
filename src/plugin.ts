@@ -111,6 +111,8 @@ export const suggestionModePlugin = (
           // in all but the ReplaceStep, the removedSlice is the same size as the addedSlice
           const addedSliceSize =
             step instanceof ReplaceStep ? step.slice.size : removedSlice.size;
+          const extraInsertChars =
+            step instanceof ReplaceAroundStep ? step.insert : 0;
 
           // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
           tr.setMeta(suggestionModePluginKey, {
@@ -150,7 +152,8 @@ export const suggestionModePlugin = (
                 return acc;
               }, new Mapping());
             // we will reinser these later, and backward
-            const mappedFrom = mapToNew.map(step.from);
+            const replaceAroundOffset = extraInsertChars ? 1 : 0;
+            const mappedFrom = mapToNew.map(step.from - replaceAroundOffset);
             reinsertSteps.push({
               step: new ReplaceStep(mappedFrom, mappedFrom, removedSlice),
               stepMeta: {
@@ -163,9 +166,6 @@ export const suggestionModePlugin = (
           if (addedSliceSize > 0) {
             // ReplaceAroundStep has an insert property that is the number of extra characters inserted
             // for things like numbers in a list item
-            // TODO - I think this is not needed anymore?
-            const extraInsertChars =
-              step instanceof ReplaceAroundStep ? step.insert : 0;
 
             const addedTo = step.from + addedSliceSize + extraInsertChars;
 

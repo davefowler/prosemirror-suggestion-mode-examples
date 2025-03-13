@@ -10,7 +10,8 @@
 ## 1.0.3
 
  - fixed issue with deletes across blocks (open ended)
- - handles sequential transactions per dispatch
+ - handles multiple transactions in a dispatch
+ - fixed replaceAround offset issue
 
 ## 1.0.21
 

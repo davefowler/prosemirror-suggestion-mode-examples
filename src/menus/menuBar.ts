@@ -1,3 +1,8 @@
+/**
+ * Menu bar components for suggestion mode.
+ * NOTE: Using this module requires adding "prosemirror-menu" as a dependency
+ * to your project.
+ */
 import { MenuItem } from 'prosemirror-menu';
 import { EditorState } from 'prosemirror-state';
 import {

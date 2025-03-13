@@ -5,6 +5,8 @@ import {
   RemoveMarkStep,
   ReplaceAroundStep,
   Transform,
+  StepMap,
+  Mapping,
 } from 'prosemirror-transform';
 import { SuggestionModePluginState, suggestionModePluginKey } from './key';
 import {
@@ -65,10 +67,13 @@ export const suggestionModePlugin = (
       // we will reinsert deletions and mark them as suggestion_delete
       // we do this after we mark all the suggestion_adds and
       // and we necessarily do it backwards
-      const reinsertSteps: { step: ReplaceStep; stepMeta: any }[] = [];
+      const reinsertSteps: {
+        step: ReplaceStep;
+        stepMeta: any;
+      }[] = [];
 
       // After transactions are applied, apply transactions needed for the suggestion marks
-      transactions.forEach((transaction, index) => {
+      transactions.forEach((transaction, trIndex) => {
         // username and data are gotten from the transaction overwritting any pluginState defaults
         const meta = transaction.getMeta(suggestionModePluginKey);
 
@@ -87,26 +92,11 @@ export const suggestionModePlugin = (
 
         // Process each step in the transaction
         // This works for all 4 types of steps: ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
-        transaction.steps.forEach((step: AnyStep) => {
+        transaction.steps.forEach((step: AnyStep, stepIndex: number) => {
           // update intermediateState if there was a previous step
           if (lastStep) {
-            console.log(
-              'transforming old doc from',
-              intermediateTransform.doc.textBetween(
-                0,
-                intermediateTransform.doc.content.size
-              )
-            );
             intermediateTransform.step(lastStep);
-            console.log(
-              'transformedto',
-              intermediateTransform.doc.textBetween(
-                0,
-                intermediateTransform.doc.content.size
-              )
-            );
           }
-          console.log('updating lastStep', lastStep);
           lastStep = step;
 
           // Each transaction has two optional parts:
@@ -116,10 +106,6 @@ export const suggestionModePlugin = (
             step.from,
             step.to,
             false
-          );
-          console.log(
-            'removedSlice',
-            removedSlice.content.textBetween(0, removedSlice.content.size)
           );
           // we don't actually use/need the addedSlice, we just need its size to mark it
           // in all but the ReplaceStep, the removedSlice is the same size as the addedSlice
@@ -132,7 +118,7 @@ export const suggestionModePlugin = (
           });
 
           // Check if we're inside an existing suggestion mark
-          const $pos = oldState.doc.resolve(step.from);
+          const $pos = intermediateTransform.doc.resolve(step.from);
           const marksAtPos = $pos.marks();
           const suggestionMark = marksAtPos.find(
             (m) =>
@@ -154,9 +140,19 @@ export const suggestionModePlugin = (
           if (removedSlice.size > 0) {
             // DELETE - content was removed.
             // We need to put it back and add a suggestion_delete mark on it
-            // tr.replace(mappedFrom, mappedFrom, removedSlice);
+            const mapToNew: Mapping = transactions
+              .slice(trIndex)
+              .reduce((acc, tr, i) => {
+                const startStep = i === 0 ? stepIndex : 0; // stepIndex+1?
+                tr.steps.slice(startStep).forEach((s) => {
+                  acc.appendMap(s.getMap());
+                });
+                return acc;
+              }, new Mapping());
+            // we will reinser these later, and backward
+            const mappedFrom = mapToNew.map(step.from);
             reinsertSteps.push({
-              step: new ReplaceStep(step.from, step.from, removedSlice),
+              step: new ReplaceStep(mappedFrom, mappedFrom, removedSlice),
               stepMeta: {
                 username,
                 data: newData,
@@ -172,18 +168,6 @@ export const suggestionModePlugin = (
               step instanceof ReplaceAroundStep ? step.insert : 0;
 
             const addedTo = step.from + addedSliceSize + extraInsertChars;
-
-            if (step instanceof ReplaceStep) {
-              console.log('Adding add mark:', {
-                type: 'suggestion_add',
-                from: step.from,
-                to: addedTo,
-                content: step.slice.content.textBetween(
-                  0,
-                  step.slice.content.size
-                ),
-              });
-            }
 
             // just mark it, it was already inserted before appendTransaction
             tr.addMark(
@@ -208,38 +192,25 @@ export const suggestionModePlugin = (
         });
       });
 
-      // Now we go backward through the steps and reinsert the deletions
-      reinsertSteps.reverse().forEach(({ step, stepMeta }) => {
-        console.log(
-          'inserting back in',
-          step.slice.content.textBetween(0, step.slice.content.size),
-          'step.from was',
-          step.from,
-          'current content there is',
-          tr.doc.textBetween(step.from, step.from + step.slice.size)
-        );
-        tr.step(step);
-        console.log(
-          'doc after replaceSlice reinserted',
-          tr.doc.textBetween(0, tr.doc.content.size)
-        );
-        console.log('Adding delete mark:', {
-          type: 'suggestion_delete',
-          from: step.from,
-          to: step.from + step.slice.size,
-          sliceContent: step.slice.content.textBetween(
-            0,
-            step.slice.content.size
-          ),
-          trContent: tr.doc.textBetween(step.from, step.from + step.slice.size),
+      // reinsert them from the end to the beginning in from order
+      // TODO - we could do mappings and get more precise about putting adjacent/overlapping
+      // batched (same dispatch) removals back in the exact right spot
+      // but it's added complexity and almost never occurring in real scenarios
+      reinsertSteps
+        .reverse()
+        .sort((a, b) => b.step.from - a.step.from)
+        .forEach(({ step, stepMeta }) => {
+          tr.setMeta(suggestionModePluginKey, {
+            suggestionOperation: true,
+          });
+          tr.replace(step.from, step.from, step.slice);
+          tr.addMark(
+            step.from,
+            step.from + step.slice.size,
+            newState.schema.marks.suggestion_delete.create(stepMeta)
+          );
+          changed = true;
         });
-        tr.addMark(
-          step.from,
-          step.from + step.slice.size,
-          newState.schema.marks.suggestion_delete.create(stepMeta)
-        );
-        changed = true;
-      });
 
       // Return the transaction if there were changes; otherwise return null
       return changed ? tr : null;

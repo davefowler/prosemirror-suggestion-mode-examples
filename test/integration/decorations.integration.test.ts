@@ -125,18 +125,22 @@ describe('decorations integration', () => {
       const tr = view.state.tr;
       const pos1 = 1; // Start of paragraph content
       const word1Length = 5; // "Hello" length
-      const pos2 = pos1 + word1Length + 1; // Start of "world"
+      const pos2 = pos1 + word1Length; // Start of "world"
       const word2Length = 5; // "world" length
 
       const mark = schema.mark('suggestion_add', {
         username: 'testUser',
         data: {},
       });
+      tr.setMeta(suggestionModePluginKey, {
+        suggestionOperation: true,
+      });
       tr.addMark(pos1, pos1 + word1Length, mark);
       tr.addMark(pos2, pos2 + word2Length, mark);
 
       view.dispatch(tr);
 
+      expect(view.state.doc.textContent).toBe('Hello world');
       // Create decorations
       const decorationSet = createDecorations(view.state, renderHoverMenu);
 
@@ -152,7 +156,7 @@ describe('decorations integration', () => {
       const tr = view.state.tr;
       const pos1 = 1; // Start of paragraph content
       const word1Length = 5; // "Hello" length
-      const pos2 = pos1 + word1Length + 1; // Start of "world"
+      const pos2 = pos1 + word1Length; // Start of "world"
       const word2Length = 5; // "world" length
 
       const mark1 = schema.mark('suggestion_add', {
@@ -163,10 +167,15 @@ describe('decorations integration', () => {
         username: 'testUser2',
         data: {},
       });
+      tr.setMeta(suggestionModePluginKey, {
+        suggestionOperation: true,
+      });
       tr.addMark(pos1, pos1 + word1Length, mark1);
       tr.addMark(pos2, pos2 + word2Length, mark2);
 
       view.dispatch(tr);
+
+      expect(view.state.doc.textContent).toBe('Hello world');
 
       // Create decorations
       const decorationSet = createDecorations(view.state, renderHoverMenu);
@@ -177,11 +186,11 @@ describe('decorations integration', () => {
       // Filter for widget decorations that have hover in their key
       // Widget decorations have from === to and a spec.key
       const hoverWidgets = decorationsArray.filter(
-        (d) => d.from === d.to && (d as any).spec?.key?.includes('hover')
+        (d) => d.from === d.to && (d as any).spec.key.includes('hover')
       );
 
       // Should have exactly 2 hover widgets (one for each username)
-      expect(hoverWidgets.length).toBe(2 * 3);
+      expect(hoverWidgets.length).toBe(2);
 
       // Verify they're at the correct positions
       expect(hoverWidgets.some((d) => d.from === pos1)).toBe(true);

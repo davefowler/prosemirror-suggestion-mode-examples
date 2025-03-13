@@ -67,6 +67,23 @@ export function createDecorations(
   let currentUsername: string | null = null;
   let currentAttrs: Record<string, any> | null = null;
 
+  // Helper function to create decoration and reset group tracking
+  const finalizeCurrentGroup = () => {
+    if (groupStart !== null) {
+      decorateSuggestionGroup(
+        decos,
+        groupStart,
+        groupEnd!,
+        currentAttrs!,
+        renderHoverMenu
+      );
+      groupStart = null;
+      groupEnd = null;
+      currentUsername = null;
+      currentAttrs = null;
+    }
+  };
+
   state.doc.descendants((node, pos, parent, index) => {
     const suggestionMark = node.marks.find(
       (m) =>
@@ -79,19 +96,7 @@ export function createDecorations(
       (suggestionMark && currentUsername !== suggestionMark.attrs.username) ||
       !suggestionMark
     ) {
-      if (groupStart !== null) {
-        decorateSuggestionGroup(
-          decos,
-          groupStart,
-          groupEnd!,
-          currentAttrs!,
-          renderHoverMenu
-        );
-      }
-      groupStart = null;
-      groupEnd = null;
-      currentUsername = null;
-      currentAttrs = null;
+      finalizeCurrentGroup();
     }
 
     if (suggestionMark) {
@@ -102,18 +107,10 @@ export function createDecorations(
       }
       groupEnd = pos + node.nodeSize;
     }
-
-    const isLastNode = index === parent.childCount - 1;
-    if (isLastNode && groupStart !== null) {
-      decorateSuggestionGroup(
-        decos,
-        groupStart,
-        groupEnd!,
-        currentAttrs!,
-        renderHoverMenu
-      );
-    }
   });
+
+  // finalize the last group if there is one
+  finalizeCurrentGroup();
 
   return DecorationSet.create(state.doc, decos);
 }

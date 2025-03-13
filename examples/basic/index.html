@@ -88,11 +88,27 @@
     <div class="container">
         <h1>Basic Prosemirror Suggestion Mode Example</h1>
         
-        <p>This example shows suggestions on the <a href="https://prosemirror.net/examples/basic/">basic prosemirror example editor</a> using the official example-setup package.</p>
+        <p>This example of <a href="https://github.com/davefowler/prosemirror-suggestion-mode">prosemirror-suggestion-mode</a>
+             with the <a href="https://prosemirror.net/examples/basic/">basic prosemirror example editor</a> using the official example-setup package.  
+             It shows how suggestion mode works with and across ProseMirror features such as markup and menuBars.
+        </p>
+
+       
 
         <div id="editor" class="editor">
             <!-- Editor will be initialized here -->
         </div>
+
+        <p>You can see that edits work across different markup and hover menus for accepting and rejecting each suggestion are displayed on hover over adjacent changes.  Three buttons are added to the toolbar:
+            <ul>
+                <li>A toggle for enabling/disabling suggestion mode</li>
+                <li>A button to accept all suggestions</li>
+                <li>A button to reject all suggestions</li>
+            </ul>                     
+        </p>
+        <p>
+            <a href="./">See other examples</a> or <a href="https://github.com/davefowler/prosemirror-suggestion-mode">view the code and docs on github</a>
+        </p>
     </div>
     <script src="./basic.js"></script>
 </body>

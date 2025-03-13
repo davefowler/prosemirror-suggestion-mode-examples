@@ -5,7 +5,6 @@ import {
   RemoveMarkStep,
   ReplaceAroundStep,
   Transform,
-  StepMap,
   Mapping,
 } from 'prosemirror-transform';
 import { SuggestionModePluginState, suggestionModePluginKey } from './key';

@@ -13,8 +13,6 @@ Check out the [live demos](https://prosemirror-suggestion-mode.netlify.app)
    
 
 [![ProseMirror Suggestion Mode Demo](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/assets/3-11-25%20prosemirror%20suggestions%20with%20markup.png)](https://prosemirror-suggestion-mode.netlify.app/examples/basic/)
-
-
         
 ## Features
 
@@ -26,6 +24,10 @@ Check out the [live demos](https://prosemirror-suggestion-mode.netlify.app)
 - Clean, minimal UI
 - Text search/replace helpers for AI generated suggestions
 
+## Releases
+
+See [releases](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/releases) for full release notes
+
 ## Installation
 
 ```bash
@@ -35,7 +37,6 @@ npm install prosemirror-suggestion-mode
 # Using yarn
 yarn add prosemirror-suggestion-mode
 ```
-
 
 ## Usage
 

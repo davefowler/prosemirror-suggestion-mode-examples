@@ -1,6 +1,6 @@
 {
   "name": "prosemirror-suggestion-mode",
-  "version": "1.0.31",
+  "version": "1.0.32",
   "description": "ProseMirror extension for suggestion/track changes mode",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

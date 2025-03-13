@@ -63,18 +63,15 @@ export const suggestionModePlugin = (
       let intermediateTransform = new Transform(oldState.doc);
       let lastStep: AnyStep | null = null;
 
-      // we will reinsert deletions and mark them as suggestion_delete
-      // we do this after we mark all the suggestion_adds and
-      // and we necessarily do it backwards
-      const reinsertSteps: {
-        step: ReplaceStep;
-        stepMeta: any;
-      }[] = [];
+      const mapPrevSuggestions = new Mapping();
 
       // After transactions are applied, apply transactions needed for the suggestion marks
       transactions.forEach((transaction, trIndex) => {
         // username and data are gotten from the transaction overwritting any pluginState defaults
         const meta = transaction.getMeta(suggestionModePluginKey);
+
+        // If the transaction is part of undo/redo history, skip it
+        if (transaction.getMeta('history$')) return;
 
         const inSuggestionMode =
           pluginState.inSuggestionMode || meta?.inSuggestionMode;
@@ -97,7 +94,6 @@ export const suggestionModePlugin = (
             intermediateTransform.step(lastStep);
           }
           lastStep = step;
-
           // Each transaction has two optional parts:
           //   1. removedSlice - content that should be marked as suggestion_delete
           //   2. addedSlice - content that should be marked as suggestion_add
@@ -106,13 +102,14 @@ export const suggestionModePlugin = (
             step.to,
             false
           );
+
+          let from = mapPrevSuggestions.map(step.from);
           // we don't actually use/need the addedSlice, we just need its size to mark it
           // in all but the ReplaceStep, the removedSlice is the same size as the addedSlice
           const addedSliceSize =
             step instanceof ReplaceStep ? step.slice.size : removedSlice.size;
           const extraInsertChars =
             step instanceof ReplaceAroundStep ? step.insert : 0;
-
           // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
           tr.setMeta(suggestionModePluginKey, {
             suggestionOperation: true,
@@ -131,7 +128,7 @@ export const suggestionModePlugin = (
             if (addedSliceSize > 1) {
               // a paste has happened in the middle of a suggestion mark
               // make sure it has the same mark as the surrounding text
-              tr.addMark(step.from, step.from + addedSliceSize, suggestionMark);
+              tr.addMark(from, from + addedSliceSize, suggestionMark);
               changed = true;
             }
             // We are already inside a suggestion mark so we don't need to do anything
@@ -141,7 +138,10 @@ export const suggestionModePlugin = (
           if (removedSlice.size > 0) {
             // DELETE - content was removed.
             // We need to put it back and add a suggestion_delete mark on it
-            const mapToNew: Mapping = transactions
+
+            // first map its position to the new doc
+            // TODO - maybe even replace steps need to be mapped?
+            const mapToNewDocPos: Mapping = transactions
               .slice(trIndex)
               .reduce((acc, tr, i) => {
                 const startStep = i === 0 ? stepIndex : 0; // stepIndex+1?
@@ -150,27 +150,41 @@ export const suggestionModePlugin = (
                 });
                 return acc;
               }, new Mapping());
-            // we will reinser these later, and backward
+
+            // replaceArond steps create extra chars and we have to start 1 earlier
+            // TODO is this true?
             const replaceAroundOffset = extraInsertChars ? 1 : 0;
-            const mappedFrom = mapToNew.map(step.from - replaceAroundOffset);
-            reinsertSteps.push({
-              step: new ReplaceStep(mappedFrom, mappedFrom, removedSlice),
-              stepMeta: {
+            // map to the new doc position
+            from = mapToNewDocPos.map(step.from) - replaceAroundOffset;
+            // then map to what we've done in suggestion transactions so far
+            from = mapPrevSuggestions.map(from);
+            // now reinsert that slice and add the suggestion_delete mark
+            tr.replace(from, from, removedSlice);
+            // record the tr.replace mapping
+            mapPrevSuggestions.appendMap(
+              new ReplaceStep(from, from, removedSlice).getMap()
+            );
+
+            tr.addMark(
+              from,
+              from + removedSlice.size,
+              newState.schema.marks.suggestion_delete.create({
                 username,
                 data: newData,
-              },
-            });
+              })
+            );
+            changed = true;
           }
 
           if (addedSliceSize > 0) {
             // ReplaceAroundStep has an insert property that is the number of extra characters inserted
             // for things like numbers in a list item
 
-            const addedTo = step.from + addedSliceSize + extraInsertChars;
-
+            const addedFrom = from + removedSlice.size;
+            const addedTo = addedFrom + addedSliceSize + extraInsertChars;
             // just mark it, it was already inserted before appendTransaction
             tr.addMark(
-              step.from,
+              addedFrom,
               addedTo,
               newState.schema.marks.suggestion_add.create({
                 username,
@@ -181,27 +195,6 @@ export const suggestionModePlugin = (
           }
         });
       });
-
-      // reinsert the slices that were removed
-      // We do so from the end to the beginning of the doc so their order doesn't mess up the others
-      // TODO - we could do mappings and get more precise about putting adjacent/overlapping
-      // batched (same dispatch) removals back in the exact right spot
-      // but it's added complexity and almost never occurring in real scenarios
-      reinsertSteps
-        .reverse()
-        .sort((a, b) => b.step.from - a.step.from)
-        .forEach(({ step, stepMeta }) => {
-          tr.setMeta(suggestionModePluginKey, {
-            suggestionOperation: true,
-          });
-          tr.replace(step.from, step.from, step.slice);
-          tr.addMark(
-            step.from,
-            step.from + step.slice.size,
-            newState.schema.marks.suggestion_delete.create(stepMeta)
-          );
-          changed = true;
-        });
 
       // Return the transaction if there were changes; otherwise return null
       return changed ? tr : null;

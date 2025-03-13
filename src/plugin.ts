@@ -179,19 +179,11 @@ export const suggestionModePlugin = (
             );
             changed = true;
           }
-
-          // // TODO - figure out backspace cursor re-postion with stacked steps later
-          // if (addedSliceSize === 0) {
-          //   // They hit backspace and then we added the removedSlice back in
-          //   // we need to move the cursor to the start (from the end) of the text we put back in
-          //   const newCursorPos = mappedFrom;
-          //   const Selection = newState.selection.constructor as any;
-          //   tr.setSelection(Selection.create(tr.doc, newCursorPos));
-          // }
         });
       });
 
-      // reinsert them from the end to the beginning in from order
+      // reinsert the slices that were removed
+      // We do so from the end to the beginning of the doc so their order doesn't mess up the others
       // TODO - we could do mappings and get more precise about putting adjacent/overlapping
       // batched (same dispatch) removals back in the exact right spot
       // but it's added complexity and almost never occurring in real scenarios

@@ -57,9 +57,13 @@ export const suggestionModePlugin = (
       let tr = newState.tr;
       let changed = false;
 
-      // For the rare case where there are multiple transforming steps in this dispatch
+      // For handling multiple transforming steps in this dispatch
       // we need to keep track of the intermediate doc inbetween each step
       // so we can get the correct slice
+      // Mapping is not enough because if you for instance delete a range,
+      // and then delete another range around that first range
+      // you can't just get the second deleted slice with simple mapping
+
       let intermediateTransform = new Transform(oldState.doc);
       let lastStep: AnyStep | null = null;
 
@@ -164,6 +168,7 @@ export const suggestionModePlugin = (
             // map to the new doc position
             from = mapToNewDocPos.map(step.from) - replaceAroundOffset;
             // then map to what we've done in suggestion transactions so far
+            // TODO - this could just be tr.mapping.map(from)
             from = mapPrevSuggestions.map(from);
             // now reinsert that slice and add the suggestion_delete mark
             tr.replace(from, from, removedSlice);

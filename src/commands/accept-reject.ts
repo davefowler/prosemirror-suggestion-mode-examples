@@ -1,8 +1,8 @@
-import { EditorView } from 'prosemirror-view';
 import { Mark } from 'prosemirror-model';
 import { suggestionModePluginKey } from '../key';
 import { EditorState, Transaction } from 'prosemirror-state';
 import { Command } from 'prosemirror-state';
+import { Mapping } from 'prosemirror-transform';
 
 interface MarkedRange {
   mark: Mark;
@@ -87,32 +87,21 @@ export const rejectSuggestionsInRange = (from: number, to: number): Command => {
     const tr = state.tr;
     tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
 
-    // Sort suggestions by their starting position in ascending order
-    // This ensures we process them from left to right, making position adjustments easier
-    const sortedSuggestions = [...suggestions].sort((a, b) => a.from - b.from);
-
-    // Track position adjustment as we make changes to the document
-    let offset = 0;
-
     // Process all marks in the range
-    sortedSuggestions.forEach(
-      ({ mark, from: originalFrom, to: originalTo }) => {
-        // Adjust positions based on previous changes
-        const adjustedFrom = originalFrom + offset;
-        const adjustedTo = originalTo + offset;
-
-        if (mark.type.name === 'suggestion_add') {
-          // Remove both text and mark
-          tr.delete(adjustedFrom, adjustedTo);
-          // Update offset: deleting text reduces subsequent positions
-          offset -= adjustedTo - adjustedFrom;
-        } else if (mark.type.name === 'suggestion_delete') {
-          // Keep the text, remove the mark
-          tr.removeMark(adjustedFrom, adjustedTo, mark.type);
-          // No offset change when just removing marks
-        }
+    suggestions.forEach(({ mark, from: originalFrom, to: originalTo }) => {
+      // Adjust positions based on previous changes
+      const adjustedFrom = tr.mapping.map(originalFrom);
+      const adjustedTo = tr.mapping.map(originalTo);
+      if (mark.type.name === 'suggestion_add') {
+        // Remove both text and mark
+        tr.delete(adjustedFrom, adjustedTo);
+        // Update offset: deleting text reduces subsequent positions
+      } else if (mark.type.name === 'suggestion_delete') {
+        // Keep the text, remove the mark
+        tr.removeMark(adjustedFrom, adjustedTo, mark.type);
+        // No offset change when just removing marks
       }
-    );
+    });
 
     dispatch(tr);
     return true;

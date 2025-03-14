@@ -139,6 +139,13 @@ export const suggestionModePlugin = (
             // DELETE - content was removed.
             // We need to put it back and add a suggestion_delete mark on it
 
+            const isBackspace =
+              (step instanceof ReplaceStep ||
+                step instanceof ReplaceAroundStep) &&
+              step.slice.size === 0 &&
+              newState.selection.from === step.from;
+
+            console.log('is backspace?', typeof step, isBackspace, step);
             // first map its position to the new doc
             // TODO - maybe even replace steps need to be mapped?
             const mapToNewDocPos: Mapping = transactions
@@ -164,6 +171,12 @@ export const suggestionModePlugin = (
             mapPrevSuggestions.appendMap(
               new ReplaceStep(from, from, removedSlice).getMap()
             );
+
+            // if they
+            if (isBackspace) {
+              console.log('resetting cursor pos for backspace');
+              tr.setSelection(tr.selection.constructor.create(tr.doc, from));
+            }
 
             tr.addMark(
               from,

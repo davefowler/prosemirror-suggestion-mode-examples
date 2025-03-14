@@ -67,8 +67,6 @@ export const suggestionModePlugin = (
       let intermediateTransform = new Transform(oldState.doc);
       let lastStep: AnyStep | null = null;
 
-      const mapPrevSuggestions = new Mapping();
-
       // After transactions are applied, apply transactions needed for the suggestion marks
       transactions.forEach((transaction, trIndex) => {
         // username and data are gotten from the transaction overwritting any pluginState defaults
@@ -94,9 +92,8 @@ export const suggestionModePlugin = (
         // This works for all 4 types of steps: ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
         transaction.steps.forEach((step: AnyStep, stepIndex: number) => {
           // update intermediateState if there was a previous step
-          if (lastStep) {
-            intermediateTransform.step(lastStep);
-          }
+          let from = step.from;
+          if (lastStep) intermediateTransform.step(lastStep);
           lastStep = step;
           // Each transaction has two optional parts:
           //   1. removedSlice - content that should be marked as suggestion_delete
@@ -107,7 +104,6 @@ export const suggestionModePlugin = (
             false
           );
 
-          let from = mapPrevSuggestions.map(step.from);
           // we don't actually use/need the addedSlice, we just need its size to mark it
           // in all but the ReplaceStep, the removedSlice is the same size as the addedSlice
           const addedSliceSize =
@@ -168,14 +164,10 @@ export const suggestionModePlugin = (
             // map to the new doc position
             from = mapToNewDocPos.map(step.from) - replaceAroundOffset;
             // then map to what we've done in suggestion transactions so far
-            // TODO - this could just be tr.mapping.map(from)
-            from = mapPrevSuggestions.map(from);
+            from = tr.mapping.map(from);
             // now reinsert that slice and add the suggestion_delete mark
             tr.replace(from, from, removedSlice);
             // record the tr.replace mapping
-            mapPrevSuggestions.appendMap(
-              new ReplaceStep(from, from, removedSlice).getMap()
-            );
 
             // if they
             if (isBackspace) {

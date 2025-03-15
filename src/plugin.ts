@@ -158,20 +158,15 @@ export const suggestionModePlugin = (
                 return acc;
               }, new Mapping());
 
-            // replaceArond steps create extra chars and we have to start 1 earlier
-            // TODO is this true?
-            const replaceAroundOffset = extraInsertChars ? 1 : 0;
             // map to the new doc position
-            from = mapToNewDocPos.map(step.from) - replaceAroundOffset;
+            from = mapToNewDocPos.map(step.from) - extraInsertChars;
             // then map to what we've done in suggestion transactions so far
             from = tr.mapping.map(from);
             // now reinsert that slice and add the suggestion_delete mark
             tr.replace(from, from, removedSlice);
-            // record the tr.replace mapping
 
-            // if they
             if (isBackspace) {
-              console.log('resetting cursor pos for backspace');
+              // place the cursor at the front if there was a backspace
               tr.setSelection(tr.selection.constructor.create(tr.doc, from));
             }
 
@@ -183,6 +178,7 @@ export const suggestionModePlugin = (
                 data: newData,
               })
             );
+
             changed = true;
           }
 

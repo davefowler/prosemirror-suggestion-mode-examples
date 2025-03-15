@@ -110,6 +110,7 @@ export const suggestionModePlugin = (
             step instanceof ReplaceStep ? step.slice.size : removedSlice.size;
           let extraInsertChars = 0;
           if (step instanceof ReplaceAroundStep) {
+            // TODO this extrainsertchars is wrong
             extraInsertChars = step.insert;
             addedSliceSize = step.gapTo - step.gapFrom;
           }

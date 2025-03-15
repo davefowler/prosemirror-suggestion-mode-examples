@@ -2,7 +2,6 @@ import { Mark } from 'prosemirror-model';
 import { suggestionModePluginKey } from '../key';
 import { EditorState, Transaction } from 'prosemirror-state';
 import { Command } from 'prosemirror-state';
-import { Mapping } from 'prosemirror-transform';
 
 interface MarkedRange {
   mark: Mark;
@@ -10,6 +9,8 @@ interface MarkedRange {
   to: number;
 }
 
+// TODO - look for groups (share code with decorations) and find nodes that get passed up
+// remove those non-text nodes that are inside the group
 // Helper to find all suggestion marks and their boundaries in a range
 const findSuggestionsInRange = (
   state: EditorState,
@@ -63,6 +64,8 @@ const processSuggestionsInRange = (
         acceptOrReject === 'accept' ? 'suggestion_delete' : 'suggestion_add';
 
       if (mark.type.name === markToDelete) {
+        // Todo, check if this is the only content in a node around it.
+        // if so delete that node
         // Remove both text and mark
         tr.delete(adjustedFrom, adjustedTo);
       } else {

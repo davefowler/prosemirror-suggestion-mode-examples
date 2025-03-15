@@ -106,10 +106,13 @@ export const suggestionModePlugin = (
 
           // we don't actually use/need the addedSlice, we just need its size to mark it
           // in all but the ReplaceStep, the removedSlice is the same size as the addedSlice
-          const addedSliceSize =
+          let addedSliceSize =
             step instanceof ReplaceStep ? step.slice.size : removedSlice.size;
-          const extraInsertChars =
-            step instanceof ReplaceAroundStep ? step.insert : 0;
+          let extraInsertChars = 0;
+          if (step instanceof ReplaceAroundStep) {
+            extraInsertChars = step.insert;
+            addedSliceSize = step.gapTo - step.gapFrom;
+          }
           // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
           tr.setMeta(suggestionModePluginKey, {
             suggestionOperation: true,

@@ -111,8 +111,7 @@ export const suggestionModePlugin = (
           let extraInsertChars = 0;
           if (step instanceof ReplaceAroundStep) {
             // TODO this extrainsertchars is wrong
-            extraInsertChars = step.insert;
-            addedSliceSize = step.gapTo - step.gapFrom;
+            addedSliceSize = step.gapTo - step.gapFrom + step.slice.size;
           }
           // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
           tr.setMeta(suggestionModePluginKey, {
@@ -149,13 +148,12 @@ export const suggestionModePlugin = (
               step.slice.size === 0 &&
               newState.selection.from === step.from;
 
-            console.log('is backspace?', typeof step, isBackspace, step);
             // first map its position to the new doc
-            // TODO - maybe even replace steps need to be mapped?
+            // grab all the unprocessed steps left in the transaction into a mapping
             const mapToNewDocPos: Mapping = transactions
               .slice(trIndex)
               .reduce((acc, tr, i) => {
-                const startStep = i === 0 ? stepIndex : 0; // stepIndex+1?
+                const startStep = i === 0 ? stepIndex : 0;
                 tr.steps.slice(startStep).forEach((s) => {
                   acc.appendMap(s.getMap());
                 });
@@ -163,9 +161,16 @@ export const suggestionModePlugin = (
               }, new Mapping());
 
             // map to the new doc position
-            from = mapToNewDocPos.map(step.from) - extraInsertChars;
+            from = mapToNewDocPos.map(step.from);
             // then map to what we've done in suggestion transactions so far
             from = tr.mapping.map(from);
+
+            if (step instanceof ReplaceAroundStep) {
+              // subtract 1 in replaceAround steps to get outside the inserted slice
+              console.log('replaceAround step', step, step.slice);
+              from = Math.max(0, from - step.slice.openStart);
+            }
+
             // now reinsert that slice and add the suggestion_delete mark
             tr.replace(from, from, removedSlice);
 

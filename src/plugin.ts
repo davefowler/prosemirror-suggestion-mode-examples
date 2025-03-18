@@ -15,6 +15,8 @@ import {
 } from './menus/hoverMenu';
 import { createDecorations } from './decorations';
 import { initSuggestionHoverListeners } from './menus/hoverHandlers';
+import { findNonStartingPos } from './helpers/nodePosition';
+import { Slice, Fragment } from 'prosemirror-model';
 
 type AnyStep = ReplaceStep | AddMarkStep | RemoveMarkStep | ReplaceAroundStep;
 // Plugin options interface
@@ -64,7 +66,7 @@ export const suggestionModePlugin = (
       // and then delete another range around that first range
       // you can't just get the second deleted slice with simple mapping
 
-      let intermediateTransform = new Transform(oldState.doc);
+      let intermediateTr = new Transform(oldState.doc);
       let lastStep: AnyStep | null = null;
 
       // After transactions are applied, apply transactions needed for the suggestion marks
@@ -92,13 +94,12 @@ export const suggestionModePlugin = (
         // This works for all 4 types of steps: ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
         transaction.steps.forEach((step: AnyStep, stepIndex: number) => {
           // update intermediateState if there was a previous step
-          let from = step.from;
-          if (lastStep) intermediateTransform.step(lastStep);
+          if (lastStep) intermediateTr.step(lastStep);
           lastStep = step;
           // Each transaction has two optional parts:
           //   1. removedSlice - content that should be marked as suggestion_delete
           //   2. addedSlice - content that should be marked as suggestion_add
-          const removedSlice = intermediateTransform.doc.slice(
+          const removedSlice = intermediateTr.doc.slice(
             step.from,
             step.to,
             false
@@ -119,14 +120,14 @@ export const suggestionModePlugin = (
           });
 
           // Check if we're inside an existing suggestion mark
-          const $pos = intermediateTransform.doc.resolve(step.from);
+          const $pos = intermediateTr.doc.resolve(step.from);
           const marksAtPos = $pos.marks();
           const suggestionMark = marksAtPos.find(
             (m) =>
               m.type.name === 'suggestion_add' ||
               m.type.name === 'suggestion_delete'
           );
-
+          let from = step.from;
           if (suggestionMark) {
             if (addedSliceSize > 1) {
               // a paste has happened in the middle of a suggestion mark
@@ -165,28 +166,74 @@ export const suggestionModePlugin = (
             // then map to what we've done in suggestion transactions so far
             from = tr.mapping.map(from);
 
-            if (step instanceof ReplaceAroundStep) {
-              // subtract 1 in replaceAround steps to get outside the inserted slice
-              console.log('replaceAround step', step, step.slice);
-              from = Math.max(0, from - step.slice.openStart);
-            }
+            const $from = tr.doc.resolve(from);
+            from = findNonStartingPos($from);
+            console.log('from', from, $from.pos, removedSlice);
 
-            // now reinsert that slice and add the suggestion_delete mark
-            tr.replace(from, from, removedSlice);
+            if (removedSlice.openEnd + removedSlice.openStart > 0) {
+              let currentPos = 0;
+              const pilcrowPositions: number[] = [];
+              removedSlice.content.forEach((node, offset, index) => {
+                if (
+                  index >=
+                  removedSlice.content.childCount - removedSlice.openEnd
+                )
+                  // Don't add pilcrows for open ended nodes
+                  return;
+
+                // If it's a block node, add its end position
+                if (node.isBlock) {
+                  pilcrowPositions.push(currentPos + node.nodeSize - 2); // -2 to get inside the closing tag
+                }
+                currentPos += node.nodeSize;
+              });
+              // First insert the slice normally
+              tr.replace(from, from, removedSlice);
+
+              // Then insert pilcrows at the end of each block
+              let extraChars = 0;
+              pilcrowPositions.forEach((pos) => {
+                tr.insertText('¶', from + pos + extraChars);
+                extraChars += 1;
+              });
+
+              console.log('last child', removedSlice.content.lastChild);
+              const endsWithText =
+                removedSlice.content.lastChild?.textContent.length > 0;
+              console.log('has text at end?', endsWithText);
+              if (removedSlice.openEnd > 0 && !endsWithText) {
+                // if the last open node is empty, add a zero width space to be marked
+                console.log('adding zero width space');
+                tr.insertText('\u200B', from + currentPos + extraChars);
+                extraChars += 1;
+              }
+
+              // Add mark with expanded size to cover the pilcrows
+              tr.addMark(
+                from,
+                from + removedSlice.size + extraChars,
+                newState.schema.marks.suggestion_delete.create({
+                  username,
+                  data: newData,
+                })
+              );
+            } else {
+              // Normal case without block boundaries
+              tr.replace(from, from, removedSlice);
+              tr.addMark(
+                from,
+                from + removedSlice.size,
+                newState.schema.marks.suggestion_delete.create({
+                  username,
+                  data: newData,
+                })
+              );
+            }
 
             if (isBackspace) {
               // place the cursor at the front if there was a backspace
               tr.setSelection(tr.selection.constructor.create(tr.doc, from));
             }
-
-            tr.addMark(
-              from,
-              from + removedSlice.size,
-              newState.schema.marks.suggestion_delete.create({
-                username,
-                data: newData,
-              })
-            );
 
             changed = true;
           }

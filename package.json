@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "test": "jest",
+    "test": "pm-runtests",
     "test:watch": "jest --watch",
     "test:memory": "node --expose-gc --max-old-space-size=4096 node_modules/.bin/jest",
     "test:debug": "jest --runInBand --no-cache --detectOpenHandles --testTimeout=10000",
@@ -19,12 +19,16 @@
     "build": "webpack --mode production",
     "build:lib": "tsc -p tsconfig.lib.json",
     "build:examples": "webpack --mode production",
-    "prepare": "npm run build:lib",
+    "prepare": "pm-buildhelper src/index.ts",
     "prepublishOnly": "npm test",
     "update-imports": "node update-imports.js",
     "deploy:netlify": "npm run build:examples && netlify deploy",
     "deploy:netlify:prod": "npm run build:examples && netlify deploy --prod",
-    "deploy": "npm run build:examples && netlify deploy --prod"
+    "deploy": "npm run build:examples && netlify deploy --prod",
+    "test:ist": "pm-runtests",
+    "test:ist:watch": "node --loader ts-node/esm --test --watch test/test-builder/*.test.ts",
+    "test:jest": "jest",
+    "test:all": "npm run test && npm run test:ist"
   },
   "peerDependencies": {
     "prosemirror-model": "^1.0.0",
@@ -36,21 +40,26 @@
     "@babel/core": "^7.26.9",
     "@babel/preset-env": "^7.26.9",
     "@babel/preset-typescript": "^7.26.0",
+    "@prosemirror/buildhelper": "^0.1.8",
     "@types/jest": "^29.5.12",
     "babel-jest": "^29.7.0",
     "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^7.1.2",
+    "ist": "^1.1.1",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "netlify-cli": "^17.38.1",
     "prettier": "^3.5.3",
     "prosemirror-commands": "^1.7.0",
+    "prosemirror-example-setup": "^1.2.3",
     "prosemirror-history": "^1.4.1",
     "prosemirror-keymap": "^1.2.2",
+    "prosemirror-menu": "^1.2.4",
     "prosemirror-model": "^1.19.3",
     "prosemirror-schema-basic": "^1.2.3",
     "prosemirror-schema-list": "^1.5.0",
     "prosemirror-state": "^1.4.3",
+    "prosemirror-test-builder": "^1.0.0",
     "prosemirror-transform": "^1.7.3",
     "prosemirror-view": "^1.31.7",
     "style-loader": "^4.0.0",
@@ -59,14 +68,13 @@
     "typescript": "^5.7.3",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1",
-    "prosemirror-example-setup": "^1.2.3",
-    "prosemirror-menu": "^1.2.4"
+    "webpack-dev-server": "^4.15.1"
   },
   "optionalDependencies": {
     "prosemirror-menu": "^1.2.4"
   },
   "engines": {
     "node": ">=14.0.0"
-  }
+  },
+  "type": "module"
 }

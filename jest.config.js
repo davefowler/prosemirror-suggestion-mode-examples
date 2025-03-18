@@ -3,24 +3,37 @@ module.exports = {
   testEnvironment: 'jsdom',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: 'tsconfig.json',
-      isolatedModules: true // This helps with memory usage
-    }],
-    '^.+\\.jsx?$': 'babel-jest',
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.json',
+        isolatedModules: true, // This helps with memory usage
+      },
+    ],
+    '^.+\\.jsx?$': [
+      'babel-jest',
+      {
+        presets: [
+          [
+            '@babel/preset-env',
+            {
+              targets: {
+                node: 'current',
+              },
+            },
+          ],
+          '@babel/preset-typescript',
+        ],
+      },
+    ],
   },
-  transformIgnorePatterns: [
-    '/node_modules/(?!prosemirror-.*)'
-  ],
+  transformIgnorePatterns: ['/node_modules/(?!prosemirror-.*)'],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
   collectCoverage: false, // Disable coverage to reduce memory usage
   coverageDirectory: 'coverage',
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-  ],
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
   moduleNameMapper: {
-    '^../../src/(.*)$': '<rootDir>/src/$1'
+    '^../../src/(.*)$': '<rootDir>/src/$1',
   },
   // Ignore the dist/test directory since we're testing the TypeScript files directly
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
@@ -35,7 +48,7 @@ module.exports = {
   // Limit memory usage
   globals: {
     'ts-jest': {
-      isolatedModules: true
-    }
-  }
+      isolatedModules: true,
+    },
+  },
 };

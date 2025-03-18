@@ -5,16 +5,9 @@ export { suggestionModePlugin } from './plugin';
 export { suggestionModePluginKey } from './key';
 export type { SuggestionModePluginState } from './key';
 
-// Commands
-export {
-  acceptAllSuggestions,
-  rejectAllSuggestions,
-  setSuggestionMode,
-  toggleSuggestionMode,
-  createApplySuggestionCommand,
-  applySuggestion,
-} from './commands';
-export type { TextSuggestion } from './commands';
+export * from './commands/accept-reject';
+export * from './commands/setMode';
+export * from './commands/applySuggestion';
 
 // Schema
 export { addSuggestionMarks } from './schema';

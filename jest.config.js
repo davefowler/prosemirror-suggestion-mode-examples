@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
@@ -27,8 +27,8 @@ module.exports = {
       },
     ],
   },
-  transformIgnorePatterns: ['/node_modules/(?!prosemirror-.*)'],
-  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
+  transformIgnorePatterns: ['/node_modules/(?!prosemirror-.*|ist)'],
+  testRegex: '/(test|jest)/.*test.*\\.(js|ts)x?$',
   collectCoverage: false, // Disable coverage to reduce memory usage
   coverageDirectory: 'coverage',
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],

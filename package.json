@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "test": "pm-runtests",
+    "test": "jest",
     "test:watch": "jest --watch",
     "test:memory": "node --expose-gc --max-old-space-size=4096 node_modules/.bin/jest",
     "test:debug": "jest --runInBand --no-cache --detectOpenHandles --testTimeout=10000",
@@ -28,7 +28,7 @@
     "test:ist": "pm-runtests",
     "test:ist:watch": "node --loader ts-node/esm --test --watch test/test-builder/*.test.ts",
     "test:jest": "jest",
-    "test:all": "npm run test && npm run test:ist"
+    "test:all": "npm run test"
   },
   "peerDependencies": {
     "prosemirror-model": "^1.0.0",

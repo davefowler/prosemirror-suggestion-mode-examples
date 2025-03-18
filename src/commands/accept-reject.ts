@@ -56,8 +56,10 @@ const processSuggestionsInRange = (
     // Process all marks in the range
     suggestions.forEach(({ mark, from: originalFrom, to: originalTo }) => {
       // Adjust positions based on previous changes
-      const adjustedFrom = tr.mapping.map(originalFrom);
-      const adjustedTo = tr.mapping.map(originalTo);
+      const adjustedFrom = tr.mapping
+        ? tr.mapping.map(originalFrom)
+        : originalFrom;
+      const adjustedTo = tr.mapping ? tr.mapping.map(originalTo) : originalTo;
 
       // one mark range we delete, the other we just remove the mark
       const markToDelete =

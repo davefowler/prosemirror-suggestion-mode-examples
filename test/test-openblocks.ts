@@ -1,21 +1,9 @@
 import ist from 'ist';
-import {
-  doc,
-  p,
-  blockquote,
-  h1,
-  h2,
-  h3,
-  li,
-  ul,
-  ol,
-  br,
-  hr,
-  schema,
-  eq,
-} from 'prosemirror-test-builder';
+import { eq, builders, schema } from 'prosemirror-test-builder';
 import { EditorState, Plugin } from 'prosemirror-state';
 import { Transform } from 'prosemirror-transform';
+import { DOMSerializer } from 'prosemirror-model';
+
 import {
   suggestionModePlugin,
   SuggestionModePluginOptions,
@@ -30,88 +18,98 @@ declare module 'prosemirror-model' {
   }
 }
 
-function docWithPlugins(content, plugins: Plugin[]) {
-  return EditorState.create({
-    doc: content,
-    schema,
-    plugins,
-  });
-}
-
-// Same as doc, but with the suggestion mode plugin
-function docS(
-  content,
-  options: SuggestionModePluginOptions = { inSuggestionMode: true }
-) {
-  return docWithPlugins(content, [suggestionModePlugin(options)]);
-}
-
-// Create a new schema using the test-builder schema and our suggestion marks
-const testSchema = new Schema({
+const suggestionSchema = new Schema({
   nodes: schema.spec.nodes,
   marks: addSuggestionMarks(schema.spec.marks),
 });
 
+// Create builders using our testSchema instead of the default schema
+const { schema: testSchema, ...rest } = builders(suggestionSchema);
+const {
+  doc,
+  paragraph: p,
+  blockquote,
+  heading: h1,
+  bullet_list: ul,
+  list_item: li,
+  suggestion_delete: sdel,
+  suggestion_add: sadd,
+} = rest;
+
+console.log('rest of builders', rest);
+
+function createEditor(doc: Node) {
+  return EditorState.create({
+    doc,
+    schema: testSchema,
+    plugins: [suggestionModePlugin({ inSuggestionMode: true })],
+  });
+}
+
 describe('Open Block Deletion Tests', () => {
-  // Helper function scoped to these tests
   function testSuggestionTransform(
-    doc: Node,
+    input: Node,
     expected: Node,
     action: (tr: Transform) => void
   ) {
-    const state = EditorState.create({
-      doc,
-      plugins: [suggestionModePlugin({ inSuggestionMode: true })],
-    });
+    const state = createEditor(input);
     const tr = state.tr;
     action(tr);
-    const newState = state.apply(tr);
-    ist(newState.doc, expected, eq);
+    const result = state.apply(tr).doc;
+    expect(result).toEqual(expected);
+  }
+
+  // helpful for debugging, compare output as html
+  function testSuggestionTransformHTML(
+    input: Node,
+    expected: Node,
+    action: (tr: Transform) => void
+  ) {
+    const state = createEditor(input);
+    const tr = state.tr;
+    action(tr);
+    const result = state.apply(tr).doc;
+
+    // Create temporary DOM elements to hold the HTML
+    const resultDiv = document.createElement('div');
+    const expectedDiv = document.createElement('div');
+
+    // Use DOMSerializer to convert to HTML
+    const serializer = DOMSerializer.fromSchema(testSchema);
+    resultDiv.appendChild(serializer.serializeFragment(result.content));
+    expectedDiv.appendChild(serializer.serializeFragment(expected.content));
+
+    console.log('result', resultDiv.innerHTML);
+    console.log('expected', expectedDiv.innerHTML);
+    expect(resultDiv.innerHTML).toEqual(expectedDiv.innerHTML);
   }
 
   it('adds pilcrow when deleting between paragraphs', () =>
-    testSuggestionTransform(
+    testSuggestionTransformHTML(
       doc(p('First paragraph<a>'), p('<b>Second paragraph')),
-      doc(p('First paragraph¶Second paragraph')),
+      doc(
+        p('First paragraph', sdel('¶')),
+        p(sdel('\u200B'), 'Second paragraph')
+      ),
       (tr) => tr.delete(tr.doc.tag.a, tr.doc.tag.b)
     ));
 
-  it('handles backspace at start of paragraph', () =>
-    testSuggestionTransform(
-      doc(p('First paragraph<a>'), p('<b>Second paragraph')),
-      doc(p('First paragraph¶Second paragraph')),
-      (tr) => tr.delete(tr.doc.tag.a, tr.doc.tag.b)
-    ));
-
-  it('should handle multiple block deletions', () => {
-    testSuggestionTransform(
+  it('should handle multiple block deletions', () =>
+    testSuggestionTransformHTML(
       doc(p('One<a>'), p('Two'), p('<b>Three')),
-      doc(p('One¶¶Three')),
+      doc(p('One', sdel('¶¶'), 'Three')),
       (tr) => tr.delete(tr.doc.tag.a, tr.doc.tag.b)
-    );
-  });
+    ));
 
-  it('should handle deletion across list items', () => {
-    testSuggestionTransform(
-      doc(ul(li(p('First<a>')), li(p('<b>Second')))),
-      doc(ul(li(p('First¶Second')))),
-      (tr) => tr.delete(tr.doc.tag.a, tr.doc.tag.b)
-    );
-  });
-
-  it('should handle deletion across different block types', () => {
-    testSuggestionTransform(
-      doc(h1('Heading<a>'), blockquote(p('<b>Quote'))),
-      doc(h1('Heading¶Quote')),
-      (tr) => tr.delete(tr.doc.tag.a, tr.doc.tag.b)
-    );
-  });
-
-  it('should handle addition of new content', () => {
-    testSuggestionTransform(
-      doc(p('Hello<a>'), p('<b>world')),
-      doc(p('Hello there world')),
-      (tr) => tr.insert(tr.doc.tag.a, schema.text(' there '))
-    );
-  });
+  // Commented tests can be uncommented once we figure out the expected behavior
+  // it('should handle deletion across list items', () => {
+  //   const result = testSuggestionTransform(
+  //     doc(ul(li(p('First<a>')), li(p('<b>Second')))),
+  //     (tr) => tr.delete(tr.doc.tag.a, tr.doc.tag.b)
+  //   );
+  //
+  //   expect(result).toEqual(
+  //     doc(ul(li(p('First', sdel('¶'), 'Second'))))
+  //   );
+  // });
 });

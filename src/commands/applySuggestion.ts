@@ -61,12 +61,8 @@ export const createApplySuggestionCommand = (
   ) => {
     if (!view || !dispatch) return false;
 
-    // Skip suggestions with empty textToReplace
-    if (
-      !suggestion.textToReplace &&
-      !suggestion.textBefore &&
-      !suggestion.textAfter
-    ) {
+    if (!suggestion.textToReplace) {
+      console.warn('No text to replace, skipping', suggestion);
       return false;
     }
 
@@ -76,10 +72,9 @@ export const createApplySuggestionCommand = (
 
     // Create the complete search pattern
     const searchText = textBefore + suggestion.textToReplace + textAfter;
-    if (!searchText) {
+    if (searchText.length === 0) {
       // There is no text to replace, or text before or after.
       // We're adding text into an empty doc
-
       return applySuggestionToRange(view, dispatch, 0, 0, suggestion, username);
     }
 

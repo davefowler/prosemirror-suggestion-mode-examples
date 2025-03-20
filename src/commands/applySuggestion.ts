@@ -61,6 +61,7 @@ export const createApplySuggestionCommand = (
   ) => {
     if (!view || !dispatch) return false;
 
+    console.log('in pm-suggestion-mode', suggestion);
     if (!suggestion.textToReplace) {
       console.warn('No text to replace, skipping', suggestion);
       return false;
@@ -72,9 +73,11 @@ export const createApplySuggestionCommand = (
 
     // Create the complete search pattern
     const searchText = textBefore + suggestion.textToReplace + textAfter;
+    console.log('searchText', searchText);
     if (searchText.length === 0) {
       // There is no text to replace, or text before or after.
       // We're adding text into an empty doc
+      console.log('no text to replace, applying to range', 0, 0);
       return applySuggestionToRange(view, dispatch, 0, 0, suggestion, username);
     }
 
@@ -93,7 +96,6 @@ export const createApplySuggestionCommand = (
       if (match.index === regex.lastIndex) {
         regex.lastIndex++;
       }
-
       // Safety check to prevent memory issues
       matchCount++;
       if (matchCount > MAX_MATCHES) {
@@ -110,8 +112,7 @@ export const createApplySuggestionCommand = (
       });
     }
 
-    let replacementCount = 0;
-
+    console.log('matches', matches);
     if (matches.length > 0) {
       // We ignore multiple matches on purpose.  only do the first if multiple
       if (matches.length > 1) {

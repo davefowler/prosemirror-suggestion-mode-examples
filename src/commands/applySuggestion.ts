@@ -29,9 +29,21 @@ const applySuggestionToRange = (
     data: newData,
     username,
   });
+
+  console.log(
+    'pm-suggestion-mode: applying suggestion to range',
+    from,
+    to,
+    suggestion.textReplacement
+  );
   tr.replaceWith(from, to, view.state.schema.text(suggestion.textReplacement));
   dispatch(tr);
+  console.log('pm-suggestion-mode: applied suggestion to range');
 
+  // TODO - I think we don't need to reset the inSuggestionMode here
+  // as its only applied to this transaction thread
+  // it shouldn't be sticky for following transactions
+  // write a test for this to confirm
   if (!startingMeta?.inSuggestionMode) {
     const tr2 = view.state.tr.setMeta(suggestionModePluginKey, {
       suggestionOperation: true,
@@ -61,12 +73,12 @@ export const createApplySuggestionCommand = (
   ) => {
     if (!view || !dispatch) return false;
 
-    // Skip suggestions with empty textToReplace
-    if (
-      !suggestion.textToReplace &&
-      !suggestion.textBefore &&
-      !suggestion.textAfter
-    ) {
+    console.log('in pm-suggestion-mode', suggestion);
+    if (!suggestion.textToReplace) {
+      console.warn(
+        'prosemirror-suggestion-mode: No text to replace, skipping',
+        suggestion
+      );
       return false;
     }
 
@@ -76,10 +88,13 @@ export const createApplySuggestionCommand = (
 
     // Create the complete search pattern
     const searchText = textBefore + suggestion.textToReplace + textAfter;
-    if (!searchText) {
+    console.log('pm-suggestion-mode: searchText', searchText);
+    if (searchText.length === 0) {
       // There is no text to replace, or text before or after.
       // We're adding text into an empty doc
-
+      console.log(
+        'pm-suggestion-mode: no text to replace, applying to range 0,0'
+      );
       return applySuggestionToRange(view, dispatch, 0, 0, suggestion, username);
     }
 
@@ -98,7 +113,6 @@ export const createApplySuggestionCommand = (
       if (match.index === regex.lastIndex) {
         regex.lastIndex++;
       }
-
       // Safety check to prevent memory issues
       matchCount++;
       if (matchCount > MAX_MATCHES) {
@@ -115,8 +129,7 @@ export const createApplySuggestionCommand = (
       });
     }
 
-    let replacementCount = 0;
-
+    console.log('pm-suggestion-mode: matches', matches);
     if (matches.length > 0) {
       // We ignore multiple matches on purpose.  only do the first if multiple
       if (matches.length > 1) {

@@ -4,18 +4,16 @@
 
 A ProseMirror plugin that implements a "suggestion mode" method to track and show changes similar to Google Docs and Word. This plugin allows users to make suggested edits that can be reviewed, accepted, or rejected later.
 
-
 ## Demo
 
-Check out the [live demos](https://prosemirror-suggestion-mode.netlify.app) 
+Check out the [live demos](https://prosemirror-suggestion-mode.netlify.app)
 
 - [Simple](https://prosemirror-suggestion-mode.netlify.app/examples/simple/) - a bare bones example
 - [Basic Markdown](https://prosemirror-suggestion-mode.netlify.app/examples/basic/) - use with the prosemirror-example-setup handling formatted text
 - [Apply Suggestion Method](https://prosemirror-suggestion-mode.netlify.app/examples/applySuggestion/) - showcasing the applySuggestion method for applying text based suggestions (handy for AI)
-   
 
 [![ProseMirror Suggestion Mode Demo](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/assets/3-11-25%20prosemirror%20suggestions%20with%20markup.png)](https://prosemirror-suggestion-mode.netlify.app/examples/basic/)
-        
+
 ## Features
 
 - Toggle suggestion mode on/off
@@ -44,13 +42,13 @@ yarn add prosemirror-suggestion-mode
 
 ### Basic Setup
 
-First import the *addSuggestionMarks* helper to add the plugin's marks to your schema.  
+First import the _addSuggestionMarks_ helper to add the plugin's marks to your schema.
 
 ```javascript
-import { addSuggestionMarks } from "prosemirror-suggestion-mode";
+import { addSuggestionMarks } from 'prosemirror-suggestion-mode';
 
 const exampleSchema = new Schema({
-  nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
+  nodes: addListNodes(schema.spec.nodes, 'paragraph block*', 'block'),
 
   // When creating your schema, wrap the marks in the addSuggestionMarks function
   // this will add the needed suggestion_add and suggestion_delete marks to the schema
@@ -58,22 +56,24 @@ const exampleSchema = new Schema({
 });
 ```
 
-Then add the plugin to your plugins array with the *suggestionModePlugin* plugin factory function when you create the editor
+Then add the plugin to your plugins array with the _suggestionModePlugin_ plugin factory function when you create the editor
 
 ```javascript
-import { suggestionModePlugin } from 'prosemirror-suggestion-mode'
+import { suggestionModePlugin } from 'prosemirror-suggestion-mode';
 const state = EditorState.create({
   schema: exampleSchema,
   doc,
   plugins: [
-    keymap(baseKeymap), // basic keymap for the editor 
+    keymap(baseKeymap), // basic keymap for the editor
     // suggestion mode plugin factory function with init values
-    suggestionModePlugin({ 
-      username: "example user", 
-      data: { // put any custom data here that you want added as attrs to the hover tooltip
-          exampleattr: "these get added to the attrs of the the hover tooltip" 
-        } 
-    })],
+    suggestionModePlugin({
+      username: 'example user',
+      data: {
+        // put any custom data here that you want added as attrs to the hover tooltip
+        exampleattr: 'these get added to the attrs of the the hover tooltip',
+      },
+    }),
+  ],
 });
 ```
 
@@ -92,7 +92,7 @@ suggestionModePlugin({
   };
   disabled?: false // disable hover menu and listeners (off by default)
   menuClass?: string; // class to apply to the hover menu
-};  
+};
 ```
 
 ## Commands and Helper Functions
@@ -102,11 +102,11 @@ The plugin provides various commands and helper functions to control its behavio
 ### Suggestion Mode Controls
 
 ```javascript
-import { 
-  setSuggestionMode, 
+import {
+  setSuggestionMode,
   setSuggestionModeCommand,
-  toggleSuggestionMode 
-} from 'prosemirror-suggestion-mode'
+  toggleSuggestionMode,
+} from 'prosemirror-suggestion-mode';
 
 // Helper function to set suggestion mode on/off
 setSuggestionMode(view, true); // enable suggestion mode
@@ -123,30 +123,40 @@ view.dispatch(toggleSuggestionMode(view.state, view.dispatch));
 ### Applying AI or Text-Based Suggestions
 
 ```javascript
-import { applySuggestion, createApplySuggestionCommand } from 'prosemirror-suggestion-mode'
+import {
+  applySuggestion,
+  createApplySuggestionCommand,
+} from 'prosemirror-suggestion-mode';
 
 // Apply a single suggestion using the helper function
-applySuggestion(view, {
-  textToReplace: "Moon",
-  textReplacement: "moon",
-  reason: "Consistent lowercase for celestial bodies",
-  textBefore: "We choose to go to the ",
-  textAfter: " in this decade and do"
-}, "AI Assistant");
+applySuggestion(
+  view,
+  {
+    textToReplace: 'Moon',
+    textReplacement: 'moon',
+    reason: 'Consistent lowercase for celestial bodies',
+    textBefore: 'We choose to go to the ',
+    textAfter: ' in this decade and do',
+  },
+  'AI Assistant'
+);
 
 // Apply multiple suggestions by looping through them
-mySuggestions.forEach(suggestion => {
-  applySuggestion(view, suggestion, "AI Assistant");
+mySuggestions.forEach((suggestion) => {
+  applySuggestion(view, suggestion, 'AI Assistant');
 });
 
 // Create a command for a suggestion (for use with menus or keymaps)
-const command = createApplySuggestionCommand({
-  textToReplace: "pre-eminence",
-  textReplacement: "leadership position",
-  reason: "Using more common terminology",
-  textBefore: "only if the United States occupies a position of ",
-  textAfter: " can we help decide"
-}, "AI Assistant");
+const command = createApplySuggestionCommand(
+  {
+    textToReplace: 'pre-eminence',
+    textReplacement: 'leadership position',
+    reason: 'Using more common terminology',
+    textBefore: 'only if the United States occupies a position of ',
+    textAfter: ' can we help decide',
+  },
+  'AI Assistant'
+);
 
 command(view.state, view.dispatch, view);
 ```
@@ -154,12 +164,12 @@ command(view.state, view.dispatch, view);
 ### Accept/Reject Suggestions
 
 ```javascript
-import { 
-  acceptSuggestionsInRange, 
-  rejectSuggestionsInRange, 
-  acceptAllSuggestions, 
-  rejectAllSuggestions 
-} from 'prosemirror-suggestion-mode'
+import {
+  acceptSuggestionsInRange,
+  rejectSuggestionsInRange,
+  acceptAllSuggestions,
+  rejectAllSuggestions,
+} from 'prosemirror-suggestion-mode';
 
 // Accept or reject suggestions within a specific range
 acceptSuggestionsInRange(10, 20)(view.state, view.dispatch);
@@ -176,13 +186,15 @@ To change the username and data that will get stored in the suggestion mark attr
 
 ```javascript
 // Change username and data
-view.dispatch(view.state.tr.setMeta(suggestionModePlugin, {
-  username: 'JaneSmith',
-  data: {
-    department: 'Marketing',
-    category: 'content'
-  }
-}))
+view.dispatch(
+  view.state.tr.setMeta(suggestionModePluginKey, {
+    username: 'JaneSmith',
+    data: {
+      reason: 'if you want to explain it',
+      category: 'content',
+    },
+  })
+);
 ```
 
 The `data` attribute can contain any JSON-serializable object. This data will be stored with the suggestion mark and displayed in the tooltip by default.
@@ -191,21 +203,20 @@ The `data` attribute can contain any JSON-serializable object. This data will be
 
 You can customize the content and appearance of suggestion hover menu by either overwritting a component of the default hover menu, or by providing your own full hover menu renderer.
 
-See the examples for more details: 
- - [SuggestEdit Example](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/examples/suggestEdit/suggestEditDemo.ts) - puts 'reasons' in the hover menu [demo](https://prosemirror-suggestion-mode.netlify.app/examples/suggestedit/)
- - [Ink & Switch Example ](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/examples/inkAndSwitch/inkAndSwitch.ts) - hides the deletes and shows what was deleted only on hover [demo](https://prosemirror-suggestion-mode.netlify.app/examples/inkandswitch/) 
+See the examples for more details:
 
+- [SuggestEdit Example](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/examples/suggestEdit/suggestEditDemo.ts) - puts 'reasons' in the hover menu [demo](https://prosemirror-suggestion-mode.netlify.app/examples/suggestedit/)
+- [Ink & Switch Example ](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/examples/inkAndSwitch/inkAndSwitch.ts) - hides the deletes and shows what was deleted only on hover [demo](https://prosemirror-suggestion-mode.netlify.app/examples/inkandswitch/)
 
 #### CSS Styling
 
-For basic styling you can simply import the [default styles](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/src/styles/default.css) 
+For basic styling you can simply import the [default styles](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/src/styles/default.css)
 
 ```javascript
-import 'prosemirror-suggestion-mode/styles/default.css'
+import 'prosemirror-suggestion-mode/styles/default.css';
 ```
 
 The hover menu customizations give you full control over the hover menu content, while CSS customization lets you style the hover menu appearance.
-
 
 ## Contributing
 
@@ -218,6 +229,7 @@ npm start
 ```
 
 This will:
+
 1. Build the project
 2. Start a local development server on http://localhost:8080
 3. Open the example page in your browser
@@ -226,8 +238,6 @@ This will:
 The development server will be available at:
 http://localhost:8080
 
-
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
-

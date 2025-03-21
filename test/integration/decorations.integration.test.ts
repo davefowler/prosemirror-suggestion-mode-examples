@@ -15,7 +15,7 @@ import {
   hoverMenuFactory,
   SuggestionHoverMenuRenderer,
 } from '../../src/menus/hoverMenu';
-import { setupDOMEnvironment } from '../helpers/test-helpers';
+import { setupDOMEnvironment } from '../helpers/testHelpers';
 
 // Setup DOM environment for tests
 setupDOMEnvironment();

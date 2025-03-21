@@ -168,7 +168,6 @@ export const suggestionModePlugin = (
 
             const $from = tr.doc.resolve(from);
             from = findNonStartingPos($from);
-            console.log('from', from, $from.pos, removedSlice);
 
             if (removedSlice.openEnd + removedSlice.openStart > 0) {
               let currentPos = 0;
@@ -197,13 +196,13 @@ export const suggestionModePlugin = (
                 extraChars += 1;
               });
 
-              console.log('last child', removedSlice.content.lastChild);
+              // console.log('last child', removedSlice.content.lastChild);
               const endsWithText =
                 removedSlice.content.lastChild?.textContent.length > 0;
-              console.log('has text at end?', endsWithText);
+              // console.log('has text at end?', endsWithText);
               if (removedSlice.openEnd > 0 && !endsWithText) {
                 // if the last open node is empty, add a zero width space to be marked
-                console.log('adding zero width space');
+                // console.log('adding zero width space');
                 tr.insertText('\u200B', from + currentPos + extraChars);
                 extraChars += 1;
               }

@@ -28,12 +28,14 @@ export default {
     ],
   },
   transformIgnorePatterns: ['/node_modules/(?!prosemirror-.*|ist)'],
-  testRegex: '/(test|jest)/.*test.*\\.(js|ts)x?$',
+  testRegex: '/test/(integration|unit|prosemirror).*test.*\\.(js|ts)x?$',
   collectCoverage: false, // Disable coverage to reduce memory usage
   coverageDirectory: 'coverage',
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
   moduleNameMapper: {
     '^../../src/(.*)$': '<rootDir>/src/$1',
+    '^prosemirror-suggestion-mode$': '<rootDir>/src/index.ts',
+    '^prosemirror-suggestion-mode/(.*)$': '<rootDir>/src/$1',
   },
   // Ignore the dist/test directory since we're testing the TypeScript files directly
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
@@ -49,6 +51,7 @@ export default {
   globals: {
     'ts-jest': {
       isolatedModules: true,
+      tsconfig: 'tsconfig.test.json',
     },
   },
 };

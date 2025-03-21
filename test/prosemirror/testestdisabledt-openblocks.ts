@@ -1,4 +1,9 @@
-import { doc, p, sdel, testSuggestionTransform } from './builderWithPlugin';
+import {
+  doc,
+  p,
+  sdel,
+  testSuggestionTransform,
+} from '../helpers/builderWithPlugin';
 
 describe('Open Block Deletion Tests', () => {
   it('adds pilcrow when deleting between paragraphs', () =>

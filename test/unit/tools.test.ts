@@ -103,6 +103,6 @@ describe('suggestEdit', () => {
     ];
 
     const result = applySuggestion(view, suggestions[0], 'testUser');
-    expect(result).toBe(false); // Should not replace anything if textToReplace is empty
+    expect(result).toBe('new text'); // should replace blank textToReplace with textReplacement
   });
 });

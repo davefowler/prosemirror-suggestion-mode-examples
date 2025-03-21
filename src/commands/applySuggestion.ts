@@ -18,7 +18,7 @@ const applySuggestionToRange = (
   to: number,
   suggestion: TextSuggestion,
   username: string
-) => {
+): boolean => {
   const newData: Record<string, any> = {};
   if (suggestion.reason?.length > 0) newData.reason = suggestion.reason;
 
@@ -40,10 +40,9 @@ const applySuggestionToRange = (
   dispatch(tr);
   console.log('pm-suggestion-mode: applied suggestion to range');
 
-  // TODO - I think we don't need to reset the inSuggestionMode here
-  // as its only applied to this transaction thread
-  // it shouldn't be sticky for following transactions
-  // write a test for this to confirm
+  // TODO - i don't think this should be needed but in the demo it seems to be.
+  // in tests it is not needed
+  // reset the inSuggestionMode to what it was before
   if (!startingMeta?.inSuggestionMode) {
     const tr2 = view.state.tr.setMeta(suggestionModePluginKey, {
       suggestionOperation: true,
@@ -63,39 +62,63 @@ const applySuggestionToRange = (
  * See examples/suggestEdit/ for an example
  */
 export const createApplySuggestionCommand = (
-  suggestion: TextSuggestion,
+  {
+    textToReplace,
+    textReplacement = '',
+    reason = '',
+    textBefore = '',
+    textAfter = '',
+  }: TextSuggestion,
   username: string
 ): Command => {
   return (
     state: EditorState,
     dispatch?: (tr: Transaction) => void,
     view?: EditorView
-  ) => {
-    if (!view || !dispatch) return false;
-
-    console.log('in pm-suggestion-mode', suggestion);
-    if (!suggestion.textToReplace) {
+  ): boolean => {
+    console.log('in pm-suggestion-mode', {
+      textToReplace,
+      textReplacement,
+      reason,
+      textBefore,
+      textAfter,
+    });
+    if (textToReplace === undefined) {
       console.warn(
-        'prosemirror-suggestion-mode: No text to replace, skipping',
-        suggestion
+        'prosemirror-suggestion-mode: Type error - Undefined textToReplace'
       );
       return false;
     }
 
-    // Find matches with or without context
-    const textBefore = suggestion.textBefore || '';
-    const textAfter = suggestion.textAfter || '';
-
     // Create the complete search pattern
-    const searchText = textBefore + suggestion.textToReplace + textAfter;
+    const searchText = textBefore + textToReplace + textAfter;
     console.log('pm-suggestion-mode: searchText', searchText);
     if (searchText.length === 0) {
-      // There is no text to replace, or text before or after.
+      // No text to match - can only apply to empty doc
+      if (state.doc.textContent.length > 0) {
+        return false;
+      }
+
+      if (!dispatch) return true; // In dry run mode, just return that we can apply this
+
       // We're adding text into an empty doc
       console.log(
         'pm-suggestion-mode: no text to replace, applying to range 0,0'
       );
-      return applySuggestionToRange(view, dispatch, 0, 0, suggestion, username);
+      return applySuggestionToRange(
+        view,
+        dispatch,
+        0,
+        0,
+        {
+          textToReplace,
+          textReplacement,
+          reason,
+          textBefore,
+          textAfter,
+        },
+        username
+      );
     }
 
     const pattern = escapeRegExp(searchText);
@@ -128,10 +151,16 @@ export const createApplySuggestionCommand = (
         length: match[0].length,
       });
     }
-
     console.log('pm-suggestion-mode: matches', matches);
+
+    // In dry run mode, just return if we found matches
+    if (!dispatch) return matches.length === 1;
+
+    // If there is a dispatch, we need the view
+    if (!view) return false;
+
     if (matches.length > 0) {
-      // We ignore multiple matches on purpose.  only do the first if multiple
+      // We ignore multiple matches on purpose. Only do the first if multiple
       if (matches.length > 1) {
         console.warn(
           'Multiple matches found, only applying the first',
@@ -141,7 +170,7 @@ export const createApplySuggestionCommand = (
       const applyingMatch = matches[0];
       // Calculate the position of just the 'textToReplace' part in the text content
       const textMatchStart = applyingMatch.index + textBefore.length;
-      const textMatchEnd = textMatchStart + suggestion.textToReplace.length;
+      const textMatchEnd = textMatchStart + textToReplace.length;
 
       // Find the actual document positions that correspond to these text positions
       const docRange = findDocumentRange(
@@ -149,12 +178,25 @@ export const createApplySuggestionCommand = (
         textMatchStart,
         textMatchEnd
       );
-      applySuggestionToRange(
+
+      console.log(
+        'pm-suggestion-mode: about to apply! got dispatch?',
+        dispatch
+      );
+      if (!dispatch) return true; // In dry run mode, just return that we can apply this
+
+      return applySuggestionToRange(
         view,
         dispatch,
         docRange.from,
         docRange.to,
-        suggestion,
+        {
+          textToReplace,
+          textReplacement,
+          reason,
+          textBefore,
+          textAfter,
+        },
         username
       );
     }
@@ -258,13 +300,18 @@ function escapeRegExp(string: string) {
  * @param view The editor view
  * @param suggestion A single suggested edit with context
  * @param username Name to attribute suggestion to
+ * @param dryRun Whether to run in dry run mode (no dispatch) @default false
  * @returns Boolean indicating if suggestion was applied successfully
  */
 export const applySuggestion = (
   view: EditorView,
   suggestion: TextSuggestion,
-  username: string
+  username: string,
+  dryRun: boolean = false
 ): boolean => {
   const command = createApplySuggestionCommand(suggestion, username);
+  console.log('DRY running?', dryRun);
+  if (dryRun) return command(view.state);
+
   return command(view.state, view.dispatch, view);
 };

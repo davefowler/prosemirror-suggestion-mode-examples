@@ -2,7 +2,7 @@ import { EditorState } from 'prosemirror-state';
 import { EditorView, Decoration } from 'prosemirror-view';
 import { Schema, DOMParser } from 'prosemirror-model';
 import { suggestionModePlugin } from '../../src/plugin';
-import { suggestionPluginKey } from '../../src/key';
+import { suggestionPluginKey, suggestionTransactionKey } from '../../src/key';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
@@ -132,7 +132,7 @@ describe('decorations integration', () => {
         username: 'testUser',
         data: {},
       });
-      tr.setMeta(suggestionPluginKey, {
+      tr.setMeta(suggestionTransactionKey, {
         suggestionOperation: true,
       });
       tr.addMark(pos1, pos1 + word1Length, mark);
@@ -155,8 +155,8 @@ describe('decorations integration', () => {
       // Add suggestion marks to two adjacent words with different usernames
       const tr = view.state.tr;
       const pos1 = 1; // Start of paragraph content
-      const word1Length = 6; // "Hello " length
-      const pos2 = pos1 + word1Length; // Start of "world"
+      const word1Length = 5; // "Hello " length
+      const pos2 = pos1 + word1Length + 1; // Start of "world"
       const word2Length = 5; // "world" length
 
       const mark1 = schema.mark('suggestion_add', {
@@ -167,7 +167,7 @@ describe('decorations integration', () => {
         username: 'jerry',
         data: {},
       });
-      tr.setMeta(suggestionPluginKey, {
+      tr.setMeta(suggestionTransactionKey, {
         suggestionOperation: true,
       });
       tr.addMark(pos1, pos1 + word1Length, mark1);
@@ -175,14 +175,13 @@ describe('decorations integration', () => {
 
       view.dispatch(tr);
 
-      expect(view.state.doc.textContent).toBe('HelloHello worldworld');
+      expect(view.state.doc.textContent).toBe('Hello world');
 
       // Create decorations
       const decorationSet = createDecorations(view.state, renderHoverMenu);
 
       // Get all decorations
       const decorationsArray = decorationSet.find();
-
       // Filter for widget decorations that have hover in their key
       // Widget decorations have from === to and a spec.key
       const hoverWidgets = decorationsArray.filter(

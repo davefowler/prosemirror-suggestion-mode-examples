@@ -1,6 +1,6 @@
 import { EditorView } from 'prosemirror-view';
 import { Mark } from 'prosemirror-model';
-import { suggestionPluginKey } from '../../src/key';
+import { suggestionPluginKey, suggestionTransactionKey } from '../../src/key';
 import {
   acceptSuggestionsInRange,
   rejectSuggestionsInRange,
@@ -13,6 +13,9 @@ jest.mock('prosemirror-view');
 jest.mock('../../src/key', () => {
   return {
     suggestionPluginKey: {
+      getState: jest.fn(),
+    },
+    suggestionTransactionKey: {
       getState: jest.fn(),
     },
   };
@@ -127,7 +130,7 @@ describe('accept-reject functions', () => {
       acceptSuggestionsInRange(10, 15)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 
@@ -143,7 +146,7 @@ describe('accept-reject functions', () => {
       acceptSuggestionsInRange(20, 25)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 
@@ -161,7 +164,7 @@ describe('accept-reject functions', () => {
       rejectSuggestionsInRange(10, 15)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 
@@ -177,7 +180,7 @@ describe('accept-reject functions', () => {
       rejectSuggestionsInRange(20, 25)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 
@@ -195,7 +198,7 @@ describe('accept-reject functions', () => {
       acceptAllSuggestions(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 
@@ -213,7 +216,7 @@ describe('accept-reject functions', () => {
       rejectAllSuggestions(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 

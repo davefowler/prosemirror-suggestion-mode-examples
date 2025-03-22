@@ -28,15 +28,8 @@ const applySuggestionToRange = (
     username,
   });
 
-  console.log(
-    'pm-suggestion-mode: applying suggestion to range',
-    from,
-    to,
-    suggestion.textReplacement
-  );
   tr.replaceWith(from, to, view.state.schema.text(suggestion.textReplacement));
   dispatch(tr);
-  console.log('pm-suggestion-mode: applied suggestion to range');
   return true;
 };
 
@@ -63,13 +56,6 @@ export const createApplySuggestionCommand = (
     dispatch?: (tr: Transaction) => void,
     view?: EditorView
   ): boolean => {
-    console.log('in pm-suggestion-mode', {
-      textToReplace,
-      textReplacement,
-      reason,
-      textBefore,
-      textAfter,
-    });
     if (textToReplace === undefined) {
       console.warn(
         'prosemirror-suggestion-mode: Type error - Undefined textToReplace'
@@ -79,7 +65,6 @@ export const createApplySuggestionCommand = (
 
     // Create the complete search pattern
     const searchText = textBefore + textToReplace + textAfter;
-    console.log('pm-suggestion-mode: searchText', searchText);
     if (searchText.length === 0) {
       // No text to match - can only apply to empty doc
       if (state.doc.textContent.length > 0) {
@@ -89,9 +74,6 @@ export const createApplySuggestionCommand = (
       if (!dispatch) return true; // In dry run mode, just return that we can apply this
 
       // We're adding text into an empty doc
-      console.log(
-        'pm-suggestion-mode: no text to replace, applying to range 0,0'
-      );
       return applySuggestionToRange(
         view,
         dispatch,
@@ -138,7 +120,6 @@ export const createApplySuggestionCommand = (
         length: match[0].length,
       });
     }
-    console.log('pm-suggestion-mode: matches', matches);
 
     // In dry run mode, just return if we found matches
     if (!dispatch) return matches.length === 1;
@@ -166,10 +147,6 @@ export const createApplySuggestionCommand = (
         textMatchEnd
       );
 
-      console.log(
-        'pm-suggestion-mode: about to apply! got dispatch?',
-        dispatch
-      );
       if (!dispatch) return true; // In dry run mode, just return that we can apply this
 
       return applySuggestionToRange(

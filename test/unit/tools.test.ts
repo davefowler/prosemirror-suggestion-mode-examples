@@ -94,15 +94,21 @@ describe('suggestEdit', () => {
   });
 
   test('should handle suggestions with empty textToReplace', () => {
-    const suggestions: TextSuggestion[] = [
-      {
-        textToReplace: '',
-        textReplacement: 'new text',
-        reason: 'test reason',
-      },
-    ];
+    const suggestion: TextSuggestion = {
+      textToReplace: '',
+      textReplacement: 'new text',
+      reason: 'test reason',
+    };
+    // should return false if the doc has text but there is no good matching string
+    const result = applySuggestion(view, suggestion, 'testUser');
+    expect(result).toBe(false);
 
-    const result = applySuggestion(view, suggestions[0], 'testUser');
-    expect(result).toBe('new text'); // should replace blank textToReplace with textReplacement
+    // Delete the text and try again
+    const tr = view.state.tr.delete(0, view.state.doc.textContent.length + 1);
+    view.dispatch(tr);
+    expect(view.state.doc.textContent).toBe('');
+    const result2 = applySuggestion(view, suggestion, 'testUser');
+    expect(result2).toBe(true);
+    expect(view.state.doc.textContent).toBe('new text');
   });
 });

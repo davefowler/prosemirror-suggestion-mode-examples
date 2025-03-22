@@ -71,10 +71,11 @@ describe('Suggestion Mode State Tests', () => {
     const docContent = d.textContent;
     expect(docContent).toContain('hello worldeveryone');
 
-    console.log('docContent', d.attrs, d);
-    const mark = d.descendants(
-      (node) => node.type.name === 'suggestion_add'
-    )[0];
+    // get the mark at pos 15
+    const pos$ = d.resolve(15);
+    console.log('marks at 15', pos$.marks);
+    const mark = pos$.marks[0];
+    // check the mark at pos 15
     expect(mark.attrs.dataReason).toBe('transaction level reason');
     expect(mark.attrs.dataPluginOnlyVar).toBe('true');
     expect(mark.attrs.dataUsername).toBe('transaction level user');

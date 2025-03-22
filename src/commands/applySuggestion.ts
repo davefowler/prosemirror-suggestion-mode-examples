@@ -297,7 +297,6 @@ export const applySuggestion = (
   dryRun: boolean = false
 ): boolean => {
   const command = createApplySuggestionCommand(suggestion, username);
-  console.log('DRY running?', dryRun);
   if (dryRun) return command(view.state);
 
   return command(view.state, view.dispatch, view);

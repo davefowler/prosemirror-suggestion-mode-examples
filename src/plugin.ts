@@ -283,10 +283,15 @@ export const suggestionModePlugin = (
       ): SuggestionModePluginState {
         // If there's global metadata associated with this transaction, merge it into the current state
         const meta = tr.getMeta(suggestionPluginKey);
+        const data = {
+          ...value.data,
+          ...meta?.data,
+        };
         if (meta) {
           return {
             ...value,
             ...meta,
+            data,
           };
         }
         // Otherwise, return the existing state as-is

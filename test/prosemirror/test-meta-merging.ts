@@ -38,20 +38,21 @@ describe('Suggestion Mode State Tests', () => {
     expect(pluginState?.inSuggestionMode).toBe(true);
   });
 
-  it('should should properly merge metadata', () => {
+  it('should properly merge metadata', () => {
     // Create an editor with suggestion mode off initially
     const startDoc = doc(p('hello world'));
     const editorState = createEditorState(startDoc, false);
     const view = new EditorView(document.createElement('div'), {
       state: editorState,
     });
-    view.state.tr.setMeta(suggestionPluginKey, {
+    const tr = view.state.tr.setMeta(suggestionPluginKey, {
       username: 'plugin level user',
       data: {
         reason: 'plugin level reason',
         pluginOnlyVar: true,
       },
     });
+    view.dispatch(tr);
 
     // Apply a suggestion with temporary suggestion mode on
     applySuggestion(
@@ -73,12 +74,12 @@ describe('Suggestion Mode State Tests', () => {
 
     // get the mark at pos 15
     const pos$ = d.resolve(15);
-    console.log('marks at 15', pos$.marks);
-    const mark = pos$.marks[0];
+
+    const mark = pos$.marks()[0];
     // check the mark at pos 15
-    expect(mark.attrs.dataReason).toBe('transaction level reason');
-    expect(mark.attrs.dataPluginOnlyVar).toBe('true');
-    expect(mark.attrs.dataUsername).toBe('transaction level user');
+    expect(mark.attrs.data.reason).toBe('transaction level reason');
+    expect(mark.attrs.data.pluginOnlyVar).toBe(true);
+    expect(mark.attrs.username).toBe('transaction level user');
 
     // Check if suggestion mode returned to its initial state (false)
     const pluginState = suggestionPluginKey.getState(view.state);

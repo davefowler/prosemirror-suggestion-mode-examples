@@ -7,7 +7,11 @@ import {
   Transform,
   Mapping,
 } from 'prosemirror-transform';
-import { SuggestionModePluginState, suggestionModePluginKey } from './key';
+import {
+  SuggestionModePluginState,
+  suggestionPluginKey,
+  suggestionTransactionKey,
+} from './key';
 import {
   SuggestionHoverMenuRenderer,
   hoverMenuFactory,
@@ -41,7 +45,7 @@ export const suggestionModePlugin = (
   let currentListeners: WeakMap<HTMLElement, any> | null = null;
 
   return new Plugin({
-    key: suggestionModePluginKey,
+    key: suggestionPluginKey,
 
     // After a transaction is applied we add our suggestion marks to it
     // This will not impact undo/redo as ProseMirror's history plugin
@@ -71,24 +75,27 @@ export const suggestionModePlugin = (
 
       // After transactions are applied, apply transactions needed for the suggestion marks
       transactions.forEach((transaction, trIndex) => {
-        // username and data are gotten from the transaction overwritting any pluginState defaults
-        const meta = transaction.getMeta(suggestionModePluginKey);
-
         // If the transaction is part of undo/redo history, skip it
         if (transaction.getMeta('history$')) return;
 
-        const inSuggestionMode =
-          pluginState.inSuggestionMode || meta?.inSuggestionMode;
+        // Get the meta for this transaction from transaction metadata, with global meta defaults
+        // Transaction only meta gets global meta defaults
+        const transactionMeta = transaction.getMeta(suggestionTransactionKey);
+        const mergedData = {
+          ...pluginState.data,
+          ...transactionMeta?.data,
+        };
+        const meta = {
+          ...pluginState,
+          ...transactionMeta,
+          data: mergedData,
+        };
         // If we're not in suggestion mode do nothing
-        if (!inSuggestionMode) return;
+        if (!meta.inSuggestionMode) return;
         // if this is a transaction that we created in this plugin, ignore it
         if (meta && meta.suggestionOperation) return;
 
-        const newData = {
-          ...pluginState.data,
-          ...(meta?.data || {}),
-        };
-        const username = meta?.username || pluginState.username;
+        const username = meta.username;
 
         // Process each step in the transaction
         // This works for all 4 types of steps: ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
@@ -115,7 +122,7 @@ export const suggestionModePlugin = (
             addedSliceSize = step.gapTo - step.gapFrom + step.slice.size;
           }
           // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
-          tr.setMeta(suggestionModePluginKey, {
+          tr.setMeta(suggestionTransactionKey, {
             suggestionOperation: true,
           });
 
@@ -213,7 +220,7 @@ export const suggestionModePlugin = (
                 from + removedSlice.size + extraChars,
                 newState.schema.marks.suggestion_delete.create({
                   username,
-                  data: newData,
+                  data: meta.data,
                 })
               );
             } else {
@@ -224,7 +231,7 @@ export const suggestionModePlugin = (
                 from + removedSlice.size,
                 newState.schema.marks.suggestion_delete.create({
                   username,
-                  data: newData,
+                  data: meta.data,
                 })
               );
             }
@@ -249,7 +256,7 @@ export const suggestionModePlugin = (
               addedTo,
               newState.schema.marks.suggestion_add.create({
                 username,
-                data: newData,
+                data: meta.data,
               })
             );
             changed = true;
@@ -274,8 +281,8 @@ export const suggestionModePlugin = (
         tr: Transaction,
         value: SuggestionModePluginState
       ): SuggestionModePluginState {
-        // If there's metadata associated with this transaction, merge it into the current state
-        const meta = tr.getMeta(suggestionModePluginKey);
+        // If there's global metadata associated with this transaction, merge it into the current state
+        const meta = tr.getMeta(suggestionPluginKey);
         if (meta) {
           return {
             ...value,

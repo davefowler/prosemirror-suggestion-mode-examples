@@ -1,5 +1,5 @@
 import { EditorView } from 'prosemirror-view';
-import { suggestionModePluginKey } from '../key';
+import { suggestionTransactionKey } from '../key';
 import { Node } from 'prosemirror-model';
 import { Command, EditorState, Transaction } from 'prosemirror-state';
 
@@ -22,9 +22,7 @@ const applySuggestionToRange = (
   const newData: Record<string, any> = {};
   if (suggestion.reason?.length > 0) newData.reason = suggestion.reason;
 
-  const startingMeta = view.state.tr.getMeta(suggestionModePluginKey);
-
-  const tr = view.state.tr.setMeta(suggestionModePluginKey, {
+  const tr = view.state.tr.setMeta(suggestionTransactionKey, {
     inSuggestionMode: true,
     data: newData,
     username,
@@ -39,17 +37,6 @@ const applySuggestionToRange = (
   tr.replaceWith(from, to, view.state.schema.text(suggestion.textReplacement));
   dispatch(tr);
   console.log('pm-suggestion-mode: applied suggestion to range');
-
-  // TODO - i don't think this should be needed but in the demo it seems to be.
-  // in tests it is not needed
-  // reset the inSuggestionMode to what it was before
-  if (!startingMeta?.inSuggestionMode) {
-    const tr2 = view.state.tr.setMeta(suggestionModePluginKey, {
-      suggestionOperation: true,
-      inSuggestionMode: false,
-    });
-    dispatch(tr2);
-  }
   return true;
 };
 

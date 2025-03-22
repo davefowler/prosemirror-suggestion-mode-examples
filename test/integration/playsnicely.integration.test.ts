@@ -2,7 +2,7 @@ import { EditorState, Selection, TextSelection } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { Schema, DOMParser } from 'prosemirror-model';
 import { suggestionModePlugin } from '../../src/plugin';
-import { suggestionModePluginKey } from '../../src/key';
+import { suggestionPluginKey } from '../../src/key';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
@@ -46,7 +46,7 @@ describe('suggestion mode with history plugin', () => {
     view = new EditorView(container, { state });
 
     view.dispatch(
-      view.state.tr.setMeta(suggestionModePluginKey, {
+      view.state.tr.setMeta(suggestionPluginKey, {
         inSuggestionMode: true,
         username: 'testUser',
         data: { 'example-attr': 'test value' },

@@ -1,6 +1,6 @@
 import { EditorView } from 'prosemirror-view';
 import { Mark } from 'prosemirror-model';
-import { suggestionModePluginKey } from '../../src/key';
+import { suggestionPluginKey } from '../../src/key';
 import {
   acceptSuggestionsInRange,
   rejectSuggestionsInRange,
@@ -12,7 +12,7 @@ import {
 jest.mock('prosemirror-view');
 jest.mock('../../src/key', () => {
   return {
-    suggestionModePluginKey: {
+    suggestionPluginKey: {
       getState: jest.fn(),
     },
   };
@@ -127,7 +127,7 @@ describe('accept-reject functions', () => {
       acceptSuggestionsInRange(10, 15)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
         suggestionOperation: true,
       });
 
@@ -143,7 +143,7 @@ describe('accept-reject functions', () => {
       acceptSuggestionsInRange(20, 25)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
         suggestionOperation: true,
       });
 
@@ -161,7 +161,7 @@ describe('accept-reject functions', () => {
       rejectSuggestionsInRange(10, 15)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
         suggestionOperation: true,
       });
 
@@ -177,7 +177,7 @@ describe('accept-reject functions', () => {
       rejectSuggestionsInRange(20, 25)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
         suggestionOperation: true,
       });
 
@@ -195,7 +195,7 @@ describe('accept-reject functions', () => {
       acceptAllSuggestions(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
         suggestionOperation: true,
       });
 
@@ -213,7 +213,7 @@ describe('accept-reject functions', () => {
       rejectAllSuggestions(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
         suggestionOperation: true,
       });
 

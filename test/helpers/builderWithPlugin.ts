@@ -3,9 +3,8 @@ import {
   builders,
   schema as defaultSchema,
 } from 'prosemirror-test-builder';
-import { EditorState } from 'prosemirror-state';
+import { EditorState, Transaction } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { Transform } from 'prosemirror-transform';
 import { DOMSerializer } from 'prosemirror-model';
 import ist from 'ist';
 
@@ -24,43 +23,41 @@ const suggestionSchema = new Schema({
   marks: addSuggestionMarks(defaultSchema.spec.marks),
 });
 
-// Create builders using our testSchema instead of the default schema
-export const { schema, ...b } = builders(suggestionSchema);
-export const {
-  doc,
-  paragraph: p,
-  blockquote,
-  heading: h1,
-  bullet_list: ul,
-  list_item: li,
-  suggestion_delete: sdel,
-  suggestion_add: sadd,
-} = b;
+const builderResults = builders(suggestionSchema);
+export const schema = builderResults.schema;
+export const doc = builderResults.doc;
+export const p = builderResults.paragraph;
+export const blockquote = builderResults.blockquote;
+export const h1 = builderResults.heading;
+export const ul = builderResults.bullet_list;
+export const li = builderResults.list_item;
+export const sdel = builderResults.suggestion_delete;
+export const sadd = builderResults.suggestion_add;
 
 export function createEditorState(
-  doc: Node,
+  editorDoc: Node,
   inSuggestionMode: boolean = true
 ): EditorState {
   return EditorState.create({
-    doc,
+    doc: editorDoc,
     schema,
     plugins: [suggestionModePlugin({ inSuggestionMode: inSuggestionMode })],
   });
 }
 
 export function createEditorView(
-  doc: Node,
+  editorDoc: Node,
   inSuggestionMode: boolean = true
 ): EditorView {
   return new EditorView(document.createElement('div'), {
-    state: createEditorState(doc, inSuggestionMode),
+    state: createEditorState(editorDoc, inSuggestionMode),
   });
 }
 
-function doc2HTML(doc: Node) {
+function node2HTML(node: Node) {
   const serializer = DOMSerializer.fromSchema(schema);
   const resultDiv = document.createElement('div');
-  resultDiv.appendChild(serializer.serializeFragment(doc.content));
+  resultDiv.appendChild(serializer.serializeFragment(node.content));
   return resultDiv.innerHTML;
 }
 
@@ -75,7 +72,7 @@ function doc2HTML(doc: Node) {
 export function testSuggestionTransform(
   input: Node,
   expected: Node,
-  action: (tr: Transform) => void,
+  action: (tr: Transaction) => void,
   eqInHTML: boolean = false
 ) {
   const state = createEditorState(input);
@@ -85,7 +82,7 @@ export function testSuggestionTransform(
 
   if (eqInHTML) {
     // Sometimes its nice to see the HTML output in the comparison
-    expect(doc2HTML(result)).toEqual(doc2HTML(expected));
+    expect(node2HTML(result)).toEqual(node2HTML(expected));
   } else {
     // expect(result).toEqual(expected);
     ist(result, expected, eq);

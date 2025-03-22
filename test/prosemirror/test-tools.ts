@@ -1,5 +1,5 @@
 import {
-  suggestionModePluginKey,
+  suggestionPluginKey,
   applySuggestion,
   TextSuggestion,
   createApplySuggestionCommand,
@@ -57,9 +57,9 @@ describe('applySuggestion tool tests', () => {
       'hello thereworld',
       true
     );
-    expect(
-      view.state.tr.getMeta(suggestionModePluginKey)?.inSuggestionMode
-    ).toBe(undefined);
+    expect(view.state.tr.getMeta(suggestionPluginKey)?.inSuggestionMode).toBe(
+      undefined
+    );
 
     // Create a transaction and store it
     const tr = view.state.tr.delete(0, 3);

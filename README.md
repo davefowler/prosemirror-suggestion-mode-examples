@@ -182,16 +182,29 @@ rejectAllSuggestions(view.state, view.dispatch);
 
 ### Change the username or data
 
-To change the username and data that will get stored in the suggestion mark attributes you can do:
+To change the username and data that will get stored in the suggestion mark attributes you can change defaults at the global Plugin level by using the _suggestionPluginKey_
 
 ```javascript
-// Change username and data
+// Set a default username and data category
 view.dispatch(
-  view.state.tr.setMeta(suggestionModePluginKey, {
+  view.state.tr.setMeta(suggestionPluginKey, {
     username: 'JaneSmith',
     data: {
-      reason: 'if you want to explain it',
       category: 'content',
+    },
+  })
+);
+```
+
+and override these global defaults per transaction with the _suggestionModeTransactionKey_
+
+```javascript
+// Setting specific metadata to override defaults for this specific transaction
+view.dispatch(
+  view.state.tr.setMeta(suggestionPluginKey, {
+    data: {
+      reason: 'some reason for this specific change',
+      date: '03-25-25',
     },
   })
 );

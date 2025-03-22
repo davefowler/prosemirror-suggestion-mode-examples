@@ -2,7 +2,7 @@ import { EditorState, Selection, TextSelection } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { Schema, DOMParser, Mark } from 'prosemirror-model';
 import { suggestionModePlugin } from '../../src/plugin';
-import { suggestionModePluginKey } from '../../src/key';
+import { suggestionPluginKey } from '../../src/key';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
@@ -46,7 +46,7 @@ describe('suggestion mode edge cases', () => {
     view = new EditorView(container, { state });
 
     view.dispatch(
-      view.state.tr.setMeta(suggestionModePluginKey, {
+      view.state.tr.setMeta(suggestionPluginKey, {
         inSuggestionMode: true,
         username: 'testUser',
         data: { 'example-attr': 'test value' },
@@ -682,7 +682,7 @@ describe('suggestion mode edge cases', () => {
     });
 
     test('should handle mixed operations (insert, delete, format) in one transaction', () => {
-      createEditor('<p>Hello world</p>');
+      createEditor('<p>Hello world</p>', { inSuggestionMode: true });
 
       const tr = view.state.tr;
 

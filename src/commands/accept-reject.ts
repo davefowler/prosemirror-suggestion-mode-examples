@@ -1,5 +1,5 @@
 import { Mark } from 'prosemirror-model';
-import { suggestionModePluginKey } from '../key';
+import { suggestionTransactionKey } from '../key';
 import { EditorState, Transaction } from 'prosemirror-state';
 import { Command } from 'prosemirror-state';
 
@@ -51,7 +51,7 @@ const processSuggestionsInRange = (
     if (!suggestions.length || !dispatch) return false;
 
     const tr = state.tr;
-    tr.setMeta(suggestionModePluginKey, { suggestionOperation: true });
+    tr.setMeta(suggestionTransactionKey, { suggestionOperation: true });
 
     // Process all marks in the range
     suggestions.forEach(({ mark, from: originalFrom, to: originalTo }) => {

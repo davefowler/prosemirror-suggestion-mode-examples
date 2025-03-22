@@ -2,7 +2,7 @@
 
 // Plugin core
 export { suggestionModePlugin, SuggestionModePluginOptions } from './plugin';
-export { suggestionModePluginKey } from './key';
+export { suggestionPluginKey, suggestionTransactionKey } from './key';
 export type { SuggestionModePluginState } from './key';
 
 export * from './commands/accept-reject';

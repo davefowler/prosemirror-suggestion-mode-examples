@@ -10,7 +10,7 @@ import {
   rejectAllSuggestions,
   toggleSuggestionMode,
 } from '../commands';
-import { suggestionModePluginKey } from '../key';
+import { suggestionPluginKey } from '../key';
 
 const hasSuggestions = (state: EditorState): boolean => {
   let found = false;
@@ -33,7 +33,7 @@ export const getSuggestionMenuItems = () => [
     label: '✏️ Suggestions',
     enable: () => true,
     active(state) {
-      const pluginState = suggestionModePluginKey.getState(state);
+      const pluginState = suggestionPluginKey.getState(state);
       return pluginState?.inSuggestionMode || false;
     },
     run: toggleSuggestionMode,

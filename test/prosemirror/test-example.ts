@@ -9,6 +9,7 @@ import {
   testSuggestionTransform,
   schema,
 } from '../helpers/builderWithPlugin';
+import { suggestionTransactionKey } from '../../src/key';
 
 describe('Basic document tests', () => {
   it('creates a simple document', () => {
@@ -27,11 +28,22 @@ describe('Basic suggestion edit tests', () => {
   it('should add a suggestion mark to a document', () => {
     const d1 = doc(p('hello <a>'));
     const d2 = doc(p('hello ', sadd('world')));
-    testSuggestionTransform(
-      d1,
-      d2,
-      (tr) => tr.insert(tr.doc.tag.a, schema.text('world')),
-      true
-    );
+    testSuggestionTransform(d1, d2, (tr) => {
+      tr.setMeta(suggestionTransactionKey, {
+        inSuggestionMode: true,
+      });
+      tr.insert(tr.doc.tag.a, schema.text('world'));
+    });
+  });
+
+  it('should not add a suggestion mark if suggestion mode is off', () => {
+    const d1 = doc(p('hello <a>'));
+    const d2 = doc(p('hello world'));
+    testSuggestionTransform(d1, d2, (tr) => {
+      tr.setMeta(suggestionTransactionKey, {
+        inSuggestionMode: false,
+      });
+      tr.insert(tr.doc.tag.a, schema.text('world'));
+    });
   });
 });

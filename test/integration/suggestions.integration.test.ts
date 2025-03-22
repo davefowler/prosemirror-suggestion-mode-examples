@@ -2,7 +2,7 @@ import { EditorState, Selection, TextSelection } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { Schema, DOMParser, Mark } from 'prosemirror-model';
 import { suggestionModePlugin } from '../../src/plugin';
-import { suggestionModePluginKey } from '../../src/key';
+import { suggestionPluginKey, suggestionTransactionKey } from '../../src/key';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
@@ -48,7 +48,7 @@ describe('suggestionsPlugin integration', () => {
 
     // Configure the plugin with the desired state
     view.dispatch(
-      view.state.tr.setMeta(suggestionModePluginKey, {
+      view.state.tr.setMeta(suggestionPluginKey, {
         inSuggestionMode: true,
         username: 'testUser',
         data: { 'example-attr': 'test value' },
@@ -71,7 +71,7 @@ describe('suggestionsPlugin integration', () => {
   describe('suggestion mode', () => {
     test('should initialize with suggestion mode enabled', () => {
       createEditor();
-      const pluginState = suggestionModePluginKey.getState(view.state);
+      const pluginState = suggestionPluginKey.getState(view.state);
 
       expect(pluginState).toBeDefined();
       expect(pluginState!.inSuggestionMode).toBe(true);
@@ -82,31 +82,38 @@ describe('suggestionsPlugin integration', () => {
       createEditor();
 
       // Get initial state
-      let pluginState = suggestionModePluginKey.getState(view.state);
+      let pluginState = suggestionPluginKey.getState(view.state);
       expect(pluginState).toBeDefined();
       expect(pluginState!.inSuggestionMode).toBe(true);
 
       // Toggle suggestion mode off
       view.dispatch(
-        view.state.tr.setMeta(suggestionModePluginKey, {
+        view.state.tr.setMeta(suggestionPluginKey, {
           inSuggestionMode: false,
         })
       );
 
-      // Check that it's off
-      pluginState = suggestionModePluginKey.getState(view.state);
+      // Turn the transaction suggestion mode on
+      view.dispatch(
+        view.state.tr.setMeta(suggestionTransactionKey, {
+          inSuggestionMode: true,
+        })
+      );
+
+      // Check that the plugin suggestion mode it's off
+      pluginState = suggestionPluginKey.getState(view.state);
       expect(pluginState).toBeDefined();
       expect(pluginState!.inSuggestionMode).toBe(false);
 
       // Toggle it back on
       view.dispatch(
-        view.state.tr.setMeta(suggestionModePluginKey, {
+        view.state.tr.setMeta(suggestionPluginKey, {
           inSuggestionMode: true,
         })
       );
 
       // Check that it's on again
-      pluginState = suggestionModePluginKey.getState(view.state);
+      pluginState = suggestionPluginKey.getState(view.state);
       expect(pluginState).toBeDefined();
       expect(pluginState!.inSuggestionMode).toBe(true);
     });

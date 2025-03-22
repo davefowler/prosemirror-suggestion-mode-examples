@@ -2,7 +2,7 @@ import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { Schema, Node } from 'prosemirror-model';
 import { suggestionModePlugin } from '../../src/plugin';
-import { suggestionModePluginKey } from '../../src/key';
+import { suggestionPluginKey } from '../../src/key';
 
 // Mock dependencies
 jest.mock('prosemirror-view');
@@ -21,7 +21,7 @@ jest.mock('prosemirror-model');
 // Mock the key module but keep the actual key
 jest.mock('../../src/key', () => {
   return {
-    suggestionModePluginKey: {
+    suggestionPluginKey: {
       getState: jest.fn(),
     },
   };
@@ -105,7 +105,7 @@ describe('suggestionsPlugin', () => {
     };
 
     // Mock getState to return our plugin state
-    (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
+    (suggestionPluginKey.getState as jest.Mock).mockReturnValue(
       mockPluginState
     );
   });
@@ -504,7 +504,7 @@ describe('suggestionsPlugin', () => {
       };
 
       // Mock getState to return our plugin state
-      (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
+      (suggestionPluginKey.getState as jest.Mock).mockReturnValue(
         mockPluginState
       );
     });
@@ -536,11 +536,11 @@ describe('suggestionsPlugin', () => {
       };
 
       // Simulate setting meta on the transaction
-      mockTransaction.setMeta(suggestionModePluginKey, expectedMeta);
+      mockTransaction.setMeta(suggestionPluginKey, expectedMeta);
 
       // Verify the transaction's setMeta was called with the correct parameters
       expect(mockTransaction.setMeta).toHaveBeenCalledWith(
-        suggestionModePluginKey,
+        suggestionPluginKey,
         expectedMeta
       );
     });
@@ -549,7 +549,7 @@ describe('suggestionsPlugin', () => {
   describe('plugin initialization', () => {
     test('should have the correct props', () => {
       expect(pluginInstance).toBeDefined();
-      expect(suggestionModePluginKey).toBeDefined();
+      expect(suggestionPluginKey).toBeDefined();
       expect(pluginInstance.props).toBeDefined();
       expect(pluginInstance.props.decorations).toBeDefined();
     });

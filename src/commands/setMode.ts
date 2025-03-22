@@ -1,6 +1,6 @@
 import { Command, EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { suggestionModePluginKey } from '../key';
+import { suggestionPluginKey } from '../key';
 import { Transaction } from 'prosemirror-state';
 
 /**
@@ -9,12 +9,12 @@ import { Transaction } from 'prosemirror-state';
  */
 export const setSuggestionModeCommand = (enabled: boolean): Command => {
   return (state: EditorState, dispatch?: (tr: Transaction) => void) => {
-    const pluginState = suggestionModePluginKey.getState(state);
+    const pluginState = suggestionPluginKey.getState(state);
     if (!pluginState) return false;
 
     if (dispatch) {
       dispatch(
-        state.tr.setMeta(suggestionModePluginKey, {
+        state.tr.setMeta(suggestionPluginKey, {
           ...pluginState,
           inSuggestionMode: enabled,
         })
@@ -31,7 +31,7 @@ export const toggleSuggestionMode: Command = (
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ) => {
-  const pluginState = suggestionModePluginKey.getState(state);
+  const pluginState = suggestionPluginKey.getState(state);
   if (!pluginState) return false;
 
   // Use setSuggestionModeCommand to toggle the current state

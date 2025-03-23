@@ -12,6 +12,7 @@
 - fix empty edge cases for applySuggestion functions
 - better ReplaceAround behavior
 - cross-block deletes working, even with 1 char paragraph deletes
+- exporting hover menu overrides
 
 ## 1.0.32
 

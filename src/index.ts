@@ -8,6 +8,7 @@ export type { SuggestionModePluginState } from './key';
 export * from './commands/accept-reject';
 export * from './commands/setMode';
 export * from './commands/applySuggestion';
+export * from './menus/hoverMenu';
 
 // Schema
 export { addSuggestionMarks } from './schema';

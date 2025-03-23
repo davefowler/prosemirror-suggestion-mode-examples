@@ -22,7 +22,7 @@ const findSuggestionsInRange = (
   state.doc.nodesBetween(from, to, (node, pos) => {
     node.marks.forEach((mark) => {
       if (
-        mark.type.name === 'suggestion_add' ||
+        mark.type.name === 'suggestion_insert' ||
         mark.type.name === 'suggestion_delete'
       ) {
         const range = markRanges.get(mark) || { from: pos, to: pos };
@@ -63,7 +63,7 @@ const processSuggestionsInRange = (
 
       // one mark range we delete, the other we just remove the mark
       const markToDelete =
-        acceptOrReject === 'accept' ? 'suggestion_delete' : 'suggestion_add';
+        acceptOrReject === 'accept' ? 'suggestion_delete' : 'suggestion_insert';
 
       if (mark.type.name === markToDelete) {
         // Todo, check if this is the only content in a node around it.

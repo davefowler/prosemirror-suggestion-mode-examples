@@ -11,11 +11,6 @@ export type TextSuggestion = {
   textAfter?: string;
 };
 
-// // returns the text content but maintains \n for block nodes
-// const getTextContent = (doc: Node) => {
-//   return doc.textBetween(0, doc.content.size, '\n');
-// };
-
 const applySuggestionToRange = (
   view: EditorView,
   dispatch: (tr: Transaction) => void,

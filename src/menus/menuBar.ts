@@ -16,7 +16,7 @@ const hasSuggestions = (state: EditorState): boolean => {
   let found = false;
   state.doc.descendants((node) => {
     if (
-      node.marks.some((mark) => mark.type.name === 'suggestion_add') ||
+      node.marks.some((mark) => mark.type.name === 'suggestion_insert') ||
       node.marks.some((mark) => mark.type.name === 'suggestion_delete')
     ) {
       found = true;

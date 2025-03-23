@@ -19,7 +19,7 @@ const exampleSchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, 'paragraph block*', 'block'),
 
   // When creating your schema, wrap the marks in the addSuggestionMarks function
-  // this will add the needed suggestion_add and suggestion_delete marks to the schema
+  // this will add the needed suggestion_insert and suggestion_delete marks to the schema
   marks: addSuggestionMarks(schema.spec.marks),
 });
 

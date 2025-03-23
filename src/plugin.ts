@@ -105,7 +105,7 @@ export const suggestionModePlugin = (
           lastStep = step;
           // Each transaction has two optional parts:
           //   1. removedSlice - content that should be marked as suggestion_delete
-          //   2. addedSlice - content that should be marked as suggestion_add
+          //   2. addedSlice - content that should be marked as suggestion_insert
           const removedSlice = intermediateTr.doc.slice(
             step.from,
             step.to,
@@ -131,7 +131,7 @@ export const suggestionModePlugin = (
           const marksAtPos = $pos.marks();
           const suggestionMark = marksAtPos.find(
             (m) =>
-              m.type.name === 'suggestion_add' ||
+              m.type.name === 'suggestion_insert' ||
               m.type.name === 'suggestion_delete'
           );
           let from = step.from;
@@ -254,7 +254,7 @@ export const suggestionModePlugin = (
             tr.addMark(
               addedFrom,
               addedTo,
-              newState.schema.marks.suggestion_add.create({
+              newState.schema.marks.suggestion_insert.create({
                 username,
                 data: meta.data,
               })

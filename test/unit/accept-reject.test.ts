@@ -101,7 +101,7 @@ describe('accept-reject functions', () => {
       doc: mockDoc,
       schema: {
         marks: {
-          suggestion_add: { create: jest.fn() },
+          suggestion_insert: { create: jest.fn() },
           suggestion_delete: { create: jest.fn() },
         },
       },
@@ -115,8 +115,8 @@ describe('accept-reject functions', () => {
 
     // Setup mock marks
     mockAddMark = {
-      type: { name: 'suggestion_add' },
-      eq: jest.fn((other) => other.type.name === 'suggestion_add'),
+      type: { name: 'suggestion_insert' },
+      eq: jest.fn((other) => other.type.name === 'suggestion_insert'),
     } as unknown as Mark;
 
     mockDeleteMark = {
@@ -126,7 +126,7 @@ describe('accept-reject functions', () => {
   });
 
   describe('acceptSuggestionsInRange', () => {
-    test('should remove mark but keep text for suggestion_add', () => {
+    test('should remove mark but keep text for suggestion_insert', () => {
       acceptSuggestionsInRange(10, 15)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
@@ -160,7 +160,7 @@ describe('accept-reject functions', () => {
   });
 
   describe('rejectSuggestionsInRange', () => {
-    test('should remove both mark and text for suggestion_add', () => {
+    test('should remove both mark and text for suggestion_insert', () => {
       rejectSuggestionsInRange(10, 15)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation

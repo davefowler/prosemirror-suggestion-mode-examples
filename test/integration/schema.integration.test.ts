@@ -4,10 +4,10 @@ import { suggestionMarks, addSuggestionMarks } from '../../src/schema';
 
 describe('suggestionMarks', () => {
   test('contains the expected mark specifications', () => {
-    expect(suggestionMarks).toHaveProperty('suggestion_add');
+    expect(suggestionMarks).toHaveProperty('suggestion_insert');
     expect(suggestionMarks).toHaveProperty('suggestion_delete');
 
-    expect(suggestionMarks.suggestion_add).toHaveProperty('attrs');
+    expect(suggestionMarks.suggestion_insert).toHaveProperty('attrs');
     expect(suggestionMarks.suggestion_delete).toHaveProperty('attrs');
   });
 });
@@ -32,7 +32,7 @@ describe('addSuggestionMarks', () => {
     expect(enhanced).toHaveProperty('em');
 
     // Should add suggestion marks
-    expect(enhanced).toHaveProperty('suggestion_add');
+    expect(enhanced).toHaveProperty('suggestion_insert');
     expect(enhanced).toHaveProperty('suggestion_delete');
   });
 
@@ -45,7 +45,7 @@ describe('addSuggestionMarks', () => {
     expect(enhanced).toHaveProperty('link');
 
     // Should add suggestion marks
-    expect(enhanced).toHaveProperty('suggestion_add');
+    expect(enhanced).toHaveProperty('suggestion_insert');
     expect(enhanced).toHaveProperty('suggestion_delete');
   });
 
@@ -58,7 +58,7 @@ describe('addSuggestionMarks', () => {
 
     // Should be a valid schema with all marks
     expect(testSchema.marks).toHaveProperty('strong');
-    expect(testSchema.marks).toHaveProperty('suggestion_add');
+    expect(testSchema.marks).toHaveProperty('suggestion_insert');
     expect(testSchema.marks).toHaveProperty('suggestion_delete');
 
     // Test schema can create document with suggestion marks
@@ -66,14 +66,14 @@ describe('addSuggestionMarks', () => {
       testSchema.node('paragraph', null, [
         testSchema.text('Hello, '),
         testSchema.text('world', [
-          testSchema.mark('suggestion_add', { username: 'tester' }),
+          testSchema.mark('suggestion_insert', { username: 'tester' }),
         ]),
         testSchema.text('!'),
       ]),
     ]);
 
     expect(doc).toBeTruthy();
-    expect(doc.toString()).toContain('suggestion_add');
+    expect(doc.toString()).toContain('suggestion_insert');
   });
 });
 
@@ -99,12 +99,12 @@ describe('Schema with suggestion marks', () => {
   });
 
   test('can create and serialize documents with suggestion marks', () => {
-    // Create a document with suggestion_add mark
+    // Create a document with suggestion_insert mark
     const doc = testSchema.node('doc', null, [
       testSchema.node('paragraph', null, [
         testSchema.text('This is '),
         testSchema.text('added text', [
-          testSchema.mark('suggestion_add', {
+          testSchema.mark('suggestion_insert', {
             username: 'user1',
           }),
         ]),
@@ -149,7 +149,7 @@ describe('Schema with suggestion marks', () => {
     doc.descendants((node) => {
       if (
         node.isText &&
-        node.marks.some((m) => m.type.name === 'suggestion_add')
+        node.marks.some((m) => m.type.name === 'suggestion_insert')
       ) {
         foundSuggestion = true;
         expect(node.text).toBe('added text');

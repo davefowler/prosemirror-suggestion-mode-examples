@@ -32,7 +32,7 @@ export const h1 = builderResults.heading;
 export const ul = builderResults.bullet_list;
 export const li = builderResults.list_item;
 export const sdel = builderResults.suggestion_delete;
-export const sadd = builderResults.suggestion_add;
+export const sadd = builderResults.suggestion_insert;
 
 export function createEditorState(
   editorDoc: Node,

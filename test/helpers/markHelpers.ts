@@ -20,7 +20,9 @@ export function getMarkString(doc) {
 
         if (marks.some((mark) => mark.type.name === 'suggestion_delete')) {
           result += '-';
-        } else if (marks.some((mark) => mark.type.name === 'suggestion_add')) {
+        } else if (
+          marks.some((mark) => mark.type.name === 'suggestion_insert')
+        ) {
           result += '+';
         } else {
           result += node.text[i];

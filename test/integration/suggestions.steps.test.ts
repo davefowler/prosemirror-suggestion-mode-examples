@@ -67,7 +67,7 @@ describe('suggestion mode edge cases', () => {
   });
 
   describe('pasting into suggestion range', () => {
-    test('should handle pasting text into an existing suggestion_add range', () => {
+    test('should handle pasting text into an existing suggestion_insert range', () => {
       createEditor('<p>Hello world</p>');
 
       // First create a suggestion by adding text
@@ -93,13 +93,15 @@ describe('suggestion mode edge cases', () => {
       // Check the content
       expect(view.state.doc.textContent).toBe('Hello awePASTEDsome world');
 
-      // Verify that the entire new content is marked as suggestion_add
+      // Verify that the entire new content is marked as suggestion_insert
       let hasAddMark = false;
       view.state.doc.nodesBetween(
         position,
         position + 'awePASTEDsome'.length,
         (node) => {
-          if (node.marks.some((mark) => mark.type.name === 'suggestion_add')) {
+          if (
+            node.marks.some((mark) => mark.type.name === 'suggestion_insert')
+          ) {
             hasAddMark = true;
           }
         }
@@ -140,7 +142,7 @@ describe('suggestion mode edge cases', () => {
         (node) => {
           node.marks.forEach((mark) => {
             if (mark.type.name === 'suggestion_delete') hasDeleteMark = true;
-            if (mark.type.name === 'suggestion_add') hasAddMark = true;
+            if (mark.type.name === 'suggestion_insert') hasAddMark = true;
           });
         }
       );
@@ -181,7 +183,7 @@ describe('suggestion mode edge cases', () => {
         (node) => {
           node.marks.forEach((mark) => {
             if (mark.type.name === 'suggestion_delete') hasDeleteMark = true;
-            if (mark.type.name === 'suggestion_add') hasAddMark = true;
+            if (mark.type.name === 'suggestion_insert') hasAddMark = true;
           });
         }
       );
@@ -227,7 +229,7 @@ describe('suggestion mode edge cases', () => {
       // Check for added bold text in the appropriate range
       view.state.doc.nodesBetween(from, to + 'world'.length, (node) => {
         node.marks.forEach((mark) => {
-          if (mark.type.name === 'suggestion_add') hasAddMark = true;
+          if (mark.type.name === 'suggestion_insert') hasAddMark = true;
           if (mark.type.name === 'strong') newHasStrongMark = true;
         });
       });
@@ -265,7 +267,7 @@ describe('suggestion mode edge cases', () => {
       // Check content
       expect(view.state.doc.textContent).toBe('Hello pastedformatted world');
 
-      // Verify the pasted text has both strong and suggestion_add marks
+      // Verify the pasted text has both strong and suggestion_insert marks
       let hasAddMark = false;
       let hasStrongMark = false;
       view.state.doc.nodesBetween(
@@ -273,7 +275,7 @@ describe('suggestion mode edge cases', () => {
         position + 'pasted'.length,
         (node) => {
           node.marks.forEach((mark) => {
-            if (mark.type.name === 'suggestion_add') hasAddMark = true;
+            if (mark.type.name === 'suggestion_insert') hasAddMark = true;
             if (mark.type.name === 'strong') hasStrongMark = true;
           });
         }
@@ -310,7 +312,7 @@ describe('suggestion mode edge cases', () => {
       view.state.doc.nodesBetween(from, to + len, (node) => {
         node.marks.forEach((mark) => {
           if (mark.type.name === 'suggestion_delete') hasDeleteMark = true;
-          if (mark.type.name === 'suggestion_add') hasAddMark = true;
+          if (mark.type.name === 'suggestion_insert') hasAddMark = true;
           if (mark.type.name === 'em') hasEmMark = true;
           if (mark.type.name === 'strong') hasStrongMark = true;
         });
@@ -361,7 +363,7 @@ describe('suggestion mode edge cases', () => {
           foundBlockquote = true;
         }
         node.marks.forEach((mark) => {
-          if (mark.type.name === 'suggestion_add') hasAddMark = true;
+          if (mark.type.name === 'suggestion_insert') hasAddMark = true;
           if (mark.type.name === 'suggestion_delete') hasDeleteMark = true;
         });
       });
@@ -414,28 +416,32 @@ describe('suggestion mode edge cases', () => {
       // ProseMirror doesn't add spaces between pasted content
       expect(view.state.doc.textContent).toBe('Hellofirstsecond world');
 
-      // Verify the suggestion_add mark is correctly applied to both paragraphs
+      // Verify the suggestion_insert mark is correctly applied to both paragraphs
       let hasAddMarkOnFirst = false;
       let hasAddMarkOnSecond = false;
 
-      // Check "first" - should have suggestion_add mark
+      // Check "first" - should have suggestion_insert mark
       view.state.doc.nodesBetween(
         position,
         position + 'first'.length,
         (node) => {
-          if (node.marks.some((mark) => mark.type.name === 'suggestion_add')) {
+          if (
+            node.marks.some((mark) => mark.type.name === 'suggestion_insert')
+          ) {
             hasAddMarkOnFirst = true;
           }
         }
       );
 
-      // Check "second" - should have suggestion_add mark
+      // Check "second" - should have suggestion_insert mark
       const secondPos = position + 'first'.length;
       view.state.doc.nodesBetween(
         secondPos,
         secondPos + 'second'.length,
         (node) => {
-          if (node.marks.some((mark) => mark.type.name === 'suggestion_add')) {
+          if (
+            node.marks.some((mark) => mark.type.name === 'suggestion_insert')
+          ) {
             hasAddMarkOnSecond = true;
           }
         }
@@ -481,13 +487,15 @@ describe('suggestion mode edge cases', () => {
       // Check content
       expect(view.state.doc.textContent).toBe('First inserted itemSecond item');
 
-      // Verify the suggestion_add mark is correctly applied
+      // Verify the suggestion_insert mark is correctly applied
       let hasAddMark = false;
       view.state.doc.nodesBetween(
         position,
         position + 'inserted '.length,
         (node) => {
-          if (node.marks.some((mark) => mark.type.name === 'suggestion_add')) {
+          if (
+            node.marks.some((mark) => mark.type.name === 'suggestion_insert')
+          ) {
             hasAddMark = true;
           }
         }
@@ -549,7 +557,7 @@ describe('suggestion mode edge cases', () => {
         (node, pos) => {
           if (
             node.isText &&
-            node.marks.some((mark) => mark.type.name === 'suggestion_add')
+            node.marks.some((mark) => mark.type.name === 'suggestion_insert')
           ) {
             markedText += node.text;
           }
@@ -613,7 +621,7 @@ describe('suggestion mode edge cases', () => {
       expect(view.state.doc.textContent).toContain('Cell 1');
       expect(view.state.doc.textContent).toContain('Cell 2');
 
-      // Check that all pasted text has suggestion_add mark
+      // Check that all pasted text has suggestion_insert mark
       let allCellTextMarked = true;
       view.state.doc.nodesBetween(
         position,
@@ -621,7 +629,7 @@ describe('suggestion mode edge cases', () => {
         (node, pos) => {
           if (node.isText && node.text?.includes('Cell')) {
             const hasAddMark = node.marks.some(
-              (mark) => mark.type.name === 'suggestion_add'
+              (mark) => mark.type.name === 'suggestion_insert'
             );
             if (!hasAddMark) allCellTextMarked = false;
           }
@@ -767,10 +775,10 @@ describe('suggestion mode edge cases', () => {
       const instert1End = instert1Start + 'inserted1 '.length - 1;
       // Precise position checking for first insertion - "inserted1 "
       expect(
-        hasMarkAtPosition(view.state.doc, instert1Start, 'suggestion_add')
+        hasMarkAtPosition(view.state.doc, instert1Start, 'suggestion_insert')
       ).toBe(true); // First 'i'
       expect(
-        hasMarkAtPosition(view.state.doc, instert1End, 'suggestion_add')
+        hasMarkAtPosition(view.state.doc, instert1End, 'suggestion_insert')
       ).toBe(true); // Last space
     });
 
@@ -811,11 +819,13 @@ describe('suggestion mode edge cases', () => {
       expect(hasMarkAtPosition(view.state.doc, 4, 'suggestion_delete')).toBe(
         true
       );
-      expect(hasMarkAtPosition(view.state.doc, 4, 'suggestion_add')).toBe(
+      expect(hasMarkAtPosition(view.state.doc, 4, 'suggestion_insert')).toBe(
         false
       );
       expect(hasMarkAtPosition(view.state.doc, 4, 'strong')).toBe(false);
-      expect(hasMarkAtPosition(view.state.doc, 5, 'suggestion_add')).toBe(true);
+      expect(hasMarkAtPosition(view.state.doc, 5, 'suggestion_insert')).toBe(
+        true
+      );
       expect(hasMarkAtPosition(view.state.doc, 5, 'strong')).toBe(true);
     });
 

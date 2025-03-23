@@ -99,7 +99,7 @@ describe('decorations integration', () => {
       const textLength = 6; // "Hello " length
 
       // Add suggestion mark to first word
-      const mark = schema.mark('suggestion_add', {
+      const mark = schema.mark('suggestion_insert', {
         username: 'testUser',
         data: {},
       });
@@ -128,7 +128,7 @@ describe('decorations integration', () => {
       const pos2 = pos1 + word1Length; // Start of "world"
       const word2Length = 5; // "world" length
 
-      const mark = schema.mark('suggestion_add', {
+      const mark = schema.mark('suggestion_insert', {
         username: 'testUser',
         data: {},
       });
@@ -159,11 +159,11 @@ describe('decorations integration', () => {
       const pos2 = pos1 + word1Length + 1; // Start of "world"
       const word2Length = 5; // "world" length
 
-      const mark1 = schema.mark('suggestion_add', {
+      const mark1 = schema.mark('suggestion_insert', {
         username: 'tom',
         data: {},
       });
-      const mark2 = schema.mark('suggestion_add', {
+      const mark2 = schema.mark('suggestion_insert', {
         username: 'jerry',
         data: {},
       });

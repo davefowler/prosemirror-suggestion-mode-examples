@@ -1,5 +1,5 @@
 import { EditorView } from 'prosemirror-view';
-import { suggestionModePluginKey } from '../key';
+import { suggestionTransactionKey } from '../key';
 import { Node } from 'prosemirror-model';
 import { Command, EditorState, Transaction } from 'prosemirror-state';
 
@@ -18,27 +18,18 @@ const applySuggestionToRange = (
   to: number,
   suggestion: TextSuggestion,
   username: string
-) => {
+): boolean => {
   const newData: Record<string, any> = {};
   if (suggestion.reason?.length > 0) newData.reason = suggestion.reason;
 
-  const startingMeta = view.state.tr.getMeta(suggestionModePluginKey);
-
-  const tr = view.state.tr.setMeta(suggestionModePluginKey, {
+  const tr = view.state.tr.setMeta(suggestionTransactionKey, {
     inSuggestionMode: true,
     data: newData,
     username,
   });
+
   tr.replaceWith(from, to, view.state.schema.text(suggestion.textReplacement));
   dispatch(tr);
-
-  if (!startingMeta?.inSuggestionMode) {
-    const tr2 = view.state.tr.setMeta(suggestionModePluginKey, {
-      suggestionOperation: true,
-      inSuggestionMode: false,
-    });
-    dispatch(tr2);
-  }
   return true;
 };
 
@@ -51,34 +42,52 @@ const applySuggestionToRange = (
  * See examples/suggestEdit/ for an example
  */
 export const createApplySuggestionCommand = (
-  suggestion: TextSuggestion,
+  {
+    textToReplace,
+    textReplacement = '',
+    reason = '',
+    textBefore = '',
+    textAfter = '',
+  }: TextSuggestion,
   username: string
 ): Command => {
   return (
     state: EditorState,
     dispatch?: (tr: Transaction) => void,
     view?: EditorView
-  ) => {
-    if (!view || !dispatch) return false;
-
-    console.log('in pm-suggestion-mode', suggestion);
-    if (!suggestion.textToReplace) {
-      console.warn('No text to replace, skipping', suggestion);
+  ): boolean => {
+    if (textToReplace === undefined) {
+      console.warn(
+        'prosemirror-suggestion-mode: Type error - Undefined textToReplace'
+      );
       return false;
     }
 
-    // Find matches with or without context
-    const textBefore = suggestion.textBefore || '';
-    const textAfter = suggestion.textAfter || '';
-
     // Create the complete search pattern
-    const searchText = textBefore + suggestion.textToReplace + textAfter;
-    console.log('searchText', searchText);
+    const searchText = textBefore + textToReplace + textAfter;
     if (searchText.length === 0) {
-      // There is no text to replace, or text before or after.
+      // No text to match - can only apply to empty doc
+      if (state.doc.textContent.length > 0) {
+        return false;
+      }
+
+      if (!dispatch) return true; // In dry run mode, just return that we can apply this
+
       // We're adding text into an empty doc
-      console.log('no text to replace, applying to range', 0, 0);
-      return applySuggestionToRange(view, dispatch, 0, 0, suggestion, username);
+      return applySuggestionToRange(
+        view,
+        dispatch,
+        0,
+        0,
+        {
+          textToReplace,
+          textReplacement,
+          reason,
+          textBefore,
+          textAfter,
+        },
+        username
+      );
     }
 
     const pattern = escapeRegExp(searchText);
@@ -112,9 +121,14 @@ export const createApplySuggestionCommand = (
       });
     }
 
-    console.log('matches', matches);
+    // In dry run mode, just return if we found matches
+    if (!dispatch) return matches.length === 1;
+
+    // If there is a dispatch, we need the view
+    if (!view) return false;
+
     if (matches.length > 0) {
-      // We ignore multiple matches on purpose.  only do the first if multiple
+      // We ignore multiple matches on purpose. Only do the first if multiple
       if (matches.length > 1) {
         console.warn(
           'Multiple matches found, only applying the first',
@@ -124,7 +138,7 @@ export const createApplySuggestionCommand = (
       const applyingMatch = matches[0];
       // Calculate the position of just the 'textToReplace' part in the text content
       const textMatchStart = applyingMatch.index + textBefore.length;
-      const textMatchEnd = textMatchStart + suggestion.textToReplace.length;
+      const textMatchEnd = textMatchStart + textToReplace.length;
 
       // Find the actual document positions that correspond to these text positions
       const docRange = findDocumentRange(
@@ -132,12 +146,21 @@ export const createApplySuggestionCommand = (
         textMatchStart,
         textMatchEnd
       );
-      applySuggestionToRange(
+
+      if (!dispatch) return true; // In dry run mode, just return that we can apply this
+
+      return applySuggestionToRange(
         view,
         dispatch,
         docRange.from,
         docRange.to,
-        suggestion,
+        {
+          textToReplace,
+          textReplacement,
+          reason,
+          textBefore,
+          textAfter,
+        },
         username
       );
     }
@@ -146,12 +169,7 @@ export const createApplySuggestionCommand = (
 };
 
 /**
- * Find the actual document positions that correspond to positions in the text content
- * This handles formatted text correctly by mapping text content positions to document positions
- *
- * TODO -  the document range always seems to be a few characters behind the text range.
- * This is likely due to paragaraphs/blocks and it could probably be more manually calculated
- * or at the very least started from a closer position.
+ * Translates positions in the textContent to positions in the document
  */
 function findDocumentRange(
   doc: Node,
@@ -166,52 +184,39 @@ function findDocumentRange(
       let endPos: number | null = null;
 
       // Walk through all text nodes in the document
-      // TODO - we could probably start from the textStart and work our way forward
-      doc.nodesBetween(0, doc.nodeSize - 2, (node, pos) => {
+      doc.nodesBetween(0, doc.content.size, (node, nodeStartPos) => {
         if (startPos !== null && endPos !== null) return false; // Stop if we've found both positions
 
         if (node.isText) {
-          const nodeTextLength = node.text!.length;
-          const nodeTextStart = currentTextPos;
-          const nodeTextEnd = nodeTextStart + nodeTextLength;
+          const nodeTextEndPos = currentTextPos + node.text.length;
 
           // Check if this node contains the start position
           if (
             startPos === null &&
-            textStart >= nodeTextStart &&
-            textStart < nodeTextEnd
+            textStart >= currentTextPos &&
+            textStart <= nodeTextEndPos
           ) {
-            startPos = pos + (textStart - nodeTextStart);
+            const offsetInNode = textStart - currentTextPos;
+            startPos = nodeStartPos + offsetInNode;
           }
 
           // Check if this node contains the end position
           if (
             endPos === null &&
-            textEnd > nodeTextStart &&
-            textEnd <= nodeTextEnd
+            textEnd >= currentTextPos &&
+            textEnd <= nodeTextEndPos
           ) {
-            endPos = pos + (textEnd - nodeTextStart);
+            const offsetInNode = textEnd - currentTextPos;
+            endPos = nodeStartPos + offsetInNode;
           }
 
-          // Move the text position counter forward
-          currentTextPos += nodeTextLength;
+          currentTextPos = nodeTextEndPos;
         }
-
         return true; // Continue traversal
       });
 
       // If we found both positions, return them
       if (startPos !== null && endPos !== null) {
-        // For formatted text tests, we need to adjust positions
-        if (
-          doc.content &&
-          doc.content.content &&
-          doc.content.content.some(
-            (node) => node.marks && node.marks.length > 0
-          )
-        ) {
-          return { from: startPos - 1, to: endPos - 1 };
-        }
         return { from: startPos, to: endPos };
       }
     } catch (e) {
@@ -241,13 +246,17 @@ function escapeRegExp(string: string) {
  * @param view The editor view
  * @param suggestion A single suggested edit with context
  * @param username Name to attribute suggestion to
+ * @param dryRun Whether to run in dry run mode (no dispatch) @default false
  * @returns Boolean indicating if suggestion was applied successfully
  */
 export const applySuggestion = (
   view: EditorView,
   suggestion: TextSuggestion,
-  username: string
+  username: string,
+  dryRun: boolean = false
 ): boolean => {
   const command = createApplySuggestionCommand(suggestion, username);
+  if (dryRun) return command(view.state);
+
   return command(view.state, view.dispatch, view);
 };

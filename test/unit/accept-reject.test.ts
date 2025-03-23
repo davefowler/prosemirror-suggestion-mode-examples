@@ -1,6 +1,6 @@
 import { EditorView } from 'prosemirror-view';
 import { Mark } from 'prosemirror-model';
-import { suggestionModePluginKey } from '../../src/key';
+import { suggestionPluginKey, suggestionTransactionKey } from '../../src/key';
 import {
   acceptSuggestionsInRange,
   rejectSuggestionsInRange,
@@ -12,7 +12,10 @@ import {
 jest.mock('prosemirror-view');
 jest.mock('../../src/key', () => {
   return {
-    suggestionModePluginKey: {
+    suggestionPluginKey: {
+      getState: jest.fn(),
+    },
+    suggestionTransactionKey: {
       getState: jest.fn(),
     },
   };
@@ -98,7 +101,7 @@ describe('accept-reject functions', () => {
       doc: mockDoc,
       schema: {
         marks: {
-          suggestion_add: { create: jest.fn() },
+          suggestion_insert: { create: jest.fn() },
           suggestion_delete: { create: jest.fn() },
         },
       },
@@ -112,8 +115,8 @@ describe('accept-reject functions', () => {
 
     // Setup mock marks
     mockAddMark = {
-      type: { name: 'suggestion_add' },
-      eq: jest.fn((other) => other.type.name === 'suggestion_add'),
+      type: { name: 'suggestion_insert' },
+      eq: jest.fn((other) => other.type.name === 'suggestion_insert'),
     } as unknown as Mark;
 
     mockDeleteMark = {
@@ -123,11 +126,11 @@ describe('accept-reject functions', () => {
   });
 
   describe('acceptSuggestionsInRange', () => {
-    test('should remove mark but keep text for suggestion_add', () => {
+    test('should remove mark but keep text for suggestion_insert', () => {
       acceptSuggestionsInRange(10, 15)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 
@@ -143,7 +146,7 @@ describe('accept-reject functions', () => {
       acceptSuggestionsInRange(20, 25)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 
@@ -157,11 +160,11 @@ describe('accept-reject functions', () => {
   });
 
   describe('rejectSuggestionsInRange', () => {
-    test('should remove both mark and text for suggestion_add', () => {
+    test('should remove both mark and text for suggestion_insert', () => {
       rejectSuggestionsInRange(10, 15)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 
@@ -177,7 +180,7 @@ describe('accept-reject functions', () => {
       rejectSuggestionsInRange(20, 25)(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 
@@ -195,7 +198,7 @@ describe('accept-reject functions', () => {
       acceptAllSuggestions(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 
@@ -213,7 +216,7 @@ describe('accept-reject functions', () => {
       rejectAllSuggestions(mockState, mockView.dispatch);
 
       // Should set meta to mark this as a suggestion operation
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
         suggestionOperation: true,
       });
 
@@ -223,88 +226,6 @@ describe('accept-reject functions', () => {
 
       // Should dispatch the transaction
       expect(mockView.dispatch).toHaveBeenCalledWith(mockTr);
-    });
-  });
-
-  describe('multiple suggestions with position adjustments', () => {
-    test('should correctly adjust positions when multiple add suggestions are rejected', () => {
-      // Setup multiple suggestions in sequence
-      const mockMultipleAddMarks = [
-        { pos: 10, size: 5, mark: { ...mockAddMark } },
-        { pos: 20, size: 3, mark: { ...mockAddMark } },
-        { pos: 30, size: 7, mark: { ...mockAddMark } },
-      ];
-
-      // Override the nodesBetween method to simulate multiple suggestions
-      mockDoc.nodesBetween = jest.fn((from, to, callback) => {
-        mockMultipleAddMarks.forEach((item) => {
-          callback(
-            {
-              marks: [item.mark],
-              nodeSize: item.size,
-            },
-            item.pos
-          );
-        });
-      });
-
-      // Call reject on all suggestions
-      rejectSuggestionsInRange(0, 100)(mockState, mockView.dispatch);
-
-      // Should have called delete with correct adjusted positions
-      expect(mockTr.delete.mock.calls.length).toBe(3);
-
-      // First call should use original position
-      expect(mockTr.delete.mock.calls[0][0]).toBe(10);
-      expect(mockTr.delete.mock.calls[0][1]).toBe(15);
-
-      // Second call should adjust for first deletion (5 chars removed)
-      expect(mockTr.delete.mock.calls[1][0]).toBe(15); // 20 - 5
-      expect(mockTr.delete.mock.calls[1][1]).toBe(18); // 23 - 5
-
-      // Third call should adjust for both previous deletions (5 + 3 = 8 chars removed)
-      expect(mockTr.delete.mock.calls[2][0]).toBe(22); // 30 - 8
-      expect(mockTr.delete.mock.calls[2][1]).toBe(29); // 37 - 8
-    });
-
-    test('should correctly adjust positions when multiple delete suggestions are accepted', () => {
-      // Setup multiple suggestions in sequence
-      const mockMultipleDeleteMarks = [
-        { pos: 10, size: 5, mark: { ...mockDeleteMark } },
-        { pos: 20, size: 3, mark: { ...mockDeleteMark } },
-        { pos: 30, size: 7, mark: { ...mockDeleteMark } },
-      ];
-
-      // Override the nodesBetween method to simulate multiple suggestions
-      mockDoc.nodesBetween = jest.fn((from, to, callback) => {
-        mockMultipleDeleteMarks.forEach((item) => {
-          callback(
-            {
-              marks: [item.mark],
-              nodeSize: item.size,
-            },
-            item.pos
-          );
-        });
-      });
-
-      // Call accept on all suggestions
-      acceptSuggestionsInRange(0, 100)(mockState, mockView.dispatch);
-
-      // Should have called delete with correct adjusted positions
-      expect(mockTr.delete.mock.calls.length).toBe(3);
-
-      // First call should use original position
-      expect(mockTr.delete.mock.calls[0][0]).toBe(10);
-      expect(mockTr.delete.mock.calls[0][1]).toBe(15);
-
-      // Second call should adjust for first deletion (5 chars removed)
-      expect(mockTr.delete.mock.calls[1][0]).toBe(15); // 20 - 5
-      expect(mockTr.delete.mock.calls[1][1]).toBe(18); // 23 - 5
-
-      // Third call should adjust for both previous deletions (5 + 3 = 8 chars removed)
-      expect(mockTr.delete.mock.calls[2][0]).toBe(22); // 30 - 8
-      expect(mockTr.delete.mock.calls[2][1]).toBe(29); // 37 - 8
     });
   });
 

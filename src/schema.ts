@@ -2,7 +2,7 @@ import { MarkSpec, Schema, Mark } from 'prosemirror-model';
 
 // Define suggestion marks
 export const suggestionMarks = {
-  suggestion_add: {
+  suggestion_insert: {
     attrs: {
       username: { default: 'Anonymous' },
       data: { default: null },
@@ -29,7 +29,7 @@ export const suggestionMarks = {
       data: { default: null },
     },
     inclusive: false, // typing at the end of a delete should not add to the delete
-    excludes: 'suggestion_add',
+    excludes: 'suggestion_insert',
     spanning: true, // allow the delete mark to span multiple nodes and more agressively merge
     eq: (a: Mark, b: Mark) => a.attrs.username === b.attrs.username, // merge if usernames are the same
     parseDOM: [{ tag: 'span[data-suggestion-delete]' }],
@@ -64,7 +64,7 @@ export const addSuggestionMarks = (
   }
 
   // Add our suggestion marks
-  result.suggestion_add = suggestionMarks.suggestion_add;
+  result.suggestion_insert = suggestionMarks.suggestion_insert;
   result.suggestion_delete = suggestionMarks.suggestion_delete;
 
   return result;

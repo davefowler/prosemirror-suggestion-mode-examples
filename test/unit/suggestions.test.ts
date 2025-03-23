@@ -2,7 +2,7 @@ import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { Schema, Node } from 'prosemirror-model';
 import { suggestionModePlugin } from '../../src/plugin';
-import { suggestionModePluginKey } from '../../src/key';
+import { suggestionPluginKey } from '../../src/key';
 
 // Mock dependencies
 jest.mock('prosemirror-view');
@@ -21,7 +21,7 @@ jest.mock('prosemirror-model');
 // Mock the key module but keep the actual key
 jest.mock('../../src/key', () => {
   return {
-    suggestionModePluginKey: {
+    suggestionPluginKey: {
       getState: jest.fn(),
     },
   };
@@ -43,9 +43,9 @@ describe('suggestionsPlugin', () => {
     // Setup mock schema
     mockSchema = {
       marks: {
-        suggestion_add: {
+        suggestion_insert: {
           create: jest.fn().mockImplementation((attrs) => ({
-            type: { name: 'suggestion_add' },
+            type: { name: 'suggestion_insert' },
             attrs: attrs,
           })),
         },
@@ -105,7 +105,7 @@ describe('suggestionsPlugin', () => {
     };
 
     // Mock getState to return our plugin state
-    (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
+    (suggestionPluginKey.getState as jest.Mock).mockReturnValue(
       mockPluginState
     );
   });
@@ -145,13 +145,13 @@ describe('suggestionsPlugin', () => {
       const oldState = { ...mockState };
       const newState = { ...mockState, tr: mockState.tr };
 
-      // Create a transaction that would add a suggestion_add mark
+      // Create a transaction that would add a suggestion_insert mark
       const tr = newState.tr;
       tr.insertText('inserted text', 5, 5);
       tr.addMark(
         5,
         18,
-        mockSchema.marks.suggestion_add.create({
+        mockSchema.marks.suggestion_insert.create({
           username: 'testUser',
         })
       );
@@ -219,12 +219,12 @@ describe('suggestionsPlugin', () => {
   });
 
   describe('decorations', () => {
-    test('should create decorations for suggestion_add marks', () => {
-      // Setup a document with a node that has a suggestion_add mark
+    test('should create decorations for suggestion_insert marks', () => {
+      // Setup a document with a node that has a suggestion_insert mark
       const mockNode = {
         marks: [
           {
-            type: { name: 'suggestion_add' },
+            type: { name: 'suggestion_insert' },
             attrs: { username: 'testUser' },
           },
         ],
@@ -297,7 +297,7 @@ describe('suggestionsPlugin', () => {
       const decorations = () => {
         const decos = [];
         mockDoc.descendants((node, pos) => {
-          if (node.marks.some((m) => m.type.name === 'suggestion_add')) {
+          if (node.marks.some((m) => m.type.name === 'suggestion_insert')) {
             decos.push(
               // @ts-ignore - Ignoring typing issues with mocks in tests
               Decoration.inline(pos, pos + node.nodeSize, {
@@ -442,9 +442,9 @@ describe('suggestionsPlugin', () => {
       // Setup mock schema
       mockSchema = {
         marks: {
-          suggestion_add: {
+          suggestion_insert: {
             create: jest.fn().mockImplementation((attrs) => ({
-              type: { name: 'suggestion_add' },
+              type: { name: 'suggestion_insert' },
               attrs: attrs,
             })),
           },
@@ -504,7 +504,7 @@ describe('suggestionsPlugin', () => {
       };
 
       // Mock getState to return our plugin state
-      (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
+      (suggestionPluginKey.getState as jest.Mock).mockReturnValue(
         mockPluginState
       );
     });
@@ -536,11 +536,11 @@ describe('suggestionsPlugin', () => {
       };
 
       // Simulate setting meta on the transaction
-      mockTransaction.setMeta(suggestionModePluginKey, expectedMeta);
+      mockTransaction.setMeta(suggestionPluginKey, expectedMeta);
 
       // Verify the transaction's setMeta was called with the correct parameters
       expect(mockTransaction.setMeta).toHaveBeenCalledWith(
-        suggestionModePluginKey,
+        suggestionPluginKey,
         expectedMeta
       );
     });
@@ -549,7 +549,7 @@ describe('suggestionsPlugin', () => {
   describe('plugin initialization', () => {
     test('should have the correct props', () => {
       expect(pluginInstance).toBeDefined();
-      expect(suggestionModePluginKey).toBeDefined();
+      expect(suggestionPluginKey).toBeDefined();
       expect(pluginInstance.props).toBeDefined();
       expect(pluginInstance.props.decorations).toBeDefined();
     });
@@ -637,13 +637,13 @@ describe('suggestionsPlugin', () => {
       const oldState = { ...mockState };
       const newState = { ...mockState, tr: mockState.tr };
 
-      // Create a transaction that would add a suggestion_add mark
+      // Create a transaction that would add a suggestion_insert mark
       const tr = newState.tr;
       tr.insertText('inserted text', 5, 5);
       tr.addMark(
         5,
         18,
-        mockSchema.marks.suggestion_add.create({
+        mockSchema.marks.suggestion_insert.create({
           username: 'testUser',
           data: { 'example-attr': 'test value' },
         })
@@ -665,7 +665,7 @@ describe('suggestionsPlugin', () => {
       );
 
       // Also verify the mark creation was called with the correct data
-      expect(mockSchema.marks.suggestion_add.create).toHaveBeenCalledWith(
+      expect(mockSchema.marks.suggestion_insert.create).toHaveBeenCalledWith(
         expect.objectContaining({
           username: 'testUser',
           data: { 'example-attr': 'test value' },

@@ -3,12 +3,12 @@ import {
   setSuggestionMode,
   toggleSuggestionMode,
 } from '../../src/commands/setMode';
-import { suggestionModePluginKey } from '../../src/key';
+import { suggestionPluginKey } from '../../src/key';
 // Mock dependencies
 jest.mock('prosemirror-view');
 jest.mock('../../src/key', () => {
   return {
-    suggestionModePluginKey: {
+    suggestionPluginKey: {
       getState: jest.fn(),
     },
   };
@@ -51,7 +51,7 @@ describe('suggestion mode commands', () => {
     };
 
     // Mock getState to return our plugin state
-    (suggestionModePluginKey.getState as jest.Mock).mockReturnValue(
+    (suggestionPluginKey.getState as jest.Mock).mockReturnValue(
       mockPluginState
     );
   });
@@ -63,7 +63,7 @@ describe('suggestion mode commands', () => {
       const result = toggleSuggestionMode(mockState, mockView.dispatch);
 
       expect(result).toBe(true);
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
         ...mockPluginState,
         inSuggestionMode: true,
       });
@@ -76,7 +76,7 @@ describe('suggestion mode commands', () => {
       const result = toggleSuggestionMode(mockState, mockView.dispatch);
 
       expect(result).toBe(true);
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
         ...mockPluginState,
         inSuggestionMode: false,
       });
@@ -84,7 +84,7 @@ describe('suggestion mode commands', () => {
     });
 
     test('should return false if plugin state is null', () => {
-      (suggestionModePluginKey.getState as jest.Mock).mockReturnValueOnce(null);
+      (suggestionPluginKey.getState as jest.Mock).mockReturnValueOnce(null);
 
       const result = toggleSuggestionMode(mockState, mockView.dispatch);
 
@@ -104,7 +104,7 @@ describe('suggestion mode commands', () => {
     test('should set suggestion mode to true', () => {
       setSuggestionMode(mockView, true);
 
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
         ...mockPluginState,
         inSuggestionMode: true,
       });
@@ -114,7 +114,7 @@ describe('suggestion mode commands', () => {
     test('should set suggestion mode to false', () => {
       setSuggestionMode(mockView, false);
 
-      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionModePluginKey, {
+      expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionPluginKey, {
         ...mockPluginState,
         inSuggestionMode: false,
       });
@@ -122,7 +122,7 @@ describe('suggestion mode commands', () => {
     });
 
     test('should do nothing if plugin state is null', () => {
-      (suggestionModePluginKey.getState as jest.Mock).mockReturnValueOnce(null);
+      (suggestionPluginKey.getState as jest.Mock).mockReturnValueOnce(null);
 
       setSuggestionMode(mockView, true);
 
@@ -135,7 +135,7 @@ describe('suggestion mode commands', () => {
       setSuggestionMode(mockView, true);
 
       expect(mockTr.setMeta).toHaveBeenCalledWith(
-        suggestionModePluginKey,
+        suggestionPluginKey,
         expect.objectContaining({
           customProp: 'customValue',
           inSuggestionMode: true,

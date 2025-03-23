@@ -2,7 +2,7 @@ import { EditorState } from 'prosemirror-state';
 import { EditorView, Decoration } from 'prosemirror-view';
 import { Schema, DOMParser } from 'prosemirror-model';
 import { suggestionModePlugin } from '../../src/plugin';
-import { suggestionModePluginKey } from '../../src/key';
+import { suggestionPluginKey, suggestionTransactionKey } from '../../src/key';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
@@ -15,7 +15,7 @@ import {
   hoverMenuFactory,
   SuggestionHoverMenuRenderer,
 } from '../../src/menus/hoverMenu';
-import { setupDOMEnvironment } from '../helpers/test-helpers';
+import { setupDOMEnvironment } from '../helpers/testHelpers';
 
 // Setup DOM environment for tests
 setupDOMEnvironment();
@@ -64,7 +64,7 @@ describe('decorations integration', () => {
 
     // Configure the plugin with the desired state
     view.dispatch(
-      view.state.tr.setMeta(suggestionModePluginKey, {
+      view.state.tr.setMeta(suggestionPluginKey, {
         inSuggestionMode: true,
         username: 'testUser',
         data: { 'example-attr': 'test value' },
@@ -99,7 +99,7 @@ describe('decorations integration', () => {
       const textLength = 6; // "Hello " length
 
       // Add suggestion mark to first word
-      const mark = schema.mark('suggestion_add', {
+      const mark = schema.mark('suggestion_insert', {
         username: 'testUser',
         data: {},
       });
@@ -128,11 +128,11 @@ describe('decorations integration', () => {
       const pos2 = pos1 + word1Length; // Start of "world"
       const word2Length = 5; // "world" length
 
-      const mark = schema.mark('suggestion_add', {
+      const mark = schema.mark('suggestion_insert', {
         username: 'testUser',
         data: {},
       });
-      tr.setMeta(suggestionModePluginKey, {
+      tr.setMeta(suggestionTransactionKey, {
         suggestionOperation: true,
       });
       tr.addMark(pos1, pos1 + word1Length, mark);
@@ -155,19 +155,19 @@ describe('decorations integration', () => {
       // Add suggestion marks to two adjacent words with different usernames
       const tr = view.state.tr;
       const pos1 = 1; // Start of paragraph content
-      const word1Length = 5; // "Hello" length
-      const pos2 = pos1 + word1Length; // Start of "world"
+      const word1Length = 5; // "Hello " length
+      const pos2 = pos1 + word1Length + 1; // Start of "world"
       const word2Length = 5; // "world" length
 
-      const mark1 = schema.mark('suggestion_add', {
-        username: 'testUser1',
+      const mark1 = schema.mark('suggestion_insert', {
+        username: 'tom',
         data: {},
       });
-      const mark2 = schema.mark('suggestion_add', {
-        username: 'testUser2',
+      const mark2 = schema.mark('suggestion_insert', {
+        username: 'jerry',
         data: {},
       });
-      tr.setMeta(suggestionModePluginKey, {
+      tr.setMeta(suggestionTransactionKey, {
         suggestionOperation: true,
       });
       tr.addMark(pos1, pos1 + word1Length, mark1);
@@ -182,7 +182,6 @@ describe('decorations integration', () => {
 
       // Get all decorations
       const decorationsArray = decorationSet.find();
-
       // Filter for widget decorations that have hover in their key
       // Widget decorations have from === to and a spec.key
       const hoverWidgets = decorationsArray.filter(

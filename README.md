@@ -1,5 +1,7 @@
 # ProseMirror Suggestion Mode
 
+**Status** WIP, still known issues in a few scenarios
+
 A ProseMirror plugin that implements a "suggestion mode" method to track and show changes similar to Google Docs and Word. This plugin allows users to make suggested edits that can be reviewed, accepted, or rejected later.
 
 ## Demo
@@ -49,7 +51,7 @@ const exampleSchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, 'paragraph block*', 'block'),
 
   // When creating your schema, wrap the marks in the addSuggestionMarks function
-  // this will add the needed suggestion_add and suggestion_delete marks to the schema
+  // this will add the needed suggestion_insert and suggestion_delete marks to the schema
   marks: addSuggestionMarks(schema.spec.marks),
 });
 ```
@@ -180,16 +182,29 @@ rejectAllSuggestions(view.state, view.dispatch);
 
 ### Change the username or data
 
-To change the username and data that will get stored in the suggestion mark attributes you can do:
+To change the username and data that will get stored in the suggestion mark attributes you can change defaults at the global Plugin level by using the _suggestionPluginKey_
 
 ```javascript
-// Change username and data
+// Set a default username and data category
 view.dispatch(
-  view.state.tr.setMeta(suggestionModePluginKey, {
+  view.state.tr.setMeta(suggestionPluginKey, {
     username: 'JaneSmith',
     data: {
-      reason: 'if you want to explain it',
       category: 'content',
+    },
+  })
+);
+```
+
+and override these global defaults per transaction with the _suggestionModeTransactionKey_
+
+```javascript
+// Setting specific metadata to override defaults for this specific transaction
+view.dispatch(
+  view.state.tr.setMeta(suggestionPluginKey, {
+    data: {
+      reason: 'some reason for this specific change',
+      date: '03-25-25',
     },
   })
 );

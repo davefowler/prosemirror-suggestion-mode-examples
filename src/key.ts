@@ -1,4 +1,4 @@
-import { PluginKey } from "prosemirror-state";
+import { PluginKey } from 'prosemirror-state';
 
 // Define interfaces for plugin state
 export interface SuggestionModePluginState {
@@ -8,7 +8,11 @@ export interface SuggestionModePluginState {
   skipHandleTextInput?: boolean;
 }
 
-// Plugin key for accessing the plugin state
-export const suggestionModePluginKey = new PluginKey<SuggestionModePluginState>(
-  "suggestions"
+// For global state
+export const suggestionPluginKey = new PluginKey<SuggestionModePluginState>(
+  'suggestion-mode'
 );
+
+// For transaction-only hints - will temporarily override the global state
+export const suggestionTransactionKey =
+  new PluginKey<SuggestionModePluginState>('suggestion-mode-transaction');

@@ -10,13 +10,13 @@ import {
   rejectAllSuggestions,
   toggleSuggestionMode,
 } from '../commands';
-import { suggestionModePluginKey } from '../key';
+import { suggestionPluginKey } from '../key';
 
 const hasSuggestions = (state: EditorState): boolean => {
   let found = false;
   state.doc.descendants((node) => {
     if (
-      node.marks.some((mark) => mark.type.name === 'suggestion_add') ||
+      node.marks.some((mark) => mark.type.name === 'suggestion_insert') ||
       node.marks.some((mark) => mark.type.name === 'suggestion_delete')
     ) {
       found = true;
@@ -33,7 +33,7 @@ export const getSuggestionMenuItems = () => [
     label: '✏️ Suggestions',
     enable: () => true,
     active(state) {
-      const pluginState = suggestionModePluginKey.getState(state);
+      const pluginState = suggestionPluginKey.getState(state);
       return pluginState?.inSuggestionMode || false;
     },
     run: toggleSuggestionMode,

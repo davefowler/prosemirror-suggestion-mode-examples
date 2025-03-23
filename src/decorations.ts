@@ -85,9 +85,11 @@ export function createDecorations(
   };
 
   state.doc.descendants((node, pos, parent, index) => {
+    if (node.type.name !== 'text') return; // only look at text nodes
     const suggestionMark = node.marks.find(
       (m) =>
-        m.type.name === 'suggestion_add' || m.type.name === 'suggestion_delete'
+        m.type.name === 'suggestion_insert' ||
+        m.type.name === 'suggestion_delete'
     );
 
     if (!suggestionMark && !groupStart) return;

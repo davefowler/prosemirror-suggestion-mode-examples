@@ -1,22 +1,30 @@
 # Release Notes
 
-
 ## TODO's yet [see issues for more](https://github.com/davefowler/prosemirror-suggestion-mode/issues)
 
- - handle overlapping suggestions from multiple users
- - applySuggestion only works for text matching - a more advanced way would be great.
+- handle overlapping suggestions from multiple users
+- applySuggestion only works for text matching - a more advanced way would be great.
+- hover decorations should cross blocks
+
+## next release
+
+- both plugin and transaction level meta setting
+- porting tests to prosemirror-test-builder
+- fix empty edge cases for applySuggestion functions
+- better ReplaceAround behavior
+- cross-block deletes working, even with 1 char paragraph deletes
 
 ## 1.0.32
 
- - remove prosemirror-menu as a dependency
- - fixed undo/redo 
- - improved multi-transaction per dispatch handling
+- remove prosemirror-menu as a dependency
+- fixed undo/redo
+- improved multi-transaction per dispatch handling
 
 ## 1.0.30
 
- - fixed issue with deletes across blocks (open ended)
- - handles multiple transactions in a dispatch
- - fixed replaceAround offset issue
+- fixed issue with deletes across blocks (open ended)
+- handles multiple transactions in a dispatch
+- fixed replaceAround offset issue
 
 ## 1.0.21
 
@@ -24,19 +32,17 @@ Big rewrite here as the previous versions only supported the ReplaceStep and onl
 
 Overall this release enables a lot more functionality while increasing simplicity, mostly by following better (more elegant) prosemirror practices
 
- - support all transaction step types - ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
- - replacing slices, not textContent - maintaining any markup in changes
- - all helper functions moved to be prosemirror commands
- - test cases for new step types and edge cases
- - 'basic' example using the prosemirror-example-setup with a toolbar, undo/redo and many formatting options
- - more proper use of prosemirror mark properties and functions like inclusive and 
- - simplified the hover menu to a single decorator widget
- - integrated add/reject buttons into toolbar
- - paragraph pastes working
- - accept and reject suggestion commands are now range based
- - improved hover menus with option to disable
-
-  
+- support all transaction step types - ReplaceStep, AddMarkStep, RemoveMarkStep, ReplaceAroundStep
+- replacing slices, not textContent - maintaining any markup in changes
+- all helper functions moved to be prosemirror commands
+- test cases for new step types and edge cases
+- 'basic' example using the prosemirror-example-setup with a toolbar, undo/redo and many formatting options
+- more proper use of prosemirror mark properties and functions like inclusive and
+- simplified the hover menu to a single decorator widget
+- integrated add/reject buttons into toolbar
+- paragraph pastes working
+- accept and reject suggestion commands are now range based
+- improved hover menus with option to disable
 
 ## 1.0.16
 

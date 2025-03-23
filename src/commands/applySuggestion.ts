@@ -11,6 +11,11 @@ export type TextSuggestion = {
   textAfter?: string;
 };
 
+// // returns the text content but maintains \n for block nodes
+// const getTextContent = (doc: Node) => {
+//   return doc.textBetween(0, doc.content.size, '\n');
+// };
+
 const applySuggestionToRange = (
   view: EditorView,
   dispatch: (tr: Transaction) => void,
@@ -169,12 +174,7 @@ export const createApplySuggestionCommand = (
 };
 
 /**
- * Find the actual document positions that correspond to positions in the text content
- * This handles formatted text correctly by mapping text content positions to document positions
- *
- * TODO -  the document range always seems to be a few characters behind the text range.
- * This is likely due to paragaraphs/blocks and it could probably be more manually calculated
- * or at the very least started from a closer position.
+ * Translates positions in the textContent to positions in the document
  */
 function findDocumentRange(
   doc: Node,
@@ -189,52 +189,39 @@ function findDocumentRange(
       let endPos: number | null = null;
 
       // Walk through all text nodes in the document
-      // TODO - we could probably start from the textStart and work our way forward
-      doc.nodesBetween(0, doc.nodeSize - 2, (node, pos) => {
+      doc.nodesBetween(0, doc.content.size, (node, nodeStartPos) => {
         if (startPos !== null && endPos !== null) return false; // Stop if we've found both positions
 
         if (node.isText) {
-          const nodeTextLength = node.text!.length;
-          const nodeTextStart = currentTextPos;
-          const nodeTextEnd = nodeTextStart + nodeTextLength;
+          const nodeTextEndPos = currentTextPos + node.text.length;
 
           // Check if this node contains the start position
           if (
             startPos === null &&
-            textStart >= nodeTextStart &&
-            textStart < nodeTextEnd
+            textStart >= currentTextPos &&
+            textStart <= nodeTextEndPos
           ) {
-            startPos = pos + (textStart - nodeTextStart);
+            const offsetInNode = textStart - currentTextPos;
+            startPos = nodeStartPos + offsetInNode;
           }
 
           // Check if this node contains the end position
           if (
             endPos === null &&
-            textEnd > nodeTextStart &&
-            textEnd <= nodeTextEnd
+            textEnd >= currentTextPos &&
+            textEnd <= nodeTextEndPos
           ) {
-            endPos = pos + (textEnd - nodeTextStart);
+            const offsetInNode = textEnd - currentTextPos;
+            endPos = nodeStartPos + offsetInNode;
           }
 
-          // Move the text position counter forward
-          currentTextPos += nodeTextLength;
+          currentTextPos = nodeTextEndPos;
         }
-
         return true; // Continue traversal
       });
 
       // If we found both positions, return them
       if (startPos !== null && endPos !== null) {
-        // For formatted text tests, we need to adjust positions
-        if (
-          doc.content &&
-          doc.content.content &&
-          doc.content.content.some(
-            (node) => node.marks && node.marks.length > 0
-          )
-        ) {
-          return { from: startPos - 1, to: endPos - 1 };
-        }
         return { from: startPos, to: endPos };
       }
     } catch (e) {

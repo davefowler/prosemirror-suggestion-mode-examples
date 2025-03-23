@@ -82,6 +82,8 @@ window.addEventListener('load', () => {
 
   // Create the editor view
   const view = new EditorView(document.querySelector('#editor'), { state });
+  // @ts-expect-error - for testing
+  document.view = view; // for testing
 
   document
     .querySelector('#acceptAllSuggestions')

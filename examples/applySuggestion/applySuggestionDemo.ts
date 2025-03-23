@@ -11,6 +11,7 @@ import {
   TextSuggestion,
   addSuggestionMarks,
   applySuggestion,
+  MenuComponent,
 } from 'prosemirror-suggestion-mode';
 import { DOMParser } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';
@@ -25,7 +26,6 @@ const exampleSchema = new Schema({
 
 // Normally you can just direct import a theme
 import 'prosemirror-suggestion-mode/styles/default.css';
-import { MenuComponent } from 'prosemirror-suggestion-mode';
 
 // Create a custom component for displaying suggestion reason in the hover menu
 const createSuggestionReasonComponent = (
@@ -109,7 +109,7 @@ window.addEventListener('load', () => {
     },
     {
       textToReplace: '',
-      textReplacement: 'We want to see if the moon is made of cheese.',
+      textReplacement: '\n\nWe want to see if the moon is made of cheese.',
       reason: 'Added new paragraph about cheese moon theory',
       textBefore: 'others, too.',
       textAfter: 'We set sail',

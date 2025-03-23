@@ -5,6 +5,10 @@
 - handle overlapping suggestions from multiple users
 - applySuggestion only works for text matching - a more advanced way would be great.
 
+## next release
+
+ - supports esm modules
+
 ## 1.0.38
 
 - both plugin and transaction level meta setting

@@ -1,7 +1,14 @@
-const path = require('path');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 
-module.exports = {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export default {
+  experiments: {
+    outputModule: true,
+  },
   entry: {
     'examples/simple/simple': './examples/simple/simple.ts',
     'examples/applySuggestion/applySuggestionDemo':
@@ -11,6 +18,9 @@ module.exports = {
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
+    library: {
+      type: 'module'
+    }
   },
   resolve: {
     extensions: ['.ts', '.js'],

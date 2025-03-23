@@ -20,7 +20,6 @@ import {
 import { createDecorations } from './decorations';
 import { initSuggestionHoverListeners } from './menus/hoverHandlers';
 import { findNonStartingPos } from './helpers/nodePosition';
-import { Slice, Fragment } from 'prosemirror-model';
 
 type AnyStep = ReplaceStep | AddMarkStep | RemoveMarkStep | ReplaceAroundStep;
 // Plugin options interface

@@ -9,7 +9,6 @@ interface MarkedRange {
   to: number;
 }
 
-// TODO - look for groups (share code with decorations) and find nodes that get passed up
 // remove those non-text nodes that are inside the group
 // Helper to find all suggestion marks and their boundaries in a range
 const findSuggestionsInRange = (

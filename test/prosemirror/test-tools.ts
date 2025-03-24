@@ -141,6 +141,18 @@ describe('applySuggestion tool tests', () => {
     );
   });
 
+  test('it should apply if the content is all whitespace', () => {
+    testApplySuggestion(
+      doc(p('\u200B')),
+      {
+        textToReplace: '',
+        textReplacement: 'works with zero space text',
+      },
+      'works with zero space text\u200B',
+      true
+    );
+  });
+
   test('command should support dry run mode', () => {
     // First test dry run mode - should check if applicable without applying
     const view = testApplySuggestion(

@@ -131,7 +131,7 @@ describe('accept-reject functions', () => {
 
       // Should set meta to mark this as a suggestion operation
       expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
-        suggestionOperation: true,
+        skipSuggestionOperation: true,
       });
 
       // Should remove the mark but not delete the text
@@ -147,7 +147,7 @@ describe('accept-reject functions', () => {
 
       // Should set meta to mark this as a suggestion operation
       expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
-        suggestionOperation: true,
+        skipSuggestionOperation: true,
       });
 
       // Should delete the text (not just remove the mark)
@@ -165,7 +165,7 @@ describe('accept-reject functions', () => {
 
       // Should set meta to mark this as a suggestion operation
       expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
-        suggestionOperation: true,
+        skipSuggestionOperation: true,
       });
 
       // Should delete the text
@@ -181,7 +181,7 @@ describe('accept-reject functions', () => {
 
       // Should set meta to mark this as a suggestion operation
       expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
-        suggestionOperation: true,
+        skipSuggestionOperation: true,
       });
 
       // Should remove the mark but not delete the text
@@ -199,7 +199,7 @@ describe('accept-reject functions', () => {
 
       // Should set meta to mark this as a suggestion operation
       expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
-        suggestionOperation: true,
+        skipSuggestionOperation: true,
       });
 
       // Should process both marks appropriately
@@ -217,7 +217,7 @@ describe('accept-reject functions', () => {
 
       // Should set meta to mark this as a suggestion operation
       expect(mockTr.setMeta).toHaveBeenCalledWith(suggestionTransactionKey, {
-        suggestionOperation: true,
+        skipSuggestionOperation: true,
       });
 
       // Should process both marks appropriately

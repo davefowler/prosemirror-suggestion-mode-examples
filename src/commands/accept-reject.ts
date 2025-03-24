@@ -50,7 +50,7 @@ const processSuggestionsInRange = (
     if (!suggestions.length || !dispatch) return false;
 
     const tr = state.tr;
-    tr.setMeta(suggestionTransactionKey, { suggestionOperation: true });
+    tr.setMeta(suggestionTransactionKey, { skipSuggestionOperation: true });
 
     // Process all marks in the range
     suggestions.forEach(({ mark, from: originalFrom, to: originalTo }) => {

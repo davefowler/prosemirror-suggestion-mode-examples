@@ -92,7 +92,7 @@ export const suggestionModePlugin = (
         // If we're not in suggestion mode do nothing
         if (!meta.inSuggestionMode) return;
         // if this is a transaction that we created in this plugin, ignore it
-        if (meta && meta.suggestionOperation) return;
+        if (meta && meta.skipSuggestionOperation) return;
 
         const username = meta.username;
 
@@ -120,9 +120,9 @@ export const suggestionModePlugin = (
             // TODO this extrainsertchars is wrong
             addedSliceSize = step.gapTo - step.gapFrom + step.slice.size;
           }
-          // Mark our next transactions as  internal suggestion operation so it won't be intercepted again
+          // Mark our next transactions as an internal suggestion operation so it won't be intercepted again
           tr.setMeta(suggestionTransactionKey, {
-            suggestionOperation: true,
+            skipSuggestionOperation: true,
           });
 
           // Check if we're inside an existing suggestion mark

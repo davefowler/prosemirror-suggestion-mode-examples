@@ -26,6 +26,7 @@ const applySuggestionToRange = (
     inSuggestionMode: true,
     data: newData,
     username,
+    skipSuggestionOperation: false,
   });
 
   tr.replaceWith(from, to, view.state.schema.text(suggestion.textReplacement));

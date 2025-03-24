@@ -131,14 +131,12 @@ describe('applySuggestion tool tests', () => {
       true
     );
 
-    expect(view.state.tr.getMeta(suggestionTransactionKey)?.data?.reason).toBe(
-      'we want to say hi to the world'
-    );
-    // check that it's a data attr on the suggestion_add
-    const suggestionAdd = view.state.doc.descendants(
-      (node) => node.type.name === 'suggestion_add'
-    )[0];
-    expect(suggestionAdd.attrs.data.reason).toBe(
+    // check that the reason is a data attr on the suggestion_insert mark
+    const pos14$ = view.state.doc.resolve(14);
+    const suggestionAddMark = pos14$
+      .marks()
+      .find((mark) => mark.type.name === 'suggestion_insert');
+    expect(suggestionAddMark?.attrs.data.reason).toBe(
       'we want to say hi to the world'
     );
   });

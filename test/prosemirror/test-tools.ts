@@ -3,6 +3,7 @@ import {
   applySuggestion,
   TextSuggestion,
   createApplySuggestionCommand,
+  suggestionTransactionKey,
 } from '../../src';
 import {
   doc,
@@ -115,6 +116,30 @@ describe('applySuggestion tool tests', () => {
       },
       'new text',
       true
+    );
+  });
+
+  test('it should apply a reason if provided', () => {
+    const view = testApplySuggestion(
+      doc(p('hello there')),
+      {
+        textToReplace: 'there',
+        textReplacement: 'world',
+        reason: 'we want to say hi to the world',
+      },
+      'hello thereworld',
+      true
+    );
+
+    expect(view.state.tr.getMeta(suggestionTransactionKey)?.data?.reason).toBe(
+      'we want to say hi to the world'
+    );
+    // check that it's a data attr on the suggestion_add
+    const suggestionAdd = view.state.doc.descendants(
+      (node) => node.type.name === 'suggestion_add'
+    )[0];
+    expect(suggestionAdd.attrs.data.reason).toBe(
+      'we want to say hi to the world'
     );
   });
 

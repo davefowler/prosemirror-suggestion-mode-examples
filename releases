@@ -7,7 +7,8 @@
 
 ## next release
 
- - supports esm modules
+- supports esm modules
+- inserts with no matching strings now trim before checking doc text length
 
 ## 1.0.38
 

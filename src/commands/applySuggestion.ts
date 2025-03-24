@@ -67,7 +67,7 @@ export const createApplySuggestionCommand = (
     const searchText = textBefore + textToReplace + textAfter;
     if (searchText.length === 0) {
       // No text to match - can only apply to empty doc
-      if (state.doc.textContent.length > 0) {
+      if (state.doc.textContent.trim().replace(/\u200B/g, '').length > 0) {
         return false;
       }
 

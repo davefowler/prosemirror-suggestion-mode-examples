@@ -100,8 +100,6 @@ describe('applySuggestion tool tests', () => {
       doc(p('non empty document')),
       {
         textToReplace: '',
-        textBefore: '',
-        textAfter: '',
         textReplacement: 'new text',
       },
       'non empty document',
@@ -113,8 +111,6 @@ describe('applySuggestion tool tests', () => {
       doc(p('')),
       {
         textToReplace: '',
-        textBefore: '',
-        textAfter: '',
         textReplacement: 'new text',
       },
       'new text',

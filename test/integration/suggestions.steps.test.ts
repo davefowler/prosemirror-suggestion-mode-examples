@@ -7,7 +7,7 @@ import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
 import { addSuggestionMarks } from '../../src/schema';
-import { acceptAllSuggestions } from '../../src/commands/accept-reject';
+import { acceptAllSuggestions } from '../../src';
 import { ReplaceStep } from 'prosemirror-transform';
 import { getMarkString, hasMarkAtPosition } from '../helpers/markHelpers';
 

@@ -1,4 +1,4 @@
-import { applySuggestion, TextSuggestion } from '../../src/commands';
+import { applySuggestion, TextSuggestion } from '../../src';
 import { EditorView } from 'prosemirror-view';
 import { EditorState, Plugin, Transaction } from 'prosemirror-state';
 import { Schema } from 'prosemirror-model';

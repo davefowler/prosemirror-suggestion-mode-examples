@@ -6,7 +6,7 @@ import {
   rejectSuggestionsInRange,
   acceptAllSuggestions,
   rejectAllSuggestions,
-} from '../../src/commands/accept-reject';
+} from '../../src';
 
 // Mock dependencies
 jest.mock('prosemirror-view');

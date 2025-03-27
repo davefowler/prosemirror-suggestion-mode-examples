@@ -9,6 +9,7 @@ export * from './commands/accept-reject';
 export * from './commands/setMode';
 export * from './commands/applySuggestion';
 export * from './menus/hoverMenu';
+export { getSuggestionMenuItems } from './menus/menuBar';
 
 // Schema
 export { addSuggestionMarks } from './schema';

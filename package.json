@@ -1,11 +1,12 @@
 {
   "name": "prosemirror-suggestion-mode",
-  "version": "1.0.48",
+  "version": "1.0.49",
   "description": "ProseMirror extension for suggestion/track changes mode",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "styles"
   ],
   "scripts": {
     "test": "jest",
@@ -17,7 +18,7 @@
     "start": "webpack serve --mode development",
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production",
-    "build:lib": "tsc -p tsconfig.lib.json",
+    "build:lib": "tsc -p tsconfig.lib.json && npm run copy-styles",
     "build:examples": "webpack --mode production",
     "prepare": "pm-buildhelper src/index.ts",
     "prepublishOnly": "npm test",
@@ -28,7 +29,8 @@
     "test:ist": "pm-runtests",
     "test:ist:watch": "node --loader ts-node/esm --test --watch test/test-builder/*.test.ts",
     "test:jest": "jest",
-    "test:all": "npm run test"
+    "test:all": "npm run test",
+    "copy-styles": "mkdir -p dist/styles && cp -r src/styles/* dist/styles/"
   },
   "peerDependencies": {
     "prosemirror-model": "^1.0.0",

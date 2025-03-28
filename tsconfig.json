@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "strict": false,
     "noImplicitAny": false,
     "esModuleInterop": true,
@@ -16,7 +16,8 @@
     "paths": {
       "prosemirror-suggestion-mode/*": ["src/*"],
       "prosemirror-suggestion-mode": ["src"]
-    }
+    },
+    "rootDir": "."
   },
   "include": ["src/**/*", "examples/**/*"],
   "exclude": ["node_modules"]

@@ -1,8 +1,5 @@
 import { EditorView } from 'prosemirror-view';
-import {
-  setSuggestionMode,
-  toggleSuggestionMode,
-} from '../../src/commands/setMode';
+import { setSuggestionMode, toggleSuggestionMode } from '../../src';
 import { suggestionPluginKey } from '../../src/key';
 // Mock dependencies
 jest.mock('prosemirror-view');

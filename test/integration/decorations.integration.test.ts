@@ -133,7 +133,7 @@ describe('decorations integration', () => {
         data: {},
       });
       tr.setMeta(suggestionTransactionKey, {
-        suggestionOperation: true,
+        skipSuggestionOperation: true,
       });
       tr.addMark(pos1, pos1 + word1Length, mark);
       tr.addMark(pos2, pos2 + word2Length, mark);
@@ -168,7 +168,7 @@ describe('decorations integration', () => {
         data: {},
       });
       tr.setMeta(suggestionTransactionKey, {
-        suggestionOperation: true,
+        skipSuggestionOperation: true,
       });
       tr.addMark(pos1, pos1 + word1Length, mark1);
       tr.addMark(pos2, pos2 + word2Length, mark2);

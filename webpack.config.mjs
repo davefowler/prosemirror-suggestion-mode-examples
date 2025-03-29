@@ -19,11 +19,14 @@ export default {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
     library: {
-      type: 'module'
-    }
+      type: 'module',
+    },
   },
   resolve: {
     extensions: ['.ts', '.js'],
+    extensionAlias: {
+      '.js': ['.js', '.ts'],
+    },
     alias: {
       // Create aliases so examples can find the source files but also work for npm users
       'prosemirror-suggestion-mode': path.resolve(__dirname, 'src'),

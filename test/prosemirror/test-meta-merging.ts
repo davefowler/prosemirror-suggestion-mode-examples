@@ -1,14 +1,9 @@
-import {
-  doc,
-  p,
-  createEditorState,
-  createEditorView,
-} from '../helpers/builderWithPlugin';
+import { doc, p, createEditorState } from '../helpers/builderWithPlugin';
 
 import { EditorView } from 'prosemirror-view';
-import { setSuggestionModeCommand } from '../../src/commands/setMode';
+import { setSuggestionModeCommand } from '../../src';
 import { suggestionPluginKey } from '../../src/key';
-import { applySuggestion } from '../../src/commands/applySuggestion';
+import { applySuggestion } from '../../src';
 
 describe('Suggestion Mode State Tests', () => {
   it('should maintain suggestion mode state after a transaction with meta', () => {

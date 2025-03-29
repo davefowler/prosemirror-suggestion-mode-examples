@@ -9,7 +9,7 @@ import {
   acceptAllSuggestions,
   rejectAllSuggestions,
   toggleSuggestionMode,
-} from '../commands';
+} from '../';
 import { suggestionPluginKey } from '../key';
 
 const hasSuggestions = (state: EditorState): boolean => {

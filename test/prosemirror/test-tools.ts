@@ -3,6 +3,7 @@ import {
   applySuggestion,
   TextSuggestion,
   createApplySuggestionCommand,
+  suggestionTransactionKey,
 } from '../../src';
 import {
   doc,
@@ -100,8 +101,6 @@ describe('applySuggestion tool tests', () => {
       doc(p('non empty document')),
       {
         textToReplace: '',
-        textBefore: '',
-        textAfter: '',
         textReplacement: 'new text',
       },
       'non empty document',
@@ -113,11 +112,43 @@ describe('applySuggestion tool tests', () => {
       doc(p('')),
       {
         textToReplace: '',
-        textBefore: '',
-        textAfter: '',
         textReplacement: 'new text',
       },
       'new text',
+      true
+    );
+  });
+
+  test('it should apply a reason if provided', () => {
+    const view = testApplySuggestion(
+      doc(p('hello there')),
+      {
+        textToReplace: 'there',
+        textReplacement: 'world',
+        reason: 'we want to say hi to the world',
+      },
+      'hello thereworld',
+      true
+    );
+
+    // check that the reason is a data attr on the suggestion_insert mark
+    const pos14$ = view.state.doc.resolve(14);
+    const suggestionAddMark = pos14$
+      .marks()
+      .find((mark) => mark.type.name === 'suggestion_insert');
+    expect(suggestionAddMark?.attrs.data.reason).toBe(
+      'we want to say hi to the world'
+    );
+  });
+
+  test('it should apply if the content is all whitespace', () => {
+    testApplySuggestion(
+      doc(p('\u200B')),
+      {
+        textToReplace: '',
+        textReplacement: 'works with zero space text',
+      },
+      'works with zero space text\u200B',
       true
     );
   });

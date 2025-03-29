@@ -1,14 +1,15 @@
 import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { suggestionModePlugin } from 'prosemirror-suggestion-mode';
-import { getSuggestionMenuItems } from 'prosemirror-suggestion-mode/menus/menuBar';
-import { addSuggestionMarks } from 'prosemirror-suggestion-mode/schema';
+import {
+  suggestionModePlugin,
+  addSuggestionMarks,
+  getSuggestionMenuItems,
+} from 'prosemirror-suggestion-mode';
 import { DOMParser } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';
 import { addListNodes } from 'prosemirror-schema-list';
 import { Schema } from 'prosemirror-model';
 import { exampleSetup, buildMenuItems } from 'prosemirror-example-setup';
-import { MenuItem } from 'prosemirror-menu';
 
 // Import a theme for the suggestions
 import 'prosemirror-view/style/prosemirror.css';

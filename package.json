@@ -1,34 +1,20 @@
 {
   "name": "prosemirror-suggestion-mode",
-  "version": "1.0.43",
+  "version": "1.0.62",
   "description": "ProseMirror extension for suggestion/track changes mode",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
     "test": "jest",
-    "test:watch": "jest --watch",
-    "test:memory": "node --expose-gc --max-old-space-size=4096 node_modules/.bin/jest",
-    "test:debug": "jest --runInBand --no-cache --detectOpenHandles --testTimeout=10000",
-    "test:unit": "jest test/unit --runInBand",
-    "test:tools": "jest test/unit/tools.test.ts --no-coverage --runInBand",
     "start": "webpack serve --mode development",
     "dev": "webpack serve --mode development",
-    "build": "webpack --mode production",
-    "build:lib": "tsc -p tsconfig.lib.json",
-    "build:examples": "webpack --mode production",
-    "prepare": "pm-buildhelper src/index.ts",
-    "prepublishOnly": "npm test",
-    "update-imports": "node update-imports.js",
-    "deploy:netlify": "npm run build:examples && netlify deploy",
-    "deploy:netlify:prod": "npm run build:examples && netlify deploy --prod",
-    "deploy": "npm run build:examples && netlify deploy --prod",
-    "test:ist": "pm-runtests",
-    "test:ist:watch": "node --loader ts-node/esm --test --watch test/test-builder/*.test.ts",
-    "test:jest": "jest",
-    "test:all": "npm run test"
+    "build": "webpack --mode production && tsc -p tsconfig.lib.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test"
   },
   "peerDependencies": {
     "prosemirror-model": "^1.0.0",
@@ -76,5 +62,14 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "type": "module"
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./styles/*": "./dist/styles/*",
+    "./schema": "./dist/schema.js"
+  },
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  }
 }

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'jsdom',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],

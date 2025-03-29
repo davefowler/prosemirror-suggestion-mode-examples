@@ -1,6 +1,6 @@
 {
   "name": "prosemirror-suggestion-mode",
-  "version": "1.0.60",
+  "version": "1.0.61",
   "description": "ProseMirror extension for suggestion/track changes mode",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -21,7 +21,7 @@
     "build": "webpack --mode production",
     "build:lib": "tsc -p tsconfig.lib.json && npm run copy-styles",
     "build:examples": "webpack --mode production",
-    "prepare": "pm-buildhelper src/index.ts",
+    "prepare": "npm run build:lib",
     "prepublishOnly": "npm test",
     "update-imports": "node update-imports.js",
     "deploy:netlify": "npm run build:examples && netlify deploy",

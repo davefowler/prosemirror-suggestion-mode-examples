@@ -1,8 +1,15 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "es2015",
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "rootDir": ".",
+    "paths": {
+      "prosemirror-suggestion-mode": ["./src"],
+      "prosemirror-suggestion-mode/*": ["./src/*"]
+    },
+    "declaration": true,
     "strict": false,
     "noImplicitAny": false,
     "esModuleInterop": true,
@@ -11,14 +18,8 @@
     "outDir": "./dist",
     "sourceMap": true,
     "lib": ["dom", "dom.iterable", "esnext"],
-    "types": ["jest", "node"],
-    "baseUrl": ".",
-    "paths": {
-      "prosemirror-suggestion-mode/*": ["src/*"],
-      "prosemirror-suggestion-mode": ["src"]
-    },
-    "rootDir": "."
+    "types": ["jest", "node"]
   },
   "include": ["src/**/*", "examples/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }

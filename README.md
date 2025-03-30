@@ -216,10 +216,6 @@ The `data` attribute can contain any JSON-serializable object. This data will be
 
 You can customize the content and appearance of suggestion hover menu by either overwritting a component of the default hover menu, or by providing your own full hover menu renderer.
 
-See the examples for more details:
-
-- [SuggestEdit Example](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/examples/suggestEdit/suggestEditDemo.ts) - puts 'reasons' in the hover menu [demo](https://prosemirror-suggestion-mode.netlify.app/examples/suggestedit/)
-- [Ink & Switch Example ](https://github.com/davefowler/prosemirror-suggestion-mode/blob/main/examples/inkAndSwitch/inkAndSwitch.ts) - hides the deletes and shows what was deleted only on hover [demo](https://prosemirror-suggestion-mode.netlify.app/examples/inkandswitch/)
 
 #### CSS Styling
 

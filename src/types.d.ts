@@ -1,8 +1,8 @@
 // Type definitions for ProseMirror extensions
-import { EditorView } from "prosemirror-view";
-import { Mark, Node, MarkSpec } from "prosemirror-model";
+import { EditorView } from 'prosemirror-view';
+import { Mark, Node, MarkSpec } from 'prosemirror-model';
 
-declare module "prosemirror-view" {
+declare module 'prosemirror-view' {
   interface EditorProps {
     handleTextInput?: (
       view: EditorView,
@@ -30,7 +30,7 @@ interface InputEvent extends UIEvent {
 }
 
 // Extend Selection constructor
-declare module "prosemirror-state" {
+declare module 'prosemirror-state' {
   interface Selection {
     constructor: {
       create(doc: Node, pos: number): Selection;
@@ -39,31 +39,26 @@ declare module "prosemirror-state" {
 }
 
 // Extend MarkSpec to allow any return type from toDOM
-declare module "prosemirror-model" {
+declare module 'prosemirror-model' {
   interface MarkSpec {
     toDOM?: (node?: any) => any;
   }
 }
 
 // Module declarations for webpack alias
-declare module "prosemirror-suggestion-mode" {
-  export * from "./index";
+declare module 'prosemirror-suggestion-mode' {
+  export * from './index';
 }
 
-declare module "prosemirror-suggestion-mode/suggestions" {
-  export * from "./suggestions";
+declare module 'prosemirror-suggestion-mode/suggestions' {
+  export * from './suggestions';
 }
 
-declare module "prosemirror-suggestion-mode/schema" {
-  export * from "./schema";
+declare module 'prosemirror-suggestion-mode/schema' {
+  export * from './schema';
 }
 
-declare module "prosemirror-suggestion-mode/styles/default.css" {
-  const content: any;
-  export default content;
-}
-
-declare module "prosemirror-suggestion-mode/styles/inkAndSwitch.css" {
+declare module 'prosemirror-suggestion-mode/styles/default.css' {
   const content: any;
   export default content;
 }

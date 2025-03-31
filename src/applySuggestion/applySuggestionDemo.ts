@@ -25,7 +25,7 @@ const exampleSchema = new Schema({
 });
 
 // Normally you can just direct import a theme
-import 'prosemirror-suggestion-mode/styles/default.css';
+import 'prosemirror-suggestion-mode/style/suggestion-mode.css';
 
 // Create a custom component for displaying suggestion reason in the hover menu
 const createSuggestionReasonComponent = (

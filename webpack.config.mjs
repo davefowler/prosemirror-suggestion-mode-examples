@@ -1,65 +1,38 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import CopyWebpackPlugin from 'copy-webpack-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default {
-  experiments: {
-    outputModule: true,
-  },
   entry: {
-    'examples/simple/simple': './examples/simple/simple.ts',
-    'examples/applySuggestion/applySuggestionDemo':
-      './examples/applySuggestion/applySuggestionDemo.ts',
-    'examples/basic/basic': './examples/basic/basic.ts',
+    simple: './src/simple/simple.ts',
+    applySuggestion: './src/applySuggestion/applySuggestionDemo.ts',
+    basic: './src/basic/basic.ts',
   },
   output: {
-    filename: '[name].js',
+    filename: '[name]/[name].js',
     path: path.resolve(__dirname, 'dist'),
-    library: {
-      type: 'module',
-    },
+    clean: true,
   },
   resolve: {
-    extensions: ['.ts', '.js'],
-    extensionAlias: {
-      '.js': ['.js', '.ts'],
-    },
-    alias: {
-      // Create aliases so examples can find the source files but also work for npm users
-      'prosemirror-suggestion-mode': path.resolve(__dirname, 'src'),
-    },
+    extensions: ['.ts', '.js', '.css'],
   },
-  plugins: [
-    new CopyWebpackPlugin({
-      patterns: [
-        { from: 'src/styles', to: 'styles' },
-        {
-          from: 'examples',
-          to: 'examples',
-          globOptions: {
-            ignore: ['**/*.ts'],
-          },
-        },
-        { from: 'examples/index.html', to: 'index.html' },
-      ],
-    }),
-  ],
   devServer: {
     static: {
       directory: path.join(__dirname, 'dist'),
+      watch: true,
     },
     hot: true,
     open: true,
   },
+  devtool: process.env.NODE_ENV === 'development' ? 'eval-source-map' : false,
   module: {
     rules: [
       {
         test: /\.ts$/,
-        exclude: /node_modules/,
         use: 'ts-loader',
+        exclude: /node_modules/,
       },
       {
         test: /\.css$/,
@@ -67,4 +40,15 @@ export default {
       },
     ],
   },
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: '**/index.html',
+          to: '[path][name][ext]',
+          context: 'src/',
+        },
+      ],
+    }),
+  ],
 };

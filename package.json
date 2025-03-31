@@ -2,29 +2,30 @@
   "name": "prosemirror-suggestion-mode-examples",
   "version": "0.1.0",
   "description": "Examples for prosemirror-suggestion-mode",
-  "files": [
-    "dist",
-    "styles"
-  ],
   "scripts": {
     "dev": "webpack serve --mode development",
-    "deploy": "netlify deploy"
+    "build": "webpack --mode production",
+    "deploy": "npm run build && netlify deploy --prod"
   },
   "devDependencies": {
     "@babel/core": "^7.26.9",
     "@babel/preset-env": "^7.26.9",
     "@babel/preset-typescript": "^7.26.0",
     "@prosemirror/buildhelper": "^0.1.8",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^7.1.2",
     "netlify-cli": "^17.38.1",
     "prettier": "^3.5.3",
     "prosemirror-commands": "^1.7.0",
     "prosemirror-example-setup": "^1.2.3",
     "prosemirror-history": "^1.4.1",
     "prosemirror-keymap": "^1.2.2",
+    "prosemirror-menu": "^1.2.4",
     "prosemirror-model": "^1.19.3",
     "prosemirror-schema-basic": "^1.2.3",
     "prosemirror-schema-list": "^1.5.0",
     "prosemirror-state": "^1.4.3",
+    "prosemirror-suggestion-mode": "^1.0.60",
     "prosemirror-test-builder": "^1.0.0",
     "prosemirror-transform": "^1.7.3",
     "prosemirror-view": "^1.31.7",
@@ -34,11 +35,8 @@
     "typescript": "^5.7.3",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1",
-    "prosemirror-suggestion-mode": "^1.0.60",
-    "prosemirror-menu": "^1.2.4"
+    "webpack-dev-server": "^4.15.1"
   },
-  "optionalDependencies": {},
   "engines": {
     "node": ">=14.0.0"
   },

@@ -7,6 +7,9 @@
     "build": "webpack --mode production",
     "deploy": "npm run build && netlify deploy --prod"
   },
+  "dependencies": {
+    "prosemirror-suggestion-mode": "^1.0.76"
+  },
   "devDependencies": {
     "@babel/core": "^7.26.9",
     "@babel/preset-env": "^7.26.9",
@@ -25,7 +28,6 @@
     "prosemirror-schema-basic": "^1.2.3",
     "prosemirror-schema-list": "^1.5.0",
     "prosemirror-state": "^1.4.3",
-    "prosemirror-suggestion-mode": "^1.0.60",
     "prosemirror-test-builder": "^1.0.0",
     "prosemirror-transform": "^1.7.3",
     "prosemirror-view": "^1.31.7",

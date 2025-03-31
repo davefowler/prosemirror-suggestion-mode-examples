@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Examples for prosemirror-suggestion-mode",
   "scripts": {
-    "dev": "webpack serve --mode development --watch",
+    "watch": "webpack serve --mode development --watch",
     "build": "webpack --mode production",
     "deploy": "npm run build && netlify deploy --prod"
   },

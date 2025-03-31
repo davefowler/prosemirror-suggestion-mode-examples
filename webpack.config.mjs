@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default {
   entry: {
     simple: './src/simple/simple.ts',
-    applySuggestion: './src/applySuggestion/applySuggestionDemo.ts',
+    applySuggestion: './src/applySuggestion/applySuggestion.ts',
     basic: './src/basic/basic.ts',
   },
   output: {
@@ -34,7 +34,14 @@ export default {
     rules: [
       {
         test: /\.ts$/,
-        use: 'ts-loader',
+        use: {
+          loader: 'ts-loader',
+          options: {
+            compilerOptions: {
+              sourceMap: true
+            }
+          }
+        },
         exclude: /node_modules\/(?!prosemirror-suggestion-mode)/,
       },
       {

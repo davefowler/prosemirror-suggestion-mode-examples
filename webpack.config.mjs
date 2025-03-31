@@ -27,12 +27,15 @@ export default {
     open: true,
   },
   devtool: process.env.NODE_ENV === 'development' ? 'eval-source-map' : false,
+  watchOptions: {
+    followSymlinks: true,
+  },
   module: {
     rules: [
       {
         test: /\.ts$/,
         use: 'ts-loader',
-        exclude: /node_modules/,
+        exclude: /node_modules\/(?!prosemirror-suggestion-mode)/,
       },
       {
         test: /\.css$/,

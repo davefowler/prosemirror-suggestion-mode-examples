@@ -17,6 +17,4 @@ npm run dev
 
 ## Deploying to netlify
 
-```bash
-npm run deploy
-```
+Just push it and netlify is syncing with this repo
